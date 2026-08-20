@@ -33,16 +33,14 @@
         <div id="game"></div>
     </div>
 
-    <!-- Script de Configuração Otimizado -->
+    <!-- Script com núcleo FBNeo (Leve e altamente compatível) -->
     <script type="text/javascript">
         EJS_player = '#game';
-        EJS_core = 'mame2000'; // Alterado para mame2000 (muito mais leve)
-        EJS_gameUrl = 'rygar.zip'; // Certifique-se de que o nome da sua ROM está correto aqui
+        EJS_core = 'fbneo'; // Trocado para FinalBurn Neo
+        EJS_gameUrl = 'rygar.zip'; // Nome do arquivo .zip no GitHub
         EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
         
-        // Configurações para remover a lentidão
-        EJS_smooth = false; // Desativa suavização pesada da imagem
-        EJS_threads = false; // Melhora a estabilidade no navegador
+        EJS_smooth = false; // Desativa o filtro pesado para ganhar desempenho
     </script>
 
     <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
