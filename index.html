@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Plataforma de Jogos Arcade</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        #emulator-container {
+            width: 800px;
+            height: 600px;
+            max-width: 100%;
+            margin: 20px auto;
+            border: 2px solid #333;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Arcade Retro - Jogar Agora</h1>
+    <p>Pressione a tecla de espaço ou clique para iniciar os controles.</p>
+
+    <div id="emulator-container">
+        <div id="game"></div>
+    </div>
+
+    <script type="text/javascript">
+        EJS_player = '#game';
+        EJS_core = 'mame2003'; // Núcleo do MAME para jogos de arcade antigos
+        EJS_gameUrl ='rygar.zip'; // Substitua pelo link ou nome da sua ROM
+        EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/'; // Arquivos do motor do emulador via CDN
+    </script>
+
+    <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+
+</body>
+</html>
