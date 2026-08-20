@@ -21,7 +21,7 @@
       text-align: center;
     }
 
-    /* SEÇÃO DE CAPA - AJUSTADA AO TAMANHO DA TELA */
+    /* SEÇÃO DE CAPA - TAMANHO EXATO DA TELA DO SITE */
     .hero-background {
       width: 100vw;
       height: 100vh;
@@ -139,20 +139,20 @@
 
     <!-- Menu para trocar de jogo -->
     <div class="seletor-jogos">
-      <label for="game-select">Escolha a ROM: </label>
+      <label for="game-select">Escolha o jogo: </label>
       <select id="game-select" onchange="trocarJogo(this.value)">
-        <option value="ffight.zip">Final Fight (FFIGHT)</option>
-        <option value="neobombe.zip">Neo Bomberman (NEOBOMBE)</option>
-        <option value="sf2ce.zip">Street Fighter II' Champion Edition (SF2CE)</option>
+        <option value="ffight.zip">Final Fight</option>
+        <option value="neobombe.zip">Neo Bomberman</option>
+        <option value="sf2ce.zip">Street Fighter II' Champion Edition</option>
       </select>
     </div>
     
-    <!-- Painel de Status do Joystick -->
+    <!-- Status do Controle USB/PS2 -->
     <div class="status-controle" id="gamepad-status">
       🎮 Status: Conecte seu controle USB/PS2 e pressione qualquer botão.
     </div>
 
-    <!-- IFRAME ISOLADO PARA O EMULADOR -->
+    <!-- TELA DO EMULADOR (MAME) -->
     <iframe id="emulator-frame" src="about:blank"></iframe>
   </main>
 
@@ -192,12 +192,12 @@
       doc.close();
     }
 
-    // Carrega o primeiro jogo ao abrir a página
+    // Carrega o jogo inicial (Final Fight) ao abrir a página
     window.onload = function() {
       carregarJogo('ffight.zip');
     };
 
-    // Função executada ao selecionar no menu
+    // Função para trocar a ROM pelo menu
     function trocarJogo(rom) {
       carregarJogo(rom);
     }
