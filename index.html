@@ -22,11 +22,10 @@
             align-items: center;
         }
 
-        /* Overlay escuro transparente para destacar a interface */
         .page-overlay {
             width: 100%;
             min-height: 100vh;
-            background-color: rgba(10, 10, 18, 0.82);
+            background-color: rgba(10, 10, 18, 0.85);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -45,7 +44,7 @@
         }
 
         .author-badge {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: #ffda79;
             margin-top: 5px;
         }
@@ -63,17 +62,19 @@
         }
 
         .user-panel input {
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 5px;
             border: none;
             outline: none;
+            background: #ffffff;
+            color: #000000;
         }
 
         .btn-action {
             background-color: #ff4757;
             color: white;
             border: none;
-            padding: 6px 12px;
+            padding: 6px 14px;
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
@@ -134,7 +135,7 @@
             margin-bottom: 10px;
         }
 
-        /* Área de Interatividade (Chat & Comentários) */
+        /* Interatividade */
         .interaction-container {
             width: 100%;
             max-width: 1100px;
@@ -157,7 +158,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* PIX e Suporte */
         .support-box {
             background: rgba(255, 218, 121, 0.1);
             border: 1px dashed #ffda79;
@@ -175,135 +175,4 @@
             padding: 4px 8px;
             border-radius: 4px;
             font-weight: bold;
-            font-family: monospace;
-            user-select: all;
-        }
-
-        footer {
-            margin-top: auto;
-            text-align: center;
-            padding: 15px;
-            font-size: 0.85rem;
-            color: #a0a0a0;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="page-overlay">
-        
-        <!-- Cabeçalho -->
-        <header>
-            <h1>Doutor Chácara Retro</h1>
-            <div class="author-badge">Desenvolvido por <strong>doutorchara</strong> | Versão 1.0</div>
-        </header>
-
-        <!-- Painel de Usuário Simplificado -->
-        <div class="user-panel">
-            <span id="user-display">Jogador: <strong>Visitante</strong></span>
-            <input type="text" id="username-input" placeholder="Seu apelido..." maxlength="15">
-            <button class="btn-action" onclick="saveUser()">Entrar</button>
-        </div>
-
-        <!-- Apoio ao Projeto -->
-        <div class="support-box">
-            <p>☕ Gostou da plataforma e quer ajudar na melhoria do canal e novos jogos?</p>
-            <p style="margin-top: 5px;">Contribua com qualquer valor via PIX: <span class="pix-key">jhonemercadopago2023@gmail.com</span></p>
-        </div>
-
-        <!-- Catalogo com Amostras -->
-        <div class="catalog-container">
-            <h2 class="section-title">Catálogo de Jogos Arcade</h2>
-            <div class="games-grid">
-                
-                <!-- Jogo 1: Rygar -->
-                <div class="game-card">
-                    <img src="https://placehold.co/300x200/1e1e2f/00d2d3?text=Rygar+Arcade" alt="Rygar" class="game-preview">
-                    <div class="game-info">
-                        <h3>Rygar</h3>
-                        <button class="btn-action" onclick="openGame('rygar.html')">Jogar Agora</button>
-                    </div>
-                </div>
-
-                <!-- Jogo 2: Street Fighter II -->
-                <div class="game-card">
-                    <img src="https://placehold.co/300x200/1e1e2f/00d2d3?text=Street+Fighter+II" alt="Street Fighter II" class="game-preview">
-                    <div class="game-info">
-                        <h3>Street Fighter II</h3>
-                        <button class="btn-action" onclick="openGame('sf2.html')">Jogar Agora</button>
-                    </div>
-                </div>
-
-                <!-- Jogo 3: Cadillacs and Dinosaurs -->
-                <div class="game-card">
-                    <img src="https://placehold.co/300x200/1e1e2f/00d2d3?text=Cadillacs+and+Dinosaurs" alt="Cadillacs and Dinosaurs" class="game-preview">
-                    <div class="game-info">
-                        <h3>Cadillacs & Dinosaurs</h3>
-                        <button class="btn-action" onclick="openGame('dino.html')">Jogar Agora</button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Chat Global e Feedbacks -->
-        <div class="interaction-container">
-            
-            <!-- Chat ao Vivo -->
-            <div class="box-panel">
-                <h3 style="margin-bottom: 10px; color: #00d2d3;">💬 Chat da Comunidade</h3>
-                <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 10px;">Combine partidas multiplayer com outros jogadores!</p>
-                <iframe src="https://www5.cbox.ws/box/?boxid=950000&boxtag=demo" width="100%" height="250" frameborder="0" scrolling="auto" style="border-radius: 5px;"></iframe>
-            </div>
-
-            <!-- Feedbacks e Comentários -->
-            <div class="box-panel">
-                <h3 style="margin-bottom: 10px; color: #00d2d3;">📝 Deixe seu Feedback</h3>
-                <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 10px;">Sugira novos jogos ou reporte bugs diretamente para o autor.</p>
-                <textarea id="feedback-text" style="width: 100%; height: 120px; padding: 10px; border-radius: 5px; border: none; margin-bottom: 10px; background: #121218; color: #fff;" placeholder="Escreva seu comentário aqui..."></textarea>
-                <button class="btn-action" style="width: 100%;" onclick="sendFeedback()">Enviar Comentário</button>
-            </div>
-
-        </div>
-
-        <!-- Rodapé -->
-        <footer>
-            Doutor Chácara Retro v1.0 &copy; 2026 - Desenvolvido por <strong>doutorchara</strong>. Todos os direitos reservados.
-        </footer>
-
-    </div>
-
-    <script>
-        // Sistema simples de Nickname salvo na memória do navegador (LocalStorage)
-        function saveUser() {
-            const input = document.getElementById('username-input').value.trim();
-            if (input) {
-                localStorage.setItem('chacara_user', input);
-                updateUserDisplay();
-            }
-        }
-
-        function updateUserDisplay() {
-            const savedUser = localStorage.getItem('chacara_user') || 'Visitante';
-            document.getElementById('user-display').innerHTML = `Jogador: <strong>${savedUser}</strong>`;
-        }
-
-        function openGame(page) {
-            window.location.href = page;
-        }
-
-        function sendFeedback() {
-            const text = document.getElementById('feedback-text').value;
-            if (text) {
-                alert('Obrigado pelo seu feedback! Ele foi registrado com sucesso.');
-                document.getElementById('feedback-text').value = '';
-            } else {
-                alert('Por favor, digite uma mensagem antes de enviar.');
-            }
-        }
-
-        // Executa ao carregar a página
-        updateUserDisplay();
-    </script>
-</body>
-</html>
+            font-family:
