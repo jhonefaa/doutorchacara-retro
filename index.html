@@ -1,171 +1,99 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Doutor Chácara Retro - Portal de Jogos Clássicos</title>
-  
-  <style>
-    /* Reset básico e estilos globais */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogando Rygar</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #0d0d11;
-      color: #ffffff;
-      text-align: center;
-    }
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            color: #ffffff;
+            text-align: center;
+            min-height: 100vh;
 
-    /* SEÇÃO DE CAPA (HERO SECTION) */
-    .hero-background {
-      width: 100%;
-      min-height: 100vh;
-      
-      /* Aponta para a imagem enviada com overlay para melhor legibilidade */
-      background-image: 
-        linear-gradient(to bottom, rgba(13, 13, 17, 0.2), rgba(13, 13, 17, 0.85)),
-        url('capa-doutorchacara.jpg.jpg');
-      
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
+            /* CONFIGURAÇÃO DO PAPEL DE PAREDE PROPORCIONAL */
+            background-image: url('fundo.jpg'); /* Substitua 'fundo.jpg' pelo nome da sua imagem no GitHub */
+            background-color: #121212; /* Cor de reserva caso a imagem não carregue */
+            background-size: cover; /* Faz o papel de parede preencher a tela proporcionalmente sem distorcer */
+            background-position: center center; /* Centraliza a imagem na tela */
+            background-repeat: no-repeat;
+            background-attachment: fixed; /* Mantém o fundo fixo ao rolar a página */
+        }
 
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      align-items: center;
-      padding: 50px 20px;
-    }
+        /* Camada escura suave por cima do fundo para destacar o jogo */
+        .overlay {
+            background-color: rgba(0, 0, 0, 0.75);
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
 
-    .btn-jogar {
-      display: inline-block;
-      background-color: #ff0055;
-      color: #ffffff;
-      font-size: 1.2rem;
-      font-weight: bold;
-      text-transform: uppercase;
-      padding: 16px 36px;
-      border-radius: 50px;
-      text-decoration: none;
-      border: 2px solid #ffffff;
-      box-shadow: 0 0 15px rgba(255, 0, 85, 0.6);
-      transition: all 0.3s ease;
-      margin-bottom: 20px;
-      cursor: pointer;
-    }
+        .btn-back {
+            color: #ff4757;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+            transition: color 0.2s;
+        }
 
-    .btn-jogar:hover {
-      background-color: #00ffcc;
-      color: #000000;
-      box-shadow: 0 0 25px rgba(0, 255, 204, 0.9);
-      transform: scale(1.08);
-    }
+        .btn-back:hover {
+            color: #ffffff;
+        }
 
-    .subtitulo-rodape {
-      font-size: 1.1rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #d1d1e0;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    }
+        h1 {
+            margin: 5px 0 15px 0;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
 
-    /* ÁREA DO EMULADOR MAME */
-    #area-arcade {
-      padding: 60px 20px;
-      background-color: #121218;
-    }
-
-    .status-controle {
-      display: inline-block;
-      padding: 10px 20px;
-      background-color: #1a1a24;
-      border: 1px solid #33334d;
-      border-radius: 20px;
-      font-size: 0.95rem;
-      color: #ffcc00;
-      margin-bottom: 20px;
-    }
-
-    #emulator-container {
-      width: 800px;
-      height: 600px;
-      max-width: 100%;
-      margin: 0 auto;
-      border: 3px solid #00ffcc;
-      border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0, 255, 204, 0.3);
-      background-color: #000;
-    }
-
-    @media (max-width: 768px) {
-      .hero-background {
-        background-attachment: scroll;
-      }
-      #emulator-container {
-        height: 400px;
-      }
-    }
-  </style>
+        /* Container do Emulador */
+        #emulator-container {
+            width: 800px;
+            height: 600px;
+            max-width: 100%;
+            margin: 0 auto;
+            border: 2px solid #333;
+            border-radius: 6px;
+            overflow: hidden;
+            background-color: #000000;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- CAPA PRINCIPAL -->
-  <header class="hero-background">
-    <a href="#area-arcade" class="btn-jogar">COMEÇAR JOGO RETRO</a>
-    <p class="subtitulo-rodape">SEU PORTAL DE JOGOS CLÁSSICOS</p>
-  </header>
+    <div class="overlay">
+        <p><a href="index.html" class="btn-back">⬅ Voltar para o Menu Principal</a></p>
+        <h1>Rygar: Legendary Warrior</h1>
 
-  <!-- ÁREA DO JOGO -->
-  <main id="area-arcade">
-    <h2>Arcade Retro - Emulador MAME</h2>
-    <p style="margin-top: 5px; color: #a0a0b0;">Conecte seu controle de PS2 (USB) ou teclado para jogar.</p>
-    
-    <!-- Painel de Status do Joystick -->
-    <div class="status-controle" id="gamepad-status">
-      🎮 Status: Conecte seu controle USB/PS2 e pressione qualquer botão.
+        <div id="emulator-container">
+            <div id="game"></div>
+        </div>
     </div>
 
-    <!-- Contêiner do Emulador -->
-    <div id="emulator-container">
-      <div id="game"></div>
-    </div>
-  </main>
+    <!-- Script de Configuração do Emulador MAME 2003-Plus -->
+    <script type="text/javascript">
+        EJS_player = '#game';
+        EJS_core = 'mame2003plus'; // Núcleo MAME 2003 Plus (Alta compatibilidade para Arcade)
+        EJS_gameUrl = 'rygar.zip';  // Nome do seu arquivo de ROM no GitHub
+        EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+        
+        // Ajustes de estabilidade e imagem
+        EJS_smooth = false;
+        EJS_threads = false;
+    </script>
 
-  <!-- SCRIPT DO EMULATORJS CONFIGURADO PARA MAME E DETECÇÃO AUTOMÁTICA -->
-  <script type="text/javascript">
-    EJS_player = '#game';
-    EJS_core = 'mame'; // Núcleo MAME selecionado
-    EJS_gameUrl = 'rygar.zip'; // Substitua pelo caminho da sua ROM do MAME
-    EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-    
-    /* Ativa suporte a mapeamento automático de controles */
-    EJS_smooth = false;
-    EJS_startOnLoaded = false;
-    EJS_defaultControls = true;
-    EJS_gamepadType = 'standard';
-  </script>
-
-  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
-
-  <!-- SCRIPT DE RECONHECIMENTO DE CONTROLE USB / ADAPTADOR PS2 -->
-  <script>
-    window.addEventListener("gamepadconnected", (e) => {
-      const statusDiv = document.getElementById("gamepad-status");
-      statusDiv.style.color = "#00ffcc";
-      statusDiv.innerHTML = `🎮 Controle Detectado: <strong>${e.gamepad.id}</strong> (Mapeamento Ativo)`;
-    });
-
-    window.addEventListener("gamepaddisconnected", (e) => {
-      const statusDiv = document.getElementById("gamepad-status");
-      statusDiv.style.color = "#ff3366";
-      statusDiv.innerHTML = "🎮 Controle Desconectado. Conecte novamente para jogar.";
-    });
-  </script>
+    <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
 
 </body>
 </html>
