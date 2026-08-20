@@ -12,17 +12,19 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
+      width: 100%;
+      height: 100%;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #0d0d11;
       color: #ffffff;
       text-align: center;
     }
 
-    /* SEÇÃO DE CAPA */
+    /* SEÇÃO DE CAPA - AJUSTADA PARA O TAMANHO EXATO DA JANELA DO SITE */
     .hero-background {
-      width: 100%;
-      min-height: 100vh;
+      width: 100vw;
+      height: 100vh;
       background-image: 
         linear-gradient(to bottom, rgba(13, 13, 17, 0.2), rgba(13, 13, 17, 0.85)),
         url('fundo.jpg.jpg');
@@ -30,13 +32,12 @@
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      background-attachment: fixed;
 
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
       align-items: center;
-      padding: 50px 20px;
+      padding: 40px 20px;
     }
 
     .btn-jogar {
@@ -73,6 +74,7 @@
 
     /* ÁREA DO EMULADOR E SELEÇÃO DE JOGOS */
     #area-arcade {
+      min-height: 100vh;
       padding: 60px 20px;
       background-color: #121218;
     }
@@ -113,12 +115,10 @@
       border-radius: 8px;
       box-shadow: 0 0 20px rgba(0, 255, 204, 0.3);
       background-color: #000;
+      position: relative;
     }
 
     @media (max-width: 768px) {
-      .hero-background {
-        background-attachment: scroll;
-      }
       #emulator-container {
         height: 400px;
       }
@@ -127,7 +127,7 @@
 </head>
 <body>
 
-  <!-- CAPA PRINCIPAL -->
+  <!-- CAPA PRINCIPAL (AJUSTADA AO TAMANHO DA TELA) -->
   <header class="hero-background">
     <a href="#area-arcade" class="btn-jogar">COMEÇAR JOGO RETRO</a>
     <p class="subtitulo-rodape">SEU PORTAL DE JOGOS CLÁSSICOS</p>
@@ -159,32 +159,34 @@
     </div>
   </main>
 
-  <!-- SCRIPT DINÂMICO PARA CARREGAR OS JOGOS COM MAME -->
+  <!-- SCRIPT DE INICIALIZAÇÃO DO EMULATORJS -->
   <script type="text/javascript">
-    function carregarEmulador(rom) {
-      document.getElementById('game').innerHTML = ''; // Limpa o container anterior
+    function iniciarEmulador(rom) {
+      var container = document.getElementById('emulator-container');
+      container.innerHTML = '<div id="game"></div>';
 
-      EJS_player = '#game';
-      EJS_core = 'mame'; 
-      EJS_gameUrl = rom; // Carrega o arquivo do jogo selecionado
-      EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-      
-      EJS_smooth = false;
-      EJS_startOnLoaded = false;
-      EJS_defaultControls = true;
-      EJS_gamepadType = 'standard';
+      window.EJS_player = '#game';
+      window.EJS_core = 'mame'; 
+      window.EJS_gameUrl = rom;
+      window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+      window.EJS_smooth = false;
+      window.EJS_startOnLoaded = false;
+      window.EJS_defaultControls = true;
+      window.EJS_gamepadType = 'standard';
 
       var script = document.createElement('script');
       script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
       document.body.appendChild(script);
     }
 
-    // Carrega o jogo inicial (Final Fight) ao abrir o site
-    carregarEmulador('ffight.zip');
+    // Inicializa o primeiro jogo ao carregar a página
+    window.onload = function() {
+      iniciarEmulador('ffight.zip');
+    };
 
     // Função para alterar a ROM quando selecionar no menu
     function trocarJogo(rom) {
-      carregarEmulador(rom);
+      window.location.reload(); // Recarrega a página para limpar o núcleo MAME e carregar a nova ROM
     }
   </script>
 
