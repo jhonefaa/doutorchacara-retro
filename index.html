@@ -33,11 +33,16 @@
         <div id="game"></div>
     </div>
 
+    <!-- Script de Configuração Otimizado -->
     <script type="text/javascript">
         EJS_player = '#game';
-        EJS_core = 'mame2003'; // Núcleo do MAME para jogos de arcade antigos
-        EJS_gameUrl ='rygar.zip'; // Substitua pelo link ou nome da sua ROM
-        EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/'; // Arquivos do motor do emulador via CDN
+        EJS_core = 'mame2000'; // Alterado para mame2000 (muito mais leve)
+        EJS_gameUrl = 'rygar.zip'; // Certifique-se de que o nome da sua ROM está correto aqui
+        EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+        
+        // Configurações para remover a lentidão
+        EJS_smooth = false; // Desativa suavização pesada da imagem
+        EJS_threads = false; // Melhora a estabilidade no navegador
     </script>
 
     <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
