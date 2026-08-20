@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doutor Chácara Retro - Rygar Arcade</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0a0a12;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header-nav {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .btn-back {
+            background-color: #ff4757;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+            transition: 0.2s;
+        }
+
+        .btn-back:hover {
+            background-color: #ff6b81;
+        }
+
+        h2 {
+            color: #00d2d3;
+            margin-bottom: 5px;
+        }
+
+        /* Container do Emulador */
+        #emulator-container {
+            width: 800px;
+            height: 600px;
+            max-width: 100%;
+            border: 2px solid #00d2d3;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #000000;
+            box-shadow: 0 0 20px rgba(0, 210, 211, 0.2);
+        }
+
+        #game {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-nav">
+        <a href="index.html" class="btn-back">⬅ Voltar ao Menu Principal</a>
+        <h2>Rygar: Legendary Warrior</h2>
+        <p style="font-size: 0.9rem; color: #ffda79;">Carregando emulador via EmulatorJS...</p>
+    </div>
+
+    <!-- Tela do Jogo -->
+    <div id="emulator-container">
+        <div id="game"></div>
+    </div>
+
+    <!-- Script de Configuração do EmulatorJS -->
+    <script type="text/javascript">
+        EJS_player = '#game';
+        EJS_core = 'mame2003plus'; // Núcleo para rodar jogos de Arcade MAME
+        EJS_gameUrl = 'rygar.zip';  // Caminho exato da sua ROM na mesma pasta
+        EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+        
+        // Ativação do Netplay (Multiplayer em rede)
+        EJS_netplayUrl = 'https://netplay.emulatorjs.org';
+        EJS_smooth = false;
+    </script>
+    <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+
+</body>
+</html>
