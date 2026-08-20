@@ -1,331 +1,207 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doutor Chácara Retro - v1.0</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doutor Chácara Retro - Portal de Jogos Clássicos</title>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #ffffff;
-            min-height: 100vh;
-            /* Utiliza a imagem em anexo configurada de forma proporcional */
-            background: url('fundo.jpg_2.jpg') no-repeat center center fixed;
-            background-size: cover;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0d0d11;
+      color: #ffffff;
+      text-align: center;
+    }
 
-        .page-overlay {
-            width: 100%;
-            min-height: 100vh;
-            background-color: rgba(10, 10, 18, 0.85);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
+    /* SEÇÃO DE CAPA */
+    .hero-background {
+      width: 100%;
+      min-height: 100vh;
+      background-image: 
+        linear-gradient(to bottom, rgba(13, 13, 17, 0.2), rgba(13, 13, 17, 0.85)),
+        url('fundo.jpg.jpg');
+      
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
 
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 50px 20px;
+    }
 
-        header h1 {
-            font-size: 2.5rem;
-            color: #00d2d3;
-            text-shadow: 0 0 10px rgba(0, 210, 211, 0.5);
-        }
+    .btn-jogar {
+      display: inline-block;
+      background-color: #ff0055;
+      color: #ffffff;
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      padding: 16px 36px;
+      border-radius: 50px;
+      text-decoration: none;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 15px rgba(255, 0, 85, 0.6);
+      transition: all 0.3s ease;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
 
-        .author-badge {
-            font-size: 0.95rem;
-            color: #ffda79;
-            margin-top: 5px;
-        }
+    .btn-jogar:hover {
+      background-color: #00ffcc;
+      color: #000000;
+      box-shadow: 0 0 25px rgba(0, 255, 204, 0.9);
+      transform: scale(1.08);
+    }
 
-        /* Painel de Login / Apelido */
-        .user-panel {
-            background: rgba(30, 30, 45, 0.9);
-            border: 1px solid #00d2d3;
-            padding: 10px 20px;
-            border-radius: 20px;
-            margin-bottom: 25px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
+    .subtitulo-rodape {
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #d1d1e0;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
 
-        .user-panel input {
-            padding: 6px 12px;
-            border-radius: 5px;
-            border: none;
-            outline: none;
-            background: #ffffff;
-            color: #000000;
-        }
+    /* ÁREA DO EMULADOR E SELEÇÃO DE JOGOS */
+    #area-arcade {
+      padding: 60px 20px;
+      background-color: #121218;
+    }
 
-        .btn-action {
-            background-color: #ff4757;
-            color: white;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
+    .seletor-jogos {
+      margin-bottom: 25px;
+    }
 
-        .btn-action:hover {
-            background-color: #ff6b81;
-        }
+    .seletor-jogos select {
+      background-color: #1a1a24;
+      color: #00ffcc;
+      border: 2px solid #00ffcc;
+      padding: 12px 24px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      outline: none;
+    }
 
-        /* Apoio Pix */
-        .support-box {
-            background: rgba(255, 218, 121, 0.1);
-            border: 1px dashed #ffda79;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            max-width: 1100px;
-            width: 100%;
-            margin-bottom: 20px;
-        }
+    .status-controle {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #1a1a24;
+      border: 1px solid #33334d;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      color: #ffcc00;
+      margin-bottom: 20px;
+    }
 
-        .pix-key {
-            background: #ffda79;
-            color: #000;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-family: monospace;
-            user-select: all;
-        }
+    #emulator-container {
+      width: 800px;
+      height: 600px;
+      max-width: 100%;
+      margin: 0 auto;
+      border: 3px solid #00ffcc;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0, 255, 204, 0.3);
+      background-color: #000;
+    }
 
-        /* Catálogo de Jogos */
-        .catalog-container {
-            width: 100%;
-            max-width: 1100px;
-            margin-bottom: 30px;
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            border-left: 4px solid #00d2d3;
-            padding-left: 10px;
-        }
-
-        .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-        }
-
-        .game-card {
-            background: rgba(20, 20, 30, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            overflow: hidden;
-            transition: transform 0.3s, border-color 0.3s;
-            text-align: center;
-        }
-
-        .game-card:hover {
-            transform: translateY(-5px);
-            border-color: #00d2d3;
-        }
-
-        .game-preview {
-            width: 100%;
-            height: 140px;
-            background-color: #000;
-            object-fit: cover;
-        }
-
-        .game-info {
-            padding: 15px;
-        }
-
-        .game-info h3 {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-        }
-
-        /* Interatividade (Chat e Feedback) */
-        .interaction-container {
-            width: 100%;
-            max-width: 1100px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        @media (max-width: 768px) {
-            .interaction-container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .box-panel {
-            background: rgba(20, 20, 30, 0.85);
-            border-radius: 10px;
-            padding: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        #feedback-list {
-            max-height: 120px;
-            overflow-y: auto;
-            margin-top: 10px;
-            font-size: 0.85rem;
-            text-align: left;
-        }
-
-        .comment-item {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 6px 10px;
-            border-radius: 4px;
-            margin-bottom: 5px;
-        }
-
-        footer {
-            margin-top: auto;
-            text-align: center;
-            padding: 15px;
-            font-size: 0.85rem;
-            color: #a0a0a0;
-        }
-    </style>
+    @media (max-width: 768px) {
+      .hero-background {
+        background-attachment: scroll;
+      }
+      #emulator-container {
+        height: 400px;
+      }
+    }
+  </style>
 </head>
 <body>
 
-    <div class="page-overlay">
-        
-        <!-- Identificação do Autor e Versão -->
-        <header>
-            <h1>Doutor Chácara Retro</h1>
-            <div class="author-badge">Desenvolvido por <strong>Doutor Chácara</strong> | Versão 1.0</div>
-        </header>
+  <!-- CAPA PRINCIPAL -->
+  <header class="hero-background">
+    <a href="#area-arcade" class="btn-jogar">COMEÇAR JOGO RETRO</a>
+    <p class="subtitulo-rodape">SEU PORTAL DE JOGOS CLÁSSICOS</p>
+  </header>
 
-        <!-- Painel do Jogador -->
-        <div class="user-panel">
-            <span id="user-display">Jogador: <strong>Visitante</strong></span>
-            <input type="text" id="username-input" placeholder="Seu apelido..." maxlength="15">
-            <button class="btn-action" onclick="saveUser()">Entrar</button>
-        </div>
+  <!-- ÁREA DE JOGOS DA PLATAFORMA -->
+  <main id="area-arcade">
+    <h2>Arcade Retro - Selecione seu Jogo</h2>
+    <p style="margin-top: 5px; color: #a0a0b0; margin-bottom: 15px;">Conecte seu controle de PS2 / USB ou teclado para jogar.</p>
 
-        <!-- Colaboração Sutil Pix -->
-        <div class="support-box">
-            <p>☕ Gostou da plataforma e quer apoiar melhorias e novos jogos?</p>
-            <p style="margin-top: 5px;">Contribua com qualquer valor via PIX: <span class="pix-key">jhonemercadopago2023@gmail.com</span></p>
-        </div>
-
-        <!-- Catálogo de Jogos com Prévia -->
-        <div class="catalog-container">
-            <h2 class="section-title">Catálogo de Jogos Arcade</h2>
-            <div class="games-grid">
-                
-                <div class="game-card">
-                    <img src="https://placehold.co/300x200/1e1e2f/00d2d3?text=Rygar+Arcade" alt="Rygar" class="game-preview">
-                    <div class="game-info">
-                        <h3>Rygar</h3>
-                        <button class="btn-action" onclick="openGame('rygar.html')">Jogar Agora</button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Chat entre Jogadores e Seção de Comentários/Feedback -->
-        <div class="interaction-container">
-            
-            <div class="box-panel">
-                <h3 style="margin-bottom: 10px; color: #00d2d3;">💬 Chat da Comunidade</h3>
-                <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 10px;">Combine partidas multiplayer em tempo real!</p>
-                <iframe src="https://www5.cbox.ws/box/?boxid=950000&boxtag=demo" width="100%" height="220" frameborder="0" scrolling="auto" style="border-radius: 5px;"></iframe>
-            </div>
-
-            <div class="box-panel">
-                <h3 style="margin-bottom: 10px; color: #00d2d3;">📝 Comentários & Feedbacks</h3>
-                <textarea id="feedback-text" style="width: 100%; height: 70px; padding: 8px; border-radius: 5px; border: none; margin-bottom: 8px; background: #121218; color: #fff;" placeholder="Escreva sua sugestão..."></textarea>
-                <button class="btn-action" style="width: 100%;" onclick="sendFeedback()">Enviar Comentário</button>
-                
-                <div id="feedback-list"></div>
-            </div>
-
-        </div>
-
-        <footer>
-            Doutor Chácara Retro v1.0 &copy; Criado por <strong>Doutor Chácara</strong>. Todos os direitos reservados.
-        </footer>
-
+    <!-- Menu para trocar de jogo -->
+    <div class="seletor-jogos">
+      <label for="game-select">Escolha a ROM: </label>
+      <select id="game-select" onchange="trocarJogo(this.value)">
+        <option value="ffight.zip">Final Fight (FFIGHT)</option>
+        <option value="neobombe.zip">Neo Bomberman (NEOBOMBE)</option>
+        <option value="sf2ce.zip">Street Fighter II' Champion Edition (SF2CE)</option>
+      </select>
+    </div>
+    
+    <!-- Painel de Status do Joystick -->
+    <div class="status-controle" id="gamepad-status">
+      🎮 Status: Conecte seu controle USB/PS2 e pressione qualquer botão.
     </div>
 
-    <script>
-        // Função de Login/Apelido Local
-        function loadUser() {
-            const savedUser = localStorage.getItem('chacara_user');
-            const display = document.getElementById('user-display');
-            if (savedUser && savedUser.trim() !== '') {
-                display.innerHTML = 'Jogador: <strong>' + savedUser + '</strong>';
-            } else {
-                display.innerHTML = 'Jogador: <strong>Visitante</strong>';
-            }
-        }
+    <!-- Contêiner do Emulador -->
+    <div id="emulator-container">
+      <div id="game"></div>
+    </div>
+  </main>
 
-        function saveUser() {
-            const input = document.getElementById('username-input');
-            const name = input.value.trim();
-            if (name !== '') {
-                localStorage.setItem('chacara_user', name);
-                loadUser();
-                input.value = '';
-            }
-        }
+  <!-- SCRIPT DINÂMICO PARA CARREGAR OS JOGOS COM MAME -->
+  <script type="text/javascript">
+    function carregarEmulador(rom) {
+      document.getElementById('game').innerHTML = ''; // Limpa o container anterior
 
-        function openGame(page) {
-            window.location.href = page;
-        }
+      EJS_player = '#game';
+      EJS_core = 'mame'; 
+      EJS_gameUrl = rom; // Carrega o arquivo do jogo selecionado
+      EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+      
+      EJS_smooth = false;
+      EJS_startOnLoaded = false;
+      EJS_defaultControls = true;
+      EJS_gamepadType = 'standard';
 
-        // Sistema Local de Feedbacks
-        function sendFeedback() {
-            const field = document.getElementById('feedback-text');
-            const text = field.value.trim();
-            const user = localStorage.getItem('chacara_user') || 'Visitante';
+      var script = document.createElement('script');
+      script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+      document.body.appendChild(script);
+    }
 
-            if (text !== '') {
-                let comments = JSON.parse(localStorage.getItem('chacara_feedbacks') || '[]');
-                comments.unshift({ user: user, text: text });
-                localStorage.setItem('chacara_feedbacks', JSON.stringify(comments));
-                field.value = '';
-                renderFeedbacks();
-            }
-        }
+    // Carrega o jogo inicial (Final Fight) ao abrir o site
+    carregarEmulador('ffight.zip');
 
-        function renderFeedbacks() {
-            const listContainer = document.getElementById('feedback-list');
-            let comments = JSON.parse(localStorage.getItem('chacara_feedbacks') || '[]');
-            listContainer.innerHTML = '';
-            comments.forEach(c => {
-                const item = document.createElement('div');
-                item.className = 'comment-item';
-                item.innerHTML = '<strong>' + c.user + ':</strong> ' + c.text;
-                listContainer.appendChild(item);
-            });
-        }
+    // Função para alterar a ROM quando selecionar no menu
+    function trocarJogo(rom) {
+      carregarEmulador(rom);
+    }
+  </script>
 
-        window.onload = function() {
-            loadUser();
-            renderFeedbacks();
-        };
-    </script>
+  <!-- RECONHECIMENTO DE CONTROLE USB / PS2 -->
+  <script>
+    window.addEventListener("gamepadconnected", (e) => {
+      const statusDiv = document.getElementById("gamepad-status");
+      statusDiv.style.color = "#00ffcc";
+      statusDiv.innerHTML = `🎮 Controle Detectado: <strong>${e.gamepad.id}</strong>`;
+    });
+
+    window.addEventListener("gamepaddisconnected", (e) => {
+      const statusDiv = document.getElementById("gamepad-status");
+      statusDiv.style.color = "#ff3366";
+      statusDiv.innerHTML = "🎮 Controle Desconectado.";
+    });
+  </script>
+
 </body>
 </html>
