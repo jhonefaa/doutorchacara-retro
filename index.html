@@ -6,7 +6,7 @@
   <title>Doutor Chácara Retro - Portal de Jogos Clássicos</title>
   
   <style>
-    /* Reset básico */
+    /* Reset e Estilos Globais */
     * {
       margin: 0;
       padding: 0;
@@ -17,32 +17,38 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #0d0d11;
       color: #ffffff;
-    }
-
-    /* SEÇÃO DE CAPA COM A IMAGEM DE BACKGROUND */
-    .hero-background {
-      width: 100%;
-      min-height: 100vh; /* Ocupa 100% da altura da tela */
-      
-      /* Substitua 'capa-doutorchacara.jpg' pelo caminho real da sua imagem */
-      background-image: 
-        linear-gradient(to bottom, rgba(13, 13, 17, 0.3), rgba(13, 13, 17, 0.85)),
-        url('capa-doutorchacara.jpg');
-      
-      background-size: cover;       /* Ajusta a imagem para cobrir toda a área */
-      background-position: center;  /* Centraliza o personagem e os fliperamas */
-      background-repeat: no-repeat;
-      background-attachment: fixed; /* Efeito Parallax ao rolar a página */
-
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;    /* Alinha o conteúdo na parte inferior */
-      align-items: center;
-      padding: 40px 20px;
       text-align: center;
     }
 
-    /* ÁREA DO BOTÃO INTERATIVO POR CIMA DO BOTÃO DA IMAGEM */
+    /* SEÇÃO DE CAPA (HERO) COM A NOVA IMAGEM DE FUNDO */
+    .hero-background {
+      width: 100%;
+      min-height: 100vh;
+      
+      /* Imagem sem botões gravados + Overlay escuro gradual */
+      background-image: 
+        linear-gradient(to bottom, rgba(13, 13, 17, 0.2), rgba(13, 13, 17, 0.9)),
+        url('capa-doutorchacara.jpg');
+      
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 50px 20px;
+    }
+
+    .titulo-capa {
+      font-size: 2.5rem;
+      color: #00ffcc;
+      text-shadow: 0 0 10px rgba(0, 255, 204, 0.7);
+      margin-bottom: 10px;
+    }
+
     .btn-jogar {
       display: inline-block;
       background-color: #ff0055;
@@ -56,7 +62,7 @@
       border: 2px solid #ffffff;
       box-shadow: 0 0 15px rgba(255, 0, 85, 0.6);
       transition: all 0.3s ease;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
       cursor: pointer;
     }
 
@@ -75,86 +81,97 @@
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     }
 
-    /* AJUSTES PARA CELULAR */
+    /* ÁREA DO EMULADOR E GAMEPAD */
+    #area-arcade {
+      padding: 60px 20px;
+      background-color: #121218;
+    }
+
+    .status-controle {
+      display: inline-block;
+      padding: 8px 16px;
+      background-color: #1a1a24;
+      border: 1px solid #33334d;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      color: #ffcc00;
+      margin-bottom: 20px;
+    }
+
+    #emulator-container {
+      width: 800px;
+      height: 600px;
+      max-width: 100%;
+      margin: 0 auto;
+      border: 3px solid #00ffcc;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0, 255, 204, 0.3);
+      background-color: #000;
+    }
+
     @media (max-width: 768px) {
       .hero-background {
-        background-attachment: scroll; /* Melhora a performance em celulares */
+        background-attachment: scroll;
       }
-
-      .btn-jogar {
-        font-size: 1rem;
-        padding: 12px 24px;
+      #emulator-container {
+        height: 400px;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- SEÇÃO HERO COM O BACKGROUND DO DOUTOR CHÁCARA -->
+  <!-- CAPA PRINCIPAL DO SITE -->
   <header class="hero-background">
-    <!-- Botão real clicável que fica posicionado no pé da imagem -->
-    <a href="#catalogo-jogos" class="btn-jogar">COMEÇAR JOGO RETRO</a>
+    <h1 class="titulo-capa">DOUTOR CHÁCARA RETRO</h1>
+    <a href="#area-arcade" class="btn-jogar">COMEÇAR JOGO RETRO</a>
     <p class="subtitulo-rodape">SEU PORTAL DE JOGOS CLÁSSICOS</p>
   </header>
 
-  <!-- O RESTANTE DO CONTEÚDO DO SEU SITE VEM AQUI -->
-  <main id="catalogo-jogos" style="padding: 50px 20px; text-align: center;">
-    <h2>Selecione seu Jogo</h2>
-    <!-- Adicione seus jogos aqui -->
-  </main>
-
-</body>
-</html>
-
-
-
-
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minha Plataforma de Jogos Arcade</title>
-    <style>
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-        }
-        
-        #emulator-container {
-            width: 800px;
-            height: 600px;
-            max-width: 100%;
-            margin: 20px auto;
-            border: 2px solid #333;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
-        }
-    </style>
-</head>
-<body>
-
-    <h1>Arcade Retro - Jogar Agora</h1>
-    <p>Pressione a tecla de espaço ou clique para iniciar os controles.</p>
-
-    <div id="emulator-container">
-        <div id="game"></div>
+  <!-- ÁREA DE JOGO / EMULADOR -->
+  <main id="area-arcade">
+    <h2>Arcade Retro - Jogar Agora</h2>
+    <p style="margin-top: 5px; color: #a0a0b0;">Conecte seu controle USB ou use o teclado.</p>
+    
+    <!-- Status do Controle USB conectado -->
+    <div class="status-controle" id="gamepad-status">
+      🎮 Status USB: Conecte seu controle e pressione um botão.
     </div>
 
-    <!-- Script com núcleo FBNeo (Leve e altamente compatível) -->
-    <script type="text/javascript">
-        EJS_player = '#game';
-        EJS_core = 'mame'; // Trocado para FinalBurn Neo
-        EJS_gameUrl = 'rygar.zip'; // Nome do arquivo .zip no GitHub
-        EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-        
-        EJS_smooth = false; // Desativa o filtro pesado para ganhar desempenho
-    </script>
+    <!-- Contêiner do Emulador -->
+    <div id="emulator-container">
+      <div id="game"></div>
+    </div>
+  </main>
 
-    <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+  <!-- SCRIPT DO EMULATORJS COM SUPORTE A CONTROLE -->
+  <script type="text/javascript">
+    EJS_player = '#game';
+    EJS_core = 'mame'; // Núcleo FinalBurn Neo (Ideal para Arcade/MAME)
+    EJS_gameUrl = 'rygar.zip'; // Substitua pelo link ou arquivo da ROM
+    EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+    
+    /* Configurações de Desempenho e Mapeamento */
+    EJS_smooth = false; // Desativa suavização pesada para rodar leve
+    EJS_startOnLoaded = false;
+  </script>
+
+  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+
+  <!-- DETECTOR DE CONTROLE USB (Gamepad API HTML5) -->
+  <script>
+    window.addEventListener("gamepadconnected", (e) => {
+      const statusDiv = document.getElementById("gamepad-status");
+      statusDiv.style.color = "#00ffcc";
+      statusDiv.innerHTML = `🎮 Controle USB detectado: <strong>${e.gamepad.id}</strong>`;
+    });
+
+    window.addEventListener("gamepaddisconnected", (e) => {
+      const statusDiv = document.getElementById("gamepad-status");
+      statusDiv.style.color = "#ff3366";
+      statusDiv.innerHTML = "🎮 Controle USB desconectado.";
+    });
+  </script>
 
 </body>
 </html>
