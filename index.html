@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Doutor Chácara Retro - Portal de Jogos Clássicos</title>
+  <title>Doutor Chácara - Rygar Edition</title>
   
   <style>
     * {
@@ -21,13 +21,13 @@
       text-align: center;
     }
 
-    /* SEÇÃO DE CAPA */
+    /* CAPA PRINCIPAL */
     .hero-background {
       width: 100vw;
       height: 100vh;
       background-image: 
         linear-gradient(to bottom, rgba(13, 13, 17, 0.2), rgba(13, 13, 17, 0.85)),
-        url('fundo.jpg.jpg');
+        url('capa-doutorchacara.jpg_2.jpg');
       
       background-size: cover;
       background-position: center;
@@ -103,102 +103,100 @@
 </head>
 <body>
 
-  <!-- CAPA PRINCIPAL -->
+  <!-- CAPA -->
   <header class="hero-background">
-    <a href="#area-arcade" class="btn-jogar">COMEÇAR JOGO RETRO</a>
+    <a href="#area-arcade" class="btn-jogar">INICIAR AVENTURA RETRO</a>
     <p class="subtitulo-rodape">SEU PORTAL DE JOGOS CLÁSSICOS</p>
   </header>
 
-  <!-- ÁREA DO JOGO EXCLUSIVO -->
+  <!-- ÁREA DE JOGO DO DOUTOR CHÁCARA -->
   <main id="area-arcade">
-    <h2>Space Defender - Doutor Chácara Edition</h2>
-    <p style="margin-top: 5px; color: #a0a0b0; margin-bottom: 15px;">Use as Setas / D-Pad do Controle para mover e Espaço / Botão A para Atirar.</p>
+    <h2>Doutor Chácara em: The Legendary Warrior</h2>
+    <p style="margin-top: 5px; color: #a0a0b0; margin-bottom: 15px;">Setas / D-Pad movem | Espaço / Botão A pula | Z / X / Botão B Ataca com Corrente</p>
 
-    <!-- Status do Joystick -->
     <div class="status-controle" id="gamepad-status">
       🎮 Status: Conecte seu controle USB/PS2 e pressione qualquer botão.
     </div>
 
-    <!-- TELA DO JOGO HTML5 CANVAS -->
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <canvas id="gameCanvas" width="800" height="450"></canvas>
   </main>
 
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // ESTADO DO JOGO
+    // CONFIGURAÇÃO GERAL
+    let currentStage = 1;
+    const maxStages = 27;
     let score = 0;
-    let lives = 3;
     let gameOver = false;
 
-    // JOGADOR (NAVE)
+    // JOGADOR (DOUTOR CHÁCARA)
     const player = {
-      x: canvas.width / 2 - 20,
-      y: canvas.height - 60,
-      width: 40,
-      height: 20,
-      speed: 6,
-      dx: 0
+      x: 50,
+      y: 300,
+      width: 32,
+      height: 50,
+      speed: 4,
+      dx: 0,
+      dy: 0,
+      jumping: false,
+      grounded: false,
+      facing: 'right',
+      attacking: false,
+      attackTimer: 0,
+      attackMaxTime: 12
     };
 
-    // TIROS
-    const bullets = [];
-    const bulletSpeed = 8;
-    let lastShot = 0;
+    const gravity = 0.6;
+    const groundY = 380;
+
+    // ATAQUE ESTILO RYGAR (DISKARMOR / CORRENTE)
+    const weapon = {
+      x: 0,
+      y: 0,
+      length: 0,
+      maxLength: 120,
+      width: 10
+    };
 
     // INIMIGOS
     const enemies = [];
-    const enemyRows = 4;
-    const enemyCols = 8;
-    const enemyWidth = 40;
-    const enemyHeight = 25;
-    const enemyPadding = 15;
-    const enemyOffsetTop = 50;
-    const enemyOffsetLeft = 100;
-    let enemyDirection = 1;
-    let enemySpeed = 1;
-
-    function createEnemies() {
+    function spawnEnemies() {
       enemies.length = 0;
-      for (let c = 0; c < enemyCols; c++) {
-        for (let r = 0; r < enemyRows; r++) {
-          enemies.push({
-            x: enemyOffsetLeft + c * (enemyWidth + enemyPadding),
-            y: enemyOffsetTop + r * (enemyHeight + enemyPadding),
-            width: enemyWidth,
-            height: enemyHeight,
-            alive: true
-          });
-        }
+      const count = 3 + Math.floor(currentStage * 0.8);
+      for (let i = 0; i < count; i++) {
+        enemies.push({
+          x: 400 + i * 150 + Math.random() * 50,
+          y: groundY - 30,
+          width: 30,
+          height: 30,
+          speed: 1.5 + (currentStage * 0.1),
+          alive: true
+        });
       }
     }
-    createEnemies();
+    spawnEnemies();
 
-    // CONTROLES DE TECLADO
+    // TECLADO
     const keys = {};
     window.addEventListener("keydown", (e) => {
       keys[e.code] = true;
-      if (e.code === "Space") e.preventDefault();
+      if (["Space", "ArrowUp", "KeyZ", "KeyX"].includes(e.code)) e.preventDefault();
     });
-    window.addEventListener("keyup", (e) => {
-      keys[e.code] = false;
-    });
+    window.addEventListener("keyup", (e) => { keys[e.code] = false; });
 
-    // DETECÇÃO DE CONTROLE USB/PS2
+    // GAMEPAD USB / PS2
     let gamepadIndex = null;
     window.addEventListener("gamepadconnected", (e) => {
       gamepadIndex = e.gamepad.index;
-      const statusDiv = document.getElementById("gamepad-status");
-      statusDiv.style.color = "#00ffcc";
-      statusDiv.innerHTML = `🎮 Controle Detectado: <strong>${e.gamepad.id}</strong>`;
+      document.getElementById("gamepad-status").style.color = "#00ffcc";
+      document.getElementById("gamepad-status").innerHTML = `🎮 Controle Detectado: <strong>${e.gamepad.id}</strong>`;
     });
-
     window.addEventListener("gamepaddisconnected", () => {
       gamepadIndex = null;
-      const statusDiv = document.getElementById("gamepad-status");
-      statusDiv.style.color = "#ff3366";
-      statusDiv.innerHTML = "🎮 Controle Desconectado.";
+      document.getElementById("gamepad-status").style.color = "#ff3366";
+      document.getElementById("gamepad-status").innerHTML = "🎮 Controle Desconectado.";
     });
 
     function pollGamepad() {
@@ -206,25 +204,27 @@
       const gp = navigator.getGamepads()[gamepadIndex];
       if (!gp) return;
 
-      // Direcionais (Analógico ou D-Pad)
+      // Movimento D-Pad / Analógico
       if (gp.axes[0] < -0.3 || gp.buttons[14]?.pressed) player.dx = -player.speed;
       else if (gp.axes[0] > 0.3 || gp.buttons[15]?.pressed) player.dx = player.speed;
       else if (!keys["ArrowLeft"] && !keys["ArrowRight"]) player.dx = 0;
 
-      // Botão de tiro (X, A ou R1)
-      if ((gp.buttons[0]?.pressed || gp.buttons[1]?.pressed || gp.buttons[7]?.pressed) && Date.now() - lastShot > 250) {
-        shoot();
+      // Pulo (Botão A / X)
+      if ((gp.buttons[0]?.pressed || gp.buttons[12]?.pressed) && player.grounded) {
+        player.jumping = true;
+        player.grounded = false;
+        player.dy = -11;
+      }
+
+      // Ataque (Botão X / Square / B)
+      if ((gp.buttons[1]?.pressed || gp.buttons[2]?.pressed) && !player.attacking) {
+        triggerAttack();
       }
     }
 
-    function shoot() {
-      bullets.push({
-        x: player.x + player.width / 2 - 3,
-        y: player.y,
-        width: 6,
-        height: 12
-      });
-      lastShot = Date.now();
+    function triggerAttack() {
+      player.attacking = true;
+      player.attackTimer = player.attackMaxTime;
     }
 
     function update() {
@@ -232,100 +232,191 @@
 
       pollGamepad();
 
-      // Mover Jogador via Teclado
-      if (keys["ArrowLeft"]) player.dx = -player.speed;
-      else if (keys["ArrowRight"]) player.dx = player.speed;
-      else if (gamepadIndex === null) player.dx = 0;
-
-      if (keys["Space"] && Date.now() - lastShot > 250) {
-        shoot();
+      // Teclado
+      if (keys["ArrowLeft"]) {
+        player.dx = -player.speed;
+        player.facing = 'left';
+      } else if (keys["ArrowRight"]) {
+        player.dx = player.speed;
+        player.facing = 'right';
+      } else if (gamepadIndex === null) {
+        player.dx = 0;
       }
 
+      if ((keys["Space"] || keys["ArrowUp"]) && player.grounded) {
+        player.jumping = true;
+        player.grounded = false;
+        player.dy = -11;
+      }
+
+      if ((keys["KeyZ"] || keys["KeyX"]) && !player.attacking) {
+        triggerAttack();
+      }
+
+      // Movimento e Gravidade
       player.x += player.dx;
-      if (player.x < 0) player.x = 0;
-      if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+      player.dy += gravity;
+      player.y += player.dy;
 
-      // Mover Tiros
-      for (let i = bullets.length - 1; i >= 0; i--) {
-        bullets[i].y -= bulletSpeed;
-        if (bullets[i].y < 0) bullets.splice(i, 1);
+      // Limite do Chão
+      if (player.y + player.height >= groundY) {
+        player.y = groundY - player.height;
+        player.dy = 0;
+        player.grounded = true;
+        player.jumping = false;
       }
 
-      // Mover Inimigos
-      let moveDown = false;
-      enemies.forEach(e => {
-        if (!e.alive) return;
-        if ((e.x + e.width >= canvas.width && enemyDirection === 1) || (e.x <= 0 && enemyDirection === -1)) {
-          moveDown = true;
+      // Limite de Tela
+      if (player.x < 0) player.x = 0;
+
+      // Avançar de Fase (Chegar ao final da tela)
+      if (player.x + player.width >= canvas.width) {
+        if (currentStage < maxStages) {
+          currentStage++;
+          player.x = 20;
+          spawnEnemies();
+        } else {
+          // Zerou o jogo
+          alert("Parabéns! Você completou todas as 27 Fases!");
+          currentStage = 1;
+          player.x = 20;
+          score = 0;
+          spawnEnemies();
+        }
+      }
+
+      // Atualizar Ataque de Corrente
+      if (player.attacking) {
+        player.attackTimer--;
+        const progress = 1 - (player.attackTimer / player.attackMaxTime);
+        weapon.length = Math.sin(progress * Math.PI) * weapon.maxLength;
+
+        weapon.y = player.y + 20;
+        if (player.facing === 'right') {
+          weapon.x = player.x + player.width;
+        } else {
+          weapon.x = player.x - weapon.length;
+        }
+
+        if (player.attackTimer <= 0) {
+          player.attacking = false;
+        }
+      }
+
+      // Atualizar Inimigos
+      enemies.forEach(enemy => {
+        if (!enemy.alive) return;
+
+        // Inimigo anda em direção ao jogador
+        if (enemy.x > player.x) enemy.x -= enemy.speed;
+        else enemy.x += enemy.speed;
+
+        // Colisão com o Ataque do Jogador
+        if (player.attacking) {
+          const hit = (player.facing === 'right') ?
+            (enemy.x < weapon.x + weapon.length && enemy.x + enemy.width > weapon.x && enemy.y < weapon.y + 10 && enemy.y + enemy.height > weapon.y) :
+            (enemy.x < weapon.x + weapon.length && enemy.x + enemy.width > weapon.x && enemy.y < weapon.y + 10 && enemy.y + enemy.height > weapon.y);
+
+          if (hit) {
+            enemy.alive = false;
+            score += 200;
+          }
+        }
+
+        // Colisão Inimigo x Jogador
+        if (enemy.alive &&
+            player.x < enemy.x + enemy.width &&
+            player.x + player.width > enemy.x &&
+            player.y < enemy.y + enemy.height &&
+            player.y + player.height > enemy.y) {
+          gameOver = true;
         }
       });
-
-      if (moveDown) {
-        enemyDirection *= -1;
-        enemies.forEach(e => {
-          if (e.alive) {
-            e.y += 15;
-            if (e.y + e.height >= player.y) gameOver = true;
-          }
-        });
-      }
-
-      enemies.forEach(e => {
-        if (e.alive) e.x += enemySpeed * enemyDirection;
-      });
-
-      // Colisões de Tiro com Inimigo
-      bullets.forEach((b, bIdx) => {
-        enemies.forEach(e => {
-          if (e.alive && b.x < e.x + e.width && b.x + b.width > e.x && b.y < e.y + e.height && b.y + b.height > e.y) {
-            e.alive = false;
-            bullets.splice(bIdx, 1);
-            score += 100;
-          }
-        });
-      });
-
-      // Vitória
-      if (enemies.every(e => !e.alive)) {
-        enemySpeed += 0.5;
-        createEnemies();
-      }
     }
 
     function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Fundo do Cenário Retrô
+      ctx.fillStyle = "#140c1d";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Desenhar Jogador
+      // Sol / Lua ao Fundo (Estilo Rygar)
+      ctx.fillStyle = "#ff5500";
+      ctx.beginPath();
+      ctx.arc(650, 120, 45, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Chão
+      ctx.fillStyle = "#3a2518";
+      ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
       ctx.fillStyle = "#00ffcc";
-      ctx.fillRect(player.x, player.y, player.width, player.height);
-      ctx.fillRect(player.x + 15, player.y - 8, 10, 8); // Bico da nave
+      ctx.fillRect(0, groundY, canvas.width, 4); // Grama neon
 
-      // Desenhar Tiros
-      ctx.fillStyle = "#ff0055";
-      bullets.forEach(b => ctx.fillRect(b.x, b.y, b.width, b.height));
+      // Desenhar Doutor Chácara (Personagem principal)
+      // Jaleco / Corpo
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(player.x, player.y + 12, player.width, player.height - 12);
+      // Camisa interna
+      ctx.fillStyle = "#0088cc";
+      ctx.fillRect(player.x + 10, player.y + 12, 12, 20);
+      // Cabeça / Cabelo
+      ctx.fillStyle = "#ffcc99";
+      ctx.fillRect(player.x + 8, player.y, 16, 12);
+      ctx.fillStyle = "#4a3525"; // Cabelo/Faixa
+      ctx.fillRect(player.x + 6, player.y - 2, 20, 6);
+
+      // Desenhar Ataque (Corrente/Disco)
+      if (player.attacking) {
+        ctx.strokeStyle = "#ff0055";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        if (player.facing === 'right') {
+          ctx.moveTo(player.x + player.width, player.y + 20);
+          ctx.lineTo(player.x + player.width + weapon.length, player.y + 20);
+        } else {
+          ctx.moveTo(player.x, player.y + 20);
+          ctx.lineTo(player.x - weapon.length, player.y + 20);
+        }
+        ctx.stroke();
+
+        // Disco no final da corrente
+        ctx.fillStyle = "#00ffcc";
+        const diskX = (player.facing === 'right') ? player.x + player.width + weapon.length : player.x - weapon.length;
+        ctx.beginPath();
+        ctx.arc(diskX, player.y + 20, 8, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
       // Desenhar Inimigos
-      ctx.fillStyle = "#ffcc00";
-      enemies.forEach(e => {
-        if (e.alive) {
-          ctx.fillRect(e.x, e.y, e.width, e.height);
+      enemies.forEach(enemy => {
+        if (enemy.alive) {
+          ctx.fillStyle = "#ff0055";
+          ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+          // Olhos dos monstros
+          ctx.fillStyle = "#ffff00";
+          ctx.fillRect(enemy.x + 5, enemy.y + 6, 5, 5);
+          ctx.fillRect(enemy.x + 18, enemy.y + 6, 5, 5);
         }
       });
 
-      // HUD (Placar)
+      // HUD / Placar do Jogo
       ctx.fillStyle = "#ffffff";
-      ctx.font = "18px 'Segoe UI', sans-serif";
-      ctx.fillText(`PONTOS: ${score}`, 20, 30);
+      ctx.font = "bold 16px 'Segoe UI', sans-serif";
+      ctx.fillText(`FASE: ${currentStage} / ${maxStages}`, 20, 30);
+      ctx.fillText(`PONTOS: ${score}`, 200, 30);
 
-      // Game Over
+      // Tela de Game Over
       if (gameOver) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
         ctx.fillStyle = "#ff0055";
-        ctx.font = "40px 'Segoe UI', sans-serif";
+        ctx.font = "bold 36px 'Segoe UI', sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2);
-        ctx.font = "20px 'Segoe UI', sans-serif";
+        ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 20);
+
         ctx.fillStyle = "#ffffff";
-        ctx.fillText("Recarregue a página para jogar novamente", canvas.width / 2, canvas.height / 2 + 40);
+        ctx.font = "18px 'Segoe UI', sans-serif";
+        ctx.fillText("Pressione F5 ou recarregue para tentar novamente", canvas.width / 2, canvas.height / 2 + 20);
       }
     }
 
