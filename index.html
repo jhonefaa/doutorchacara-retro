@@ -123,16 +123,32 @@
 
     textarea { text-align: left; resize: none; height: 60px; }
 
-    /* MENU LATERAL FIXO DE COMENTÁRIOS INSTANTÂNEOS NO JOGO */
+    /* MENU LATERAL FIXO DE COMENTÁRIOS COM ALTURA PARA 5 ITENS E SCROLL */
     .instant-comments-box {
-      position: absolute; top: 60px; right: 15px; width: 220px; max-height: 180px;
-      background: rgba(10, 10, 18, 0.85); backdrop-filter: blur(6px);
+      position: absolute; top: 60px; right: 15px; width: 220px;
+      background: rgba(10, 10, 18, 0.88); backdrop-filter: blur(6px);
       border: 1px solid rgba(0, 255, 204, 0.5); border-radius: 12px;
       padding: 8px; z-index: 12; display: flex; flex-direction: column; text-align: left;
     }
     .instant-comments-header { font-size: 0.75rem; font-weight: bold; color: #00ffcc; margin-bottom: 5px; border-bottom: 1px solid rgba(0,255,204,0.3); padding-bottom: 3px; }
-    .instant-comments-list { overflow-y: auto; max-height: 140px; font-size: 0.75rem; display: flex; flex-direction: column; gap: 4px; }
-    .instant-item { background: rgba(255,255,255,0.05); padding: 4px 6px; border-radius: 6px; word-break: break-word; }
+    
+    /* LIMITADO A EXATAMENTE 5 COMENTÁRIOS E BARRA DE ROLAGEM */
+    .instant-comments-list { 
+      overflow-y: scroll; 
+      max-height: 165px; 
+      font-size: 0.72rem; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 4px; 
+      padding-right: 4px;
+    }
+    
+    /* BARRA DE ROLAGEM ESTILIZADA */
+    .instant-comments-list::-webkit-scrollbar { width: 5px; }
+    .instant-comments-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); border-radius: 3px; }
+    .instant-comments-list::-webkit-scrollbar-thumb { background: #00ffcc; border-radius: 3px; }
+
+    .instant-item { background: rgba(255,255,255,0.08); padding: 5px 6px; border-radius: 6px; word-break: break-word; min-height: 28px; }
     .instant-item strong { color: #ffcc00; }
 
     .leaderboard-list {
@@ -160,7 +176,7 @@
 
     <canvas id="gameCanvas" width="800" height="450"></canvas>
 
-    <!-- MENU DE COMENTÁRIOS INSTANTÂNEOS NO CANTO DA TELA -->
+    <!-- MENU DE COMENTÁRIOS INSTANTÂNEOS -->
     <div class="instant-comments-box">
       <div class="instant-comments-header">💬 COMENTÁRIOS AO VIVO</div>
       <div class="instant-comments-list" id="instant-comments-list"></div>
@@ -192,7 +208,7 @@
       <p>Envie sua mensagem para aparecer no jogo!</p>
       <input type="text" id="comm-author" placeholder="Seu Nome" maxlength="15">
       <textarea id="comm-text" placeholder="Escreva seu comentário..." maxlength="120"></textarea>
-      <button class="btn-main" onclick="saveNewComment()">ENVIAR COMENTÁRIO 📝</button>
+      <button class="btn-main" onclick="saveNewComment(event)">ENVIAR COMENTÁRIO 📝</button>
       <button class="btn-back" onclick="closeAllPanels()">◀ VOLTAR AO JOGO</button>
     </div>
 
@@ -204,7 +220,7 @@
       <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
     </div>
 
-    <!-- PAINEL INTERAÇÃO YOUTUBE (TRANSIÇÃO DE FASE) -->
+    <!-- PAINEL INTERAÇÃO YOUTUBE -->
     <div id="panel-youtube-promo" class="overlay-panel">
       <h2>FASE CONCLUÍDA! 🎉</h2>
       <p>Apoie o canal do Doutor Chácara para continuar:</p>
@@ -283,12 +299,23 @@
     const btnSaveScore = document.getElementById("btn-save-score");
     const instantCommentsList = document.getElementById("instant-comments-list");
 
-    // RECURSOS DA BARRA INFERIOR E SISTEMAS
+    let isPaused = false;
     let mediaRecorder = null;
     let recordedChunks = [];
     let isRecording = false;
     let isMusicEnabled = true;
     let isVoiceEnabled = true;
+
+    // CANAL DE COMUNICAÇÃO EM TEMPO REAL ENTRE ABAS/JANELAS
+    const commentChannel = window.BroadcastChannel ? new BroadcastChannel("dr_chacara_comments_channel") : null;
+
+    if (commentChannel) {
+      commentChannel.onmessage = (e) => {
+        if (e.data === "NEW_COMMENT") {
+          loadAndRenderComments();
+        }
+      };
+    }
 
     function closeAllPanels() {
       panelStageStart.style.display = "none";
@@ -298,6 +325,7 @@
       panelKeyConfig.style.display = "none";
       panelPixOverlay.style.display = "none";
       panelCommentsOverlay.style.display = "none";
+      isPaused = false;
     }
 
     function openYoutubeChannel() {
@@ -305,6 +333,7 @@
     }
 
     function openPixOverlay() {
+      isPaused = true;
       closeAllPanels();
       panelPixOverlay.style.display = "flex";
     }
@@ -315,18 +344,20 @@
     }
 
     function openCommentsOverlay() {
+      isPaused = true;
       closeAllPanels();
       panelCommentsOverlay.style.display = "flex";
     }
 
-    // FEED DE COMENTÁRIOS INSTANTÂNEOS NO JOGO
     function loadAndRenderComments() {
       const stored = localStorage.getItem("dr_chacara_comments") || "[]";
       const comments = JSON.parse(stored);
+      
       if (comments.length === 0) {
         instantCommentsList.innerHTML = `<div class="instant-item">Nenhum comentário enviado ainda.</div>`;
         return;
       }
+      
       instantCommentsList.innerHTML = comments.map(c => `
         <div class="instant-item">
           <strong>${c.author}:</strong> ${c.text}
@@ -334,7 +365,9 @@
       `).join('');
     }
 
-    function saveNewComment() {
+    function saveNewComment(e) {
+      if (e) e.preventDefault();
+
       const authorInput = document.getElementById("comm-author");
       const textInput = document.getElementById("comm-text");
       const author = authorInput.value.trim() || "Anônimo";
@@ -342,19 +375,37 @@
 
       if (!text) { alert("Digite sua mensagem antes de enviar!"); return; }
 
-      const stored = localStorage.getItem("dr_chacara_comments") || "[]";
-      const comments = JSON.parse(stored);
-      comments.unshift({ author, text });
-      localStorage.setItem("dr_chacara_comments", JSON.stringify(comments.slice(0, 30)));
+      try {
+        const stored = localStorage.getItem("dr_chacara_comments") || "[]";
+        const comments = JSON.parse(stored);
+        comments.unshift({ author, text });
+        localStorage.setItem("dr_chacara_comments", JSON.stringify(comments.slice(0, 30)));
 
-      textInput.value = "";
-      alert("Comentário enviado e adicionado ao jogo!");
-      loadAndRenderComments();
-      closeAllPanels();
+        textInput.value = "";
+        alert("Comentário enviado com sucesso!");
+        
+        loadAndRenderComments();
+        
+        // Notifica outras abas/instâncias instantaneamente
+        if (commentChannel) {
+          commentChannel.postMessage("NEW_COMMENT");
+        }
+      } catch (err) {
+        console.error("Erro ao salvar comentário:", err);
+      } finally {
+        closeAllPanels();
+      }
     }
 
-    // SINCRONIZAÇÃO AUTOMÁTICA DOS COMENTÁRIOS
-    window.addEventListener("storage", loadAndRenderComments);
+    // Escuta alterações de armazenamento em tempo real entre abas no mesmo domínio
+    window.addEventListener("storage", (e) => {
+      if (e.key === "dr_chacara_comments") {
+        loadAndRenderComments();
+      }
+    });
+
+    // Polling contínuo de segurança a cada 3 segundos
+    setInterval(loadAndRenderComments, 3000);
     loadAndRenderComments();
 
     function takeScreenshot() {
@@ -408,7 +459,6 @@
       }
     }
 
-    // CONTROLE DE MÚSICA E VOZ
     function toggleMusic() {
       isMusicEnabled = !isMusicEnabled;
       const btn = document.getElementById("btn-toggle-music");
@@ -436,43 +486,37 @@
       }
     }
 
-    // CONFIGURAÇÃO DE CONTROLES DO TECLADO
     const keyBinds = { attack: "KeyA", jump: "KeyS" };
     let listeningKeyAction = null;
 
-    // SINTETIZADOR DE ÁUDIO E MÚSICAS VARIADAS POR FASE (VOLUME AUMENTADO)
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let bgMusicTimer = null;
     let bgMusicNoteIndex = 0;
 
-    // Escalas de notas para cada fase (Sem Direitos Autorais)
     const stageScales = [
-      [261.63, 293.66, 329.63, 349.23, 392.00, 440.00], // Fase 1
-      [293.66, 329.63, 369.99, 392.00, 440.00, 493.88], // Fase 2
-      [329.63, 369.99, 392.00, 440.00, 493.88, 523.25], // Fase 3
-      [349.23, 392.00, 440.00, 466.16, 523.25, 587.33], // Fase 4
-      [392.00, 440.00, 493.88, 523.25, 587.33, 659.25]  // Fase 5+
+      [261.63, 293.66, 329.63, 349.23, 392.00, 440.00],
+      [293.66, 329.63, 369.99, 392.00, 440.00, 493.88],
+      [329.63, 369.99, 392.00, 440.00, 493.88, 523.25],
+      [349.23, 392.00, 440.00, 466.16, 523.25, 587.33],
+      [392.00, 440.00, 493.88, 523.25, 587.33, 659.25]
     ];
 
     function startBackgroundMusic() {
       if (!isMusicEnabled || bgMusicTimer) return;
       
       bgMusicTimer = setInterval(() => {
-        if (!isMusicEnabled || gameOver || !stageStarted) return;
+        if (!isMusicEnabled || gameOver || !stageStarted || isPaused) return;
         if (audioCtx.state === 'suspended') audioCtx.resume();
 
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = (currentStage % 2 === 0) ? 'triangle' : 'sine';
         
-        // Seleciona escala e nota única com base na FASE atual
         const scale = stageScales[(currentStage - 1) % stageScales.length];
         const note = scale[bgMusicNoteIndex % scale.length];
         bgMusicNoteIndex++;
 
         osc.frequency.setValueAtTime(note, audioCtx.currentTime);
-        
-        // Volume Aumentado para melhor imersão (0.08)
         gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.002, audioCtx.currentTime + 0.35);
 
@@ -555,7 +599,6 @@
       }
     }
 
-    // VARIÁVEIS DE JOGO
     let currentStage = 1;
     const maxStages = 27;
     let score = 0;
@@ -566,7 +609,6 @@
     let sunAngle = 0;
     let gameTimerSeconds = 0;
 
-    // ANIMAÇÃO DE COLISÃO / GAME OVER
     let collisionAnimationActive = false;
     let collisionAnimTimer = 0;
     let playerSpeechBubble = "";
@@ -581,7 +623,6 @@
       "A prática leva à perfeição!"
     ];
 
-    // INTRO ANIMAÇÃO DISCO VOADOR
     let isIntroPlaying = false;
     let ufoState = { x: -100, y: 50, beamOpacity: 0, playerY: -100, step: 0 };
 
@@ -597,7 +638,6 @@
     const groundY = 370;
     const weapon = { x: 0, y: 0, length: 0, baseMaxLength: 150 };
 
-    // ITENS / POWER-UPS
     let notebookItem = null;
     let greenCoatItem = null;
 
@@ -690,9 +730,8 @@
     btnStartAction.addEventListener("click", startStage);
     btnSaveScore.addEventListener("click", saveScoreAndRestart);
 
-    // CRONÔMETRO DE JOGO (JALECO VERDE A CADA 5 MINUTOS)
     setInterval(() => {
-      if (stageStarted && !gameOver && !isIntroPlaying) {
+      if (stageStarted && !gameOver && !isIntroPlaying && !isPaused) {
         gameTimerSeconds++;
         if (gameTimerSeconds % 300 === 0) {
           greenCoatItem = { x: 300 + Math.random() * 200, y: groundY - 35, width: 30, height: 30, active: true };
@@ -700,16 +739,16 @@
       }
     }, 1000);
 
-    // CONFIGURAÇÃO DE TECLAS DO PC
     function openKeyConfig() {
+      isPaused = true;
       closeAllPanels();
       panelKeyConfig.style.display = "flex";
     }
-    function closeKeyConfig() { panelKeyConfig.style.display = "none"; }
+    function closeKeyConfig() { closeAllPanels(); }
     function listenKeyChange(action) {
       listeningKeyAction = action;
       const btn = document.getElementById(`bind-${action}-btn`);
-      btn.innerText = "Pressione uma tecla...";
+      btn.innerText = "Pressione...";
     }
 
     window.addEventListener("keydown", (e) => {
@@ -722,8 +761,8 @@
       keys[e.code] = true;
     });
 
-    // TRANSIÇÃO DE FASE INTERATIVA (YOUTUBE)
     function openYoutubePromo() {
+      isPaused = true;
       closeAllPanels();
       document.getElementById("yt-feedback-msg").innerText = "";
       panelYtPromo.style.display = "flex";
@@ -811,7 +850,6 @@
       }, 50);
     }
 
-    // CONTROLES JOYSTICK
     const joyZone = document.getElementById("joystick-zone");
     const joyStick = document.getElementById("joystick-stick");
     let joyActive = false;
@@ -847,12 +885,12 @@
 
     document.getElementById("touch-jump").addEventListener("pointerdown", (e) => {
       e.preventDefault();
-      if (player.grounded && stageStarted && !gameOver) { player.vy = -12.5; player.grounded = false; }
+      if (player.grounded && stageStarted && !gameOver && !isPaused) { player.vy = -12.5; player.grounded = false; }
     });
 
     document.getElementById("touch-attack").addEventListener("pointerdown", (e) => {
       e.preventDefault();
-      if (!player.attacking && stageStarted && !gameOver) {
+      if (!player.attacking && stageStarted && !gameOver && !isPaused) {
         player.attacking = true; player.attackTimer = player.attackMaxTime;
         playSound('attack');
       }
@@ -902,13 +940,13 @@
     function update() {
       sunAngle += 0.01;
 
-      if (currentStage > 1) {
+      if (currentStage > 1 && !isPaused) {
         aerialVehicle.x += aerialVehicle.speed;
         if (aerialVehicle.x > canvas.width + 100) aerialVehicle.x = -100;
       }
 
       if (isIntroPlaying) { updateIntro(); return; }
-      if (gameOver || !stageStarted || collisionAnimationActive) return;
+      if (gameOver || !stageStarted || collisionAnimationActive || isPaused) return;
 
       const moveX = joyVector.x || (keys["ArrowRight"] ? 1 : keys["ArrowLeft"] ? -1 : 0);
       const moveY = joyVector.y || (keys["ArrowDown"] ? 1 : keys["ArrowUp"] ? -1 : 0);
@@ -942,7 +980,6 @@
 
       if (player.x < 0) player.x = 0;
 
-      // Coleta do Caderno
       if (notebookItem && notebookItem.active) {
         if (player.x < notebookItem.x + notebookItem.width && player.x + player.width > notebookItem.x &&
             player.y < notebookItem.y + notebookItem.height && player.y + player.height > notebookItem.y) {
@@ -952,7 +989,6 @@
         }
       }
 
-      // Coleta do Jaleco Verde
       if (greenCoatItem && greenCoatItem.active) {
         if (player.x < greenCoatItem.x + greenCoatItem.width && player.x + player.width > greenCoatItem.x &&
             player.y < greenCoatItem.y + greenCoatItem.height && player.y + player.height > greenCoatItem.y) {
@@ -962,7 +998,6 @@
         }
       }
 
-      // Conclusão da Fase
       if (player.x + player.width >= canvas.width) {
         if (currentStage < maxStages) {
           stageStarted = false;
@@ -974,7 +1009,6 @@
         }
       }
 
-      // Ataque do Escudo
       if (player.attacking) {
         player.attackTimer--;
         const maxLen = player.shieldPowerUp ? weapon.baseMaxLength * 1.5 : weapon.baseMaxLength;
@@ -994,7 +1028,6 @@
         if (player.attackTimer <= 0) player.attacking = false;
       }
 
-      // Inimigos e Colisão
       enemies.forEach(enemy => {
         if (!enemy.alive) return;
 
