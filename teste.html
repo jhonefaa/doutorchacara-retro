@@ -11,29 +11,546 @@
     content="width=device-width, initial-scale=1.0"
 >
 
-<title>Teste Doutor Chácara Retro</title>
+<title>Doutor Chácara Retro</title>
 
 <style>
 
-html,
-body {
+/* =====================================================
+   RESET
+===================================================== */
 
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+
+    background: #080808;
+
+    color: #ffffff;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+}
+
+
+/* =====================================================
+   CAPA
+===================================================== */
+
+.capa {
 
     width: 100%;
-    height: 100%;
 
-    background: #000;
+    height: 100vh;
+
+    min-height: 600px;
+
+    background-image:
+
+        linear-gradient(
+            to bottom,
+            rgba(0,0,0,0.15),
+            rgba(0,0,0,0.85)
+        ),
+
+        url("fundo.jpg.jpg");
+
+    background-size: cover;
+
+    background-position: center;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: flex-end;
+
+    align-items: center;
+
+    padding: 40px 20px 60px;
+
+    text-align: center;
+
+}
+
+
+.capa h1 {
+
+    font-size:
+        clamp(35px, 7vw, 75px);
+
+    font-weight: 900;
+
+    letter-spacing: 3px;
+
+    text-transform: uppercase;
+
+    margin-bottom: 30px;
+
+    text-shadow:
+
+        0 0 10px #00ffcc,
+
+        0 0 25px #ff0055,
+
+        0 0 50px rgba(255,0,85,.5);
+
+}
+
+
+.capa p {
+
+    margin-top: 20px;
+
+    color: #dddddd;
+
+    letter-spacing: 3px;
+
+    font-size: 14px;
+
+}
+
+
+/* =====================================================
+   BOTÃO JOGAR
+===================================================== */
+
+.btn-jogar {
+
+    display: inline-block;
+
+    padding: 18px 40px;
+
+    background: #ff0055;
+
+    color: #ffffff;
+
+    border: 2px solid #ffffff;
+
+    border-radius: 50px;
+
+    text-decoration: none;
+
+    font-size: 18px;
+
+    font-weight: bold;
+
+    box-shadow:
+
+        0 0 15px rgba(255,0,85,.7);
+
+    transition: .3s;
+
+}
+
+
+.btn-jogar:hover {
+
+    background: #00ffcc;
+
+    color: #000000;
+
+    transform: scale(1.08);
+
+    box-shadow:
+
+        0 0 30px #00ffcc;
+
+}
+
+
+/* =====================================================
+   ARCADE
+===================================================== */
+
+#arcade {
+
+    min-height: 100vh;
+
+    padding:
+        60px 15px 80px;
+
+    background:
+
+        linear-gradient(
+            #15151d,
+            #060608
+        );
+
+    text-align: center;
+
+}
+
+
+#arcade h2 {
+
+    font-size:
+        clamp(28px, 5vw, 45px);
+
+    color: #00ffcc;
+
+    margin-bottom: 10px;
+
+    text-shadow:
+
+        0 0 15px
+        rgba(0,255,204,.4);
+
+}
+
+
+.subtitulo {
+
+    color: #999999;
+
+    margin-bottom: 30px;
+
+}
+
+
+/* =====================================================
+   PAINEL
+===================================================== */
+
+.painel {
+
+    width: 100%;
+
+    max-width: 1100px;
+
+    margin: auto;
+
+    padding: 25px;
+
+    background: #111118;
+
+    border: 1px solid #30303d;
+
+    border-radius: 15px;
+
+    box-shadow:
+
+        0 20px 50px
+        rgba(0,0,0,.5);
+
+}
+
+
+/* =====================================================
+   MENU DE JOGOS
+===================================================== */
+
+.menu-jogo {
+
+    margin-bottom: 20px;
+
+}
+
+
+.menu-jogo label {
+
+    display: block;
+
+    margin-bottom: 10px;
+
+    font-weight: bold;
+
+}
+
+
+#jogo {
+
+    width: 100%;
+
+    max-width: 500px;
+
+    padding: 14px 18px;
+
+    background: #08080d;
+
+    color: #00ffcc;
+
+    border: 2px solid #00ffcc;
+
+    border-radius: 8px;
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+#status {
+
+    display: inline-block;
+
+    padding: 12px 20px;
+
+    margin-bottom: 20px;
+
+    border-radius: 25px;
+
+    background: #08080d;
+
+    border: 1px solid #444444;
+
+    color: #ffcc00;
+
+    font-size: 14px;
+
+}
+
+
+#status.ok {
+
+    color: #00ffcc;
+
+    border-color: #00ffcc;
+
+}
+
+
+#status.erro {
+
+    color: #ff3366;
+
+    border-color: #ff3366;
+
+}
+
+
+/* =====================================================
+   BOTÕES
+===================================================== */
+
+.botoes {
+
+    display: flex;
+
+    justify-content: center;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    margin-bottom: 25px;
+
+}
+
+
+.btn {
+
+    padding:
+        12px 22px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: .2s;
+
+}
+
+
+.btn:hover {
+
+    transform: translateY(-2px);
+
+}
+
+
+.btn-reiniciar {
+
+    background: #ff0055;
+
+    color: #ffffff;
+
+}
+
+
+.btn-fullscreen {
+
+    background: #00ffcc;
+
+    color: #000000;
+
+}
+
+
+/* =====================================================
+   EMULADOR
+===================================================== */
+
+#game-container {
+
+    width: 100%;
+
+    max-width: 1000px;
+
+    height: 600px;
+
+    margin: auto;
+
+    background: #000000;
+
+    border: 3px solid #00ffcc;
+
+    border-radius: 10px;
 
     overflow: hidden;
 
+    box-shadow:
+
+        0 0 25px
+        rgba(0,255,204,.3);
+
 }
+
 
 #game {
 
     width: 100%;
+
     height: 100%;
+
+}
+
+
+/* =====================================================
+   AVISO
+===================================================== */
+
+.aviso {
+
+    max-width: 850px;
+
+    margin: 25px auto 0;
+
+    color: #777777;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+
+}
+
+
+/* =====================================================
+   RODAPÉ
+===================================================== */
+
+footer {
+
+    padding: 30px;
+
+    background: #030304;
+
+    color: #777777;
+
+    text-align: center;
+
+}
+
+
+footer strong {
+
+    color: #00ffcc;
+
+}
+
+
+/* =====================================================
+   CELULAR
+===================================================== */
+
+@media(max-width: 700px) {
+
+    .capa {
+
+        min-height: 550px;
+
+    }
+
+
+    .capa h1 {
+
+        font-size: 35px;
+
+        letter-spacing: 1px;
+
+    }
+
+
+    .btn-jogar {
+
+        padding:
+            15px 28px;
+
+        font-size: 16px;
+
+    }
+
+
+    .painel {
+
+        padding: 15px;
+
+    }
+
+
+    #game-container {
+
+        height: 430px;
+
+        border-width: 2px;
+
+    }
+
+}
+
+
+@media(max-width: 450px) {
+
+    #game-container {
+
+        height: 300px;
+
+    }
+
+
+    .botoes {
+
+        flex-direction: column;
+
+    }
+
+
+    .btn {
+
+        width: 100%;
+
+    }
 
 }
 
@@ -41,36 +558,468 @@ body {
 
 </head>
 
+
 <body>
 
-<div id="game"></div>
 
+<!-- =====================================================
+     CAPA
+===================================================== -->
+
+<header class="capa">
+
+    <h1>
+        Doutor Chácara Retro
+    </h1>
+
+
+    <a
+        href="#arcade"
+        class="btn-jogar"
+    >
+        🎮 COMEÇAR JOGO RETRO
+    </a>
+
+
+    <p>
+        SEU PORTAL DE JOGOS CLÁSSICOS
+    </p>
+
+</header>
+
+
+
+<!-- =====================================================
+     ARCADE
+===================================================== -->
+
+<main id="arcade">
+
+    <h2>
+        🕹️ ARCADE RETRO
+    </h2>
+
+
+    <p class="subtitulo">
+        Escolha seu jogo e divirta-se!
+    </p>
+
+
+    <section class="painel">
+
+
+        <!-- MENU -->
+
+        <div class="menu-jogo">
+
+            <label for="jogo">
+                Escolha o jogo:
+            </label>
+
+
+            <select id="jogo">
+
+                <option value="FFIGHT.zip">
+                    Final Fight
+                </option>
+
+
+                <option value="neobombe.zip">
+                    Neo Bomberman
+                </option>
+
+
+                <option value="sf2ce.zip">
+                    Street Fighter II Champion Edition
+                </option>
+
+
+                <option value="rygar.zip">
+                    Rygar
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- STATUS -->
+
+        <div id="status">
+
+            🎮 Preparando o jogo...
+
+        </div>
+
+
+        <!-- BOTÕES -->
+
+        <div class="botoes">
+
+            <button
+                class="btn btn-reiniciar"
+                id="reiniciar"
+            >
+                🔄 Reiniciar Jogo
+            </button>
+
+
+            <button
+                class="btn btn-fullscreen"
+                id="fullscreen"
+            >
+                ⛶ Tela Cheia
+            </button>
+
+        </div>
+
+
+        <!-- =================================================
+             EMULADOR
+        ================================================== -->
+
+        <div id="game-container">
+
+            <div id="game"></div>
+
+        </div>
+
+
+        <div class="aviso">
+
+            O emulador será carregado diretamente
+            nesta página. Conecte um controle USB
+            ou utilize o teclado.
+
+        </div>
+
+    </section>
+
+</main>
+
+
+
+<!-- =====================================================
+     RODAPÉ
+===================================================== -->
+
+<footer>
+
+    🎮
+    <strong>
+        Doutor Chácara Retro
+    </strong>
+
+    <br><br>
+
+    Portal de Jogos Clássicos
+
+</footer>
+
+
+
+<!-- =====================================================
+     EMULATORJS
+===================================================== -->
 
 <script>
 
-window.EJS_player = "#game";
+/*
+===========================================================
+CONFIGURAÇÃO DO EMULATORJS
+===========================================================
+*/
 
-window.EJS_core = "mame";
-
-window.EJS_gameUrl =
-    "https://jhonefaa.github.io/doutorchacara-retro/FFIGHT.zip";
-
-window.EJS_pathtodata =
+const EJS_DATA =
     "https://cdn.emulatorjs.org/stable/data/";
 
-window.EJS_startOnLoaded = true;
 
-window.EJS_defaultControls = true;
+/*
+===========================================================
+ELEMENTOS
+===========================================================
+*/
 
-window.EJS_gamepadType = "standard";
+const game =
+    document.getElementById("game");
 
-window.EJS_language = "pt-BR";
+const jogo =
+    document.getElementById("jogo");
 
-</script>
+const status =
+    document.getElementById("status");
+
+const reiniciar =
+    document.getElementById("reiniciar");
+
+const fullscreen =
+    document.getElementById("fullscreen");
 
 
-<script
-    src="https://cdn.emulatorjs.org/stable/data/loader.js">
+/*
+===========================================================
+JOGO ATUAL
+===========================================================
+*/
+
+let jogoAtual =
+    jogo.value;
+
+
+/*
+===========================================================
+CARREGAR EMULADOR
+===========================================================
+*/
+
+function carregarJogo(rom) {
+
+    jogoAtual = rom;
+
+
+    status.className = "";
+
+    status.innerHTML =
+        "⏳ Carregando " +
+        rom +
+        "...";
+
+
+    /*
+    Remove configuração anterior
+    */
+
+    const scripts =
+        document.querySelectorAll(
+            ".emulator-script"
+        );
+
+
+    scripts.forEach(
+        script => script.remove()
+    );
+
+
+    /*
+    Limpa o jogo
+    */
+
+    game.innerHTML = "";
+
+
+    /*
+    Configura EmulatorJS
+    */
+
+    window.EJS_player =
+        "#game";
+
+    window.EJS_core =
+        "mame";
+
+    window.EJS_gameUrl =
+        "./" + rom;
+
+    window.EJS_pathtodata =
+        EJS_DATA;
+
+    window.EJS_startOnLoaded =
+        true;
+
+    window.EJS_defaultControls =
+        true;
+
+    window.EJS_gamepadType =
+        "standard";
+
+    window.EJS_language =
+        "pt-BR";
+
+
+    /*
+    Cria o carregador
+    */
+
+    const script =
+        document.createElement(
+            "script"
+        );
+
+
+    script.className =
+        "emulator-script";
+
+
+    script.src =
+        EJS_DATA +
+        "loader.js";
+
+
+    script.onload =
+        function() {
+
+            status.className =
+                "ok";
+
+            status.innerHTML =
+                "🎮 EmulatorJS carregado. Iniciando jogo...";
+
+        };
+
+
+    script.onerror =
+        function() {
+
+            status.className =
+                "erro";
+
+            status.innerHTML =
+                "❌ Não foi possível carregar o EmulatorJS.";
+
+        };
+
+
+    document.body.appendChild(
+        script
+    );
+
+}
+
+
+/*
+===========================================================
+TROCAR JOGO
+===========================================================
+*/
+
+jogo.addEventListener(
+    "change",
+    function() {
+
+        carregarJogo(
+            this.value
+        );
+
+    }
+);
+
+
+/*
+===========================================================
+REINICIAR
+===========================================================
+*/
+
+reiniciar.addEventListener(
+    "click",
+    function() {
+
+        carregarJogo(
+            jogoAtual
+        );
+
+    }
+);
+
+
+/*
+===========================================================
+TELA CHEIA
+===========================================================
+*/
+
+fullscreen.addEventListener(
+    "click",
+    function() {
+
+        const container =
+            document.getElementById(
+                "game-container"
+            );
+
+
+        if (
+            document.fullscreenElement
+        ) {
+
+            document.exitFullscreen();
+
+        }
+
+        else if (
+            container.requestFullscreen
+        ) {
+
+            container.requestFullscreen();
+
+        }
+
+    }
+);
+
+
+/*
+===========================================================
+CONTROLE CONECTADO
+===========================================================
+*/
+
+window.addEventListener(
+    "gamepadconnected",
+    function(event) {
+
+        status.className =
+            "ok";
+
+        status.innerHTML =
+            "🎮 Controle conectado: " +
+            event.gamepad.id;
+
+    }
+);
+
+
+/*
+===========================================================
+CONTROLE DESCONECTADO
+===========================================================
+*/
+
+window.addEventListener(
+    "gamepaddisconnected",
+    function() {
+
+        status.className =
+            "erro";
+
+        status.innerHTML =
+            "🎮 Controle desconectado.";
+
+    }
+);
+
+
+/*
+===========================================================
+INÍCIO
+===========================================================
+*/
+
+window.addEventListener(
+    "load",
+    function() {
+
+        /*
+        Começa com Final Fight
+        */
+
+        carregarJogo(
+            jogo.value
+        );
+
+    }
+);
+
 </script>
 
 
