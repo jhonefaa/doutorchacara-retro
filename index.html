@@ -14,7 +14,7 @@
     
     #game-container {
       position: relative; width: 100vw; height: 100vh;
-      display: flex; justify-content: center; align-items: center; background: #000;
+      display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000;
     }
     #gameCanvas {
       background: #000; width: 100%; height: 100%; object-fit: contain; display: block;
@@ -22,7 +22,7 @@
 
     /* CONTROLES VIRTUAIS TOUCH */
     .touch-controls {
-      position: absolute; bottom: 20px; left: 0; width: 100%;
+      position: absolute; bottom: 50px; left: 0; width: 100%;
       display: flex; justify-content: space-between; align-items: flex-end;
       padding: 0 30px; pointer-events: none; z-index: 5;
     }
@@ -40,7 +40,7 @@
 
     .action-buttons { display: flex; gap: 15px; pointer-events: auto; }
     .btn-action {
-      width: 65px; height: 65px; border-radius: 50%; font-size: 0.9rem; font-weight: bold;
+      width: 65px; height: 65px; border-radius: 50%; font-size: 0.85rem; font-weight: bold;
       border: 2px solid #fff; box-shadow: 0 0 10px rgba(255,255,255,0.3);
       display: flex; justify-content: center; align-items: center; color: #fff;
     }
@@ -53,40 +53,59 @@
       font-size: 0.8rem; font-weight: bold; cursor: pointer; z-index: 10;
     }
     
+    #btn-config-keys {
+      position: absolute; bottom: 10px; background: rgba(255, 255, 255, 0.1);
+      border: 1px solid #fff; color: #fff; padding: 5px 15px; border-radius: 12px;
+      font-size: 0.75rem; cursor: pointer; z-index: 10;
+    }
+
     .overlay-panel {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: rgba(10, 10, 18, 0.95); border: 2px solid #00ffcc;
+      background: rgba(10, 10, 18, 0.96); border: 2px solid #00ffcc;
       border-radius: 20px; padding: 25px; box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
       z-index: 20; display: none; flex-direction: column; align-items: center; gap: 15px;
-      width: 85%; max-width: 450px; color: #fff;
+      width: 85%; max-width: 480px; color: #fff;
     }
 
-    .overlay-panel h2 { color: #00ffcc; font-size: 1.5rem; }
-    .overlay-panel p { font-size: 1.1rem; }
+    .overlay-panel h2 { color: #00ffcc; font-size: 1.4rem; }
+    .overlay-panel p { font-size: 1rem; line-height: 1.4; }
     
     .btn-main {
-      background: #00ffcc; color: #000; font-size: 1.1rem; font-weight: bold;
-      padding: 12px 28px; border-radius: 25px; border: none; cursor: pointer;
-      box-shadow: 0 0 15px #00ffcc; margin-top: 10px;
+      background: #00ffcc; color: #000; font-size: 1rem; font-weight: bold;
+      padding: 10px 22px; border-radius: 25px; border: none; cursor: pointer;
+      box-shadow: 0 0 15px #00ffcc; margin: 4px;
     }
 
+    .btn-sub {
+      background: #ff0055; color: #fff; font-size: 0.95rem; font-weight: bold;
+      padding: 10px 20px; border-radius: 25px; border: none; cursor: pointer;
+      box-shadow: 0 0 10px #ff0055; margin: 4px;
+    }
+
+    .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+
     input[type="text"] {
-      padding: 10px 15px; border-radius: 10px; border: 2px solid #00ffcc;
-      background: #111; color: #fff; font-size: 1.1rem; text-align: center; width: 80%;
+      padding: 8px 12px; border-radius: 10px; border: 2px solid #00ffcc;
+      background: #111; color: #fff; font-size: 1rem; text-align: center; width: 80%;
     }
 
     .leaderboard-list {
-      width: 100%; max-height: 180px; overflow-y: auto; text-align: left;
-      font-family: monospace; font-size: 0.95rem; background: rgba(255,255,255,0.05);
-      padding: 10px; border-radius: 10px; border: 1px solid #333;
+      width: 100%; max-height: 140px; overflow-y: auto; text-align: left;
+      font-family: monospace; font-size: 0.85rem; background: rgba(255,255,255,0.05);
+      padding: 8px; border-radius: 10px; border: 1px solid #333;
     }
-    .leaderboard-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #444; }
+    .leaderboard-item { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed #444; }
+
+    .key-bind-row { display: flex; justify-content: space-between; width: 100%; align-items: center; padding: 5px 0; }
+    .key-bind-btn { background: #222; border: 1px solid #00ffcc; color: #00ffcc; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
   </style>
 </head>
 <body>
 
   <div id="game-container">
     <button id="btn-fullscreen" onclick="toggleFullScreen()">TELA CHEIA ⛶</button>
+    <button id="btn-config-keys" onclick="openKeyConfig()">⚙️ CONFIGURAR TECLAS (PC)</button>
+
     <canvas id="gameCanvas" width="800" height="450"></canvas>
 
     <!-- PAINEL INICIAR FASE / TRANSIÇÃO -->
@@ -97,6 +116,39 @@
       <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
     </div>
 
+    <!-- PAINEL INTERAÇÃO YOUTUBE (TRANSIÇÃO DE FASE) -->
+    <div id="panel-youtube-promo" class="overlay-panel">
+      <h2>MUITO BEM! FASE CONCLUÍDA! 🎉</h2>
+      <p>Você já se inscreveu no canal do <strong>Doutor Chácara</strong> no YouTube?</p>
+      <div class="btn-group">
+        <button class="btn-main" onclick="handleYtAnswer('sim')">Sim, já sou inscrito! 👍</button>
+        <button class="btn-sub" onclick="handleYtAnswer('nao')">Ainda não 😅</button>
+        <button class="btn-main" style="background: #ff0000; color:#fff;" onclick="handleYtAnswer('inscrever')">Quero me inscrever! 🔴</button>
+      </div>
+      <div id="yt-feedback-msg" style="margin-top: 10px; font-weight: bold; color: #ffcc00;"></div>
+    </div>
+
+    <!-- PAINEL PAUSA YOUTUBE RETORNO -->
+    <div id="panel-yt-return" class="overlay-panel">
+      <h2>INSCRIÇÃO YOUTUBE</h2>
+      <p>O jogo foi pausado para você visitar o canal!</p>
+      <button class="btn-main" onclick="resumeGameFromYt()">CONTINUAR O JOGO ▶</button>
+    </div>
+
+    <!-- PAINEL CONFIGURAÇÃO DE TECLAS (PC) -->
+    <div id="panel-key-config" class="overlay-panel">
+      <h2>CONFIGURAÇÃO DE TECLAS</h2>
+      <div class="key-bind-row">
+        <span>Ataque:</span>
+        <button class="key-bind-btn" id="bind-attack-btn" onclick="listenKeyChange('attack')">A</button>
+      </div>
+      <div class="key-bind-row">
+        <span>Pulo:</span>
+        <button class="key-bind-btn" id="bind-jump-btn" onclick="listenKeyChange('jump')">S</button>
+      </div>
+      <button class="btn-main" onclick="closeKeyConfig()">SALVAR E FECHAR</button>
+    </div>
+
     <!-- PAINEL GAME OVER & REGISTRO DE NOME -->
     <div id="panel-game-over" class="overlay-panel">
       <h2 style="color: #ff0055;">GAME OVER</h2>
@@ -105,7 +157,7 @@
       <input type="text" id="player-name" placeholder="Digite seu nome" maxlength="12">
       <button class="btn-main" id="btn-save-score">SALVAR RECORD 🔄</button>
       
-      <h3 style="margin-top: 10px; color: #ffcc00; font-size: 1rem;">🏆 TOP 10 RECORDES</h3>
+      <h3 style="margin-top: 5px; color: #ffcc00; font-size: 0.9rem;">🏆 TOP 10 RECORDES</h3>
       <div class="leaderboard-list" id="leaderboard-list"></div>
     </div>
 
@@ -127,6 +179,10 @@
     
     const panelStageStart = document.getElementById("panel-stage-start");
     const panelGameOver = document.getElementById("panel-game-over");
+    const panelYtPromo = document.getElementById("panel-youtube-promo");
+    const panelYtReturn = document.getElementById("panel-yt-return");
+    const panelKeyConfig = document.getElementById("panel-key-config");
+    
     const stageTitle = document.getElementById("stage-title");
     const stageInstruction = document.getElementById("stage-instruction");
     const stageScoreInfo = document.getElementById("stage-score-info");
@@ -135,6 +191,10 @@
     const leaderboardList = document.getElementById("leaderboard-list");
     const btnStartAction = document.getElementById("btn-start-action");
     const btnSaveScore = document.getElementById("btn-save-score");
+
+    // CONFIGURAÇÃO DE CONTROLES DO TECLADO
+    const keyBinds = { attack: "KeyA", jump: "KeyS" };
+    let listeningKeyAction = null;
 
     // SINTETIZADOR DE ÁUDIO
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -167,14 +227,13 @@
         gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
         gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
         osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-      } else if (type === 'win') {
+      } else if (type === 'powerup') {
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-        osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
-        osc.frequency.setValueAtTime(800, audioCtx.currentTime + 0.2);
+        osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.2);
         gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
       } else if (type === 'ufo') {
         osc.type = 'sine';
         osc.frequency.setValueAtTime(300, audioCtx.currentTime);
@@ -203,15 +262,31 @@
       }
     }
 
+    // VARIÁVEIS DE JOGO
     let currentStage = 1;
     const maxStages = 27;
     let score = 0;
     let gameOver = false;
     let stageStarted = false;
     let stageMissionText = "";
-    let winMessage = "";
     let walkCycle = 0;
     let sunAngle = 0;
+    let gameTimerSeconds = 0;
+
+    // ANIMAÇÃO DE COLISÃO / GAME OVER
+    let collisionAnimationActive = false;
+    let collisionAnimTimer = 0;
+    let playerSpeechBubble = "";
+    let enemySpeechBubble = "";
+    let mockingEnemy = null;
+
+    const positiveFrases = [
+      "Vou ficar mais atento!",
+      "Cada erro é um aprendizado!",
+      "Não desisto, vou conseguir!",
+      "Atenção dobrada na próxima!",
+      "A prática leva à perfeição!"
+    ];
 
     // INTRO ANIMAÇÃO DISCO VOADOR
     let isIntroPlaying = false;
@@ -221,14 +296,18 @@
       x: 50, y: 280, width: 30, height: 65,
       vx: 0, vy: 0, speed: 4.8, friction: 0.82,
       grounded: false, crouching: false, facing: 'right', aimingUp: false,
-      attacking: false, attackTimer: 0, attackMaxTime: 12
+      attacking: false, attackTimer: 0, attackMaxTime: 12,
+      hasGreenCoat: false, shieldPowerUp: false
     };
 
     const gravity = 0.65;
     const groundY = 370;
-    const weapon = { x: 0, y: 0, length: 0, maxLength: 150 };
+    const weapon = { x: 0, y: 0, length: 0, baseMaxLength: 150 };
 
-    // SÍMBOLOS AÉREOS DA FASE (Aeronaves / Objetos Voadores)
+    // ITENS / POWER-UPS
+    let notebookItem = null;
+    let greenCoatItem = null;
+
     const aerialSymbols = ['plane', 'helicopter', 'balloon', 'rocket', 'ufo_mini', 'bird', 'dragon', 'blimp'];
 
     const stageRules = {
@@ -273,11 +352,18 @@
       
       panelStageStart.style.display = "flex";
       panelGameOver.style.display = "none";
+      panelYtPromo.style.display = "none";
 
-      // Configura objeto aéreo para a fase
       if (currentStage > 1) {
         const symbolType = aerialSymbols[(currentStage - 2) % aerialSymbols.length];
         aerialVehicle = { x: -80, y: 60 + Math.random() * 40, speed: 1.2 + Math.random() * 0.8, type: symbolType };
+      }
+
+      // Gera Caderno aleatório na fase
+      if (Math.random() > 0.3) {
+        notebookItem = { x: 200 + Math.random() * 400, y: groundY - 30, width: 25, height: 25, active: true };
+      } else {
+        notebookItem = null;
       }
 
       const count = 4 + Math.floor(currentStage * 0.5);
@@ -288,7 +374,7 @@
           y: groundY - 40, width: 28, height: 40,
           speed: 1.4 + (currentStage * 0.1), alive: true,
           symbol: charSymbol, isTarget: currentRule.isValid(charSymbol),
-          dir: -1, expression: 'normal'
+          dir: -1, expression: 'normal', mockOffset: 0
         });
       }
     }
@@ -298,7 +384,6 @@
       panelStageStart.style.display = "none";
       
       if (currentStage === 1) {
-        // Dispara Animação de Entrada do Disco Voador
         isIntroPlaying = true;
         ufoState = { x: -100, y: 80, beamOpacity: 0, playerY: 80, step: 0 };
         playSound('ufo');
@@ -312,6 +397,69 @@
 
     btnStartAction.addEventListener("click", startStage);
     btnSaveScore.addEventListener("click", saveScoreAndRestart);
+
+    // CRONÔMETRO DE JOGO (JALECO VERDE A CADA 5 MINUTOS)
+    setInterval(() => {
+      if (stageStarted && !gameOver && !isIntroPlaying) {
+        gameTimerSeconds++;
+        if (gameTimerSeconds % 300 === 0) { // 300 segundos = 5 minutos
+          greenCoatItem = { x: 300 + Math.random() * 200, y: groundY - 35, width: 30, height: 30, active: true };
+        }
+      }
+    }, 1000);
+
+    // CONFIGURAÇÃO DE TECLAS DO PC
+    function openKeyConfig() { panelKeyConfig.style.display = "flex"; }
+    function closeKeyConfig() { panelKeyConfig.style.display = "none"; }
+    function listenKeyChange(action) {
+      listeningKeyAction = action;
+      const btn = document.getElementById(`bind-${action}-btn`);
+      btn.innerText = "Pressione uma tecla...";
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if (listeningKeyAction) {
+        keyBinds[listeningKeyAction] = e.code;
+        document.getElementById(`bind-${listeningKeyAction}-btn`).innerText = e.key.toUpperCase();
+        listeningKeyAction = null;
+        return;
+      }
+      keys[e.code] = true;
+    });
+
+    // TRANSIÇÃO DE FASE INTERATIVA (YOUTUBE)
+    function openYoutubePromo() {
+      document.getElementById("yt-feedback-msg").innerText = "";
+      panelYtPromo.style.display = "flex";
+      speakText("Você já se inscreveu no canal do Doutor Chácara?");
+    }
+
+    function handleYtAnswer(option) {
+      const msgBox = document.getElementById("yt-feedback-msg");
+      if (option === 'sim') {
+        msgBox.innerText = "Muito obrigado por fazer parte do nosso canal! 💙";
+        speakText("Muito obrigado por fazer parte do nosso canal!");
+        setTimeout(() => { panelYtPromo.style.display = "none"; advanceToNextStage(); }, 2000);
+      } else if (option === 'nao') {
+        msgBox.innerText = "Inscreva-se para apoiar o Doutor Chácara! 🎓";
+        speakText("Inscreva-se para apoiar o Doutor Chácara!");
+        setTimeout(() => { panelYtPromo.style.display = "none"; advanceToNextStage(); }, 2500);
+      } else if (option === 'inscrever') {
+        window.open("https://www.youtube.com/@DoutorChacara", "_blank");
+        panelYtPromo.style.display = "none";
+        panelYtReturn.style.display = "flex";
+      }
+    }
+
+    function resumeGameFromYt() {
+      panelYtReturn.style.display = "none";
+      advanceToNextStage();
+    }
+
+    function advanceToNextStage() {
+      currentStage++; player.x = 20;
+      prepareStage();
+    }
 
     function getTopScores() {
       const data = localStorage.getItem("dr_chacara_scores");
@@ -339,17 +487,35 @@
       resetGame();
     }
 
-    function triggerGameOver(reason) {
-      gameOver = true;
+    function triggerGameOverSequence(enemyRef, reason) {
+      collisionAnimationActive = true;
+      collisionAnimTimer = 0;
+      mockingEnemy = enemyRef;
+      
+      // Escolhe frase positiva aleatória para o jogador
+      playerSpeechBubble = positiveFrases[Math.floor(Math.random() * positiveFrases.length)];
+      enemySpeechBubble = "Você não consegue me vencer! Kkkk";
+      
       playSound('hitWrong');
-      document.getElementById("game-over-reason").innerText = reason;
-      finalScoreTxt.innerText = score;
-      renderLeaderboard();
-      panelGameOver.style.display = "flex";
-      speakText("Game Over. " + reason);
+      speakText(playerSpeechBubble);
+
+      let animInterval = setInterval(() => {
+        collisionAnimTimer += 0.2;
+        if (mockingEnemy) mockingEnemy.mockOffset = Math.sin(collisionAnimTimer * 5) * 8; // Animação da letra mangando
+        
+        if (collisionAnimTimer >= 3.5) {
+          clearInterval(animInterval);
+          collisionAnimationActive = false;
+          gameOver = true;
+          document.getElementById("game-over-reason").innerText = reason;
+          finalScoreTxt.innerText = score;
+          renderLeaderboard();
+          panelGameOver.style.display = "flex";
+        }
+      }, 50);
     }
 
-    // JOYSTICK ANALÓGICO 360°
+    // CONTROLES JOYSTICK
     const joyZone = document.getElementById("joystick-zone");
     const joyStick = document.getElementById("joystick-stick");
     let joyActive = false;
@@ -397,46 +563,38 @@
     });
 
     function resetGame() {
-      gameOver = false; score = 0; currentStage = 1;
+      gameOver = false; score = 0; currentStage = 1; gameTimerSeconds = 0;
       player.x = 50; player.y = groundY - player.height; player.vx = 0; player.vy = 0;
+      player.hasGreenCoat = false; player.shieldPowerUp = false;
       prepareStage();
     }
 
     const keys = {};
-    window.addEventListener("keydown", (e) => { keys[e.code] = true; });
     window.addEventListener("keyup", (e) => { keys[e.code] = false; });
 
     function updateIntro() {
       if (!isIntroPlaying) return;
 
-      // Estágio 0: Disco Voador entra na tela até o x=100
       if (ufoState.step === 0) {
         ufoState.x += 3;
         if (ufoState.x >= 100) ufoState.step = 1;
-      } 
-      // Estágio 1: Acende raio abdutor
-      else if (ufoState.step === 1) {
+      } else if (ufoState.step === 1) {
         ufoState.beamOpacity += 0.05;
         if (ufoState.beamOpacity >= 1) ufoState.step = 2;
-      } 
-      // Estágio 2: Baixa o jogador até o chão
-      else if (ufoState.step === 2) {
+      } else if (ufoState.step === 2) {
         ufoState.playerY += 2.5;
         if (ufoState.playerY >= groundY - player.height) {
           ufoState.playerY = groundY - player.height;
           ufoState.step = 3;
         }
-      } 
-      // Estágio 3: Desliga raio e UFO vai embora
-      else if (ufoState.step === 3) {
+      } else if (ufoState.step === 3) {
         ufoState.beamOpacity -= 0.05;
         if (ufoState.beamOpacity <= 0) {
           ufoState.x += 4;
           if (ufoState.x > canvas.width + 100) {
             isIntroPlaying = false;
             stageStarted = true;
-            player.x = 100;
-            player.y = groundY - player.height;
+            player.x = 100; player.y = groundY - player.height;
             const currentRule = getRuleForStage(currentStage);
             speakText(`${currentRule.title}. ${currentRule.instruction}`);
           }
@@ -447,14 +605,13 @@
     function update() {
       sunAngle += 0.01;
 
-      // Movimento da Aeronave da fase
       if (currentStage > 1) {
         aerialVehicle.x += aerialVehicle.speed;
         if (aerialVehicle.x > canvas.width + 100) aerialVehicle.x = -100;
       }
 
       if (isIntroPlaying) { updateIntro(); return; }
-      if (gameOver || !stageStarted) return;
+      if (gameOver || !stageStarted || collisionAnimationActive) return;
 
       const moveX = joyVector.x || (keys["ArrowRight"] ? 1 : keys["ArrowLeft"] ? -1 : 0);
       const moveY = joyVector.y || (keys["ArrowDown"] ? 1 : keys["ArrowUp"] ? -1 : 0);
@@ -470,11 +627,11 @@
         walkCycle = 0;
       }
 
-      if (keys["Space"] && player.grounded) {
+      if (keys[keyBinds.jump] && player.grounded) {
         player.vy = -12.5; player.grounded = false;
       }
 
-      if ((keys["KeyZ"] || keys["KeyX"]) && !player.attacking) {
+      if (keys[keyBinds.attack] && !player.attacking) {
         player.attacking = true; player.attackTimer = player.attackMaxTime;
         playSound('attack');
       }
@@ -488,25 +645,43 @@
 
       if (player.x < 0) player.x = 0;
 
-      // Avanço de Fase
-      if (player.x + player.width >= canvas.width) {
-        if (currentStage < maxStages) {
-          currentStage++; player.x = 20;
-          winMessage = "MUITO BEM! RUMO AO PRÓXIMO DESAFIO!";
-          playSound('win');
-          speakText(winMessage);
-          prepareStage();
-        } else {
-          speakText("Parabéns! Você completou todas as fases!");
-          triggerGameOver("Parabéns! Você completou o jogo!");
+      // Coleta do Caderno (Power-up Escudo Longo)
+      if (notebookItem && notebookItem.active) {
+        if (player.x < notebookItem.x + notebookItem.width && player.x + player.width > notebookItem.x &&
+            player.y < notebookItem.y + notebookItem.height && player.y + player.height > notebookItem.y) {
+          notebookItem.active = false;
+          player.shieldPowerUp = true;
+          playSound('powerup');
         }
       }
 
-      // Ataque Escudo Dr. Chácara
+      // Coleta do Jaleco Verde (Invencibilidade)
+      if (greenCoatItem && greenCoatItem.active) {
+        if (player.x < greenCoatItem.x + greenCoatItem.width && player.x + player.width > greenCoatItem.x &&
+            player.y < greenCoatItem.y + greenCoatItem.height && player.y + player.height > greenCoatItem.y) {
+          greenCoatItem.active = false;
+          player.hasGreenCoat = true;
+          playSound('powerup');
+        }
+      }
+
+      // Conclusão da Fase (Gatilho da Tela Interativa do YouTube)
+      if (player.x + player.width >= canvas.width) {
+        if (currentStage < maxStages) {
+          stageStarted = false;
+          openYoutubePromo();
+        } else {
+          speakText("Parabéns! Você completou todas as fases!");
+          triggerGameOverSequence(null, "Parabéns! Você completou o jogo!");
+        }
+      }
+
+      // Ataque do Escudo
       if (player.attacking) {
         player.attackTimer--;
+        const maxLen = player.shieldPowerUp ? weapon.baseMaxLength * 1.5 : weapon.baseMaxLength;
         const progress = 1 - (player.attackTimer / player.attackMaxTime);
-        weapon.length = Math.sin(progress * Math.PI) * weapon.maxLength;
+        weapon.length = Math.sin(progress * Math.PI) * maxLen;
 
         if (player.aimingUp) {
           weapon.x = player.x + player.width / 2; weapon.y = player.y - weapon.length;
@@ -521,14 +696,14 @@
         if (player.attackTimer <= 0) player.attacking = false;
       }
 
-      // Inimigos e Colisões Ajustadas (Proximidade Estreita)
+      // Inimigos e Colisão
       enemies.forEach(enemy => {
         if (!enemy.alive) return;
 
         enemy.x += enemy.speed * enemy.dir;
         if (enemy.x < -50) enemy.x = canvas.width + 50;
 
-        // Escudo Atingindo Inimigo
+        // Escudo atinge o inimigo
         if (player.attacking) {
           const hit = (enemy.x < weapon.x + 20 && enemy.x + enemy.width > weapon.x - 20 &&
                        enemy.y < weapon.y + 20 && enemy.y + enemy.height > weapon.y - 20);
@@ -540,43 +715,68 @@
               setTimeout(() => { enemy.alive = false; }, 120);
             } else {
               enemy.expression = 'sad';
-              triggerGameOver("Você destruiu o elemento incorreto!");
+              triggerGameOverSequence(enemy, "Você destruiu o elemento incorreto!");
             }
           }
         }
 
-        // Colisão Exata / Proximidade Mínima do Jogador com a Letra
-        const padding = 6; // Margem para exigir toque físico exato
-        const playerBox = {
-          left: player.x + padding,
-          right: player.x + player.width - padding,
-          top: player.y + padding,
-          bottom: player.y + player.height
-        };
-        const enemyBox = {
-          left: enemy.x + padding,
-          right: enemy.x + enemy.width - padding,
-          top: enemy.y + padding,
-          bottom: enemy.y + enemy.height
-        };
+        // Toque entre Letra e Personagem
+        const padding = 5;
+        const playerBox = { left: player.x + padding, right: player.x + player.width - padding, top: player.y + padding, bottom: player.y + player.height };
+        const enemyBox = { left: enemy.x + padding, right: enemy.x + enemy.width - padding, top: enemy.y + padding, bottom: enemy.y + enemy.height };
 
         if (enemy.alive &&
-            playerBox.left < enemyBox.right &&
-            playerBox.right > enemyBox.left &&
-            playerBox.top < enemyBox.bottom &&
-            playerBox.bottom > enemyBox.top) {
-          enemy.expression = 'happy';
-          triggerGameOver("A letra encostou em você!");
+            playerBox.left < enemyBox.right && playerBox.right > enemyBox.left &&
+            playerBox.top < enemyBox.bottom && playerBox.bottom > enemyBox.top) {
+          
+          if (player.hasGreenCoat) {
+            // Proteção do Jaleco Verde absorve o choque
+            player.hasGreenCoat = false;
+            enemy.x += 80; // Empurra a letra de volta
+            playSound('powerup');
+          } else {
+            enemy.expression = 'happy';
+            triggerGameOverSequence(enemy, "A letra encostou em você!");
+          }
         }
       });
     }
 
-    // SOL COM ANIMACÃO E RAIOS GIRATÓRIOS
+    // BALÃO DE FALA GRANDE (3X MAIOR)
+    function drawSpeechBubble(x, y, text, scaleFactor, isPlayer) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      ctx.font = "bold 12px 'Segoe UI'";
+      const textWidth = ctx.measureText(text).width;
+      const bw = Math.max(textWidth + 20, 100) * scaleFactor;
+      const bh = 45 * scaleFactor;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.roundRect(-bw / 2, -bh - 15, bw, bh, 10);
+      ctx.fill(); ctx.stroke();
+
+      // Rabicho do Balão
+      ctx.beginPath();
+      ctx.moveTo(-5, -15); ctx.lineTo(0, 0); ctx.lineTo(5, -15);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = "#000000";
+      ctx.font = `bold ${10 * scaleFactor}px 'Segoe UI'`;
+      ctx.textAlign = "center";
+      ctx.fillText(text, 0, -bh / 2 - 10);
+
+      ctx.restore();
+    }
+
     function drawAnimatedSun(x, y, radius) {
       ctx.save();
       ctx.translate(x, y);
 
-      // Raios de Sol Visíveis
       ctx.strokeStyle = "rgba(255, 204, 0, 0.5)";
       ctx.lineWidth = 3;
       const numRays = 12;
@@ -588,7 +788,6 @@
         ctx.stroke();
       }
 
-      // Núcleo do Sol
       const pulse = Math.sin(sunAngle * 3) * 3;
       ctx.fillStyle = "#ffcc00";
       ctx.beginPath();
@@ -598,7 +797,6 @@
       ctx.restore();
     }
 
-    // VEÍCULO AÉREO POR FASE
     function drawAerialVehicle(vehicle) {
       ctx.save();
       ctx.translate(vehicle.x, vehicle.y);
@@ -608,34 +806,32 @@
 
       if (vehicle.type === 'plane') {
         ctx.beginPath(); ctx.ellipse(0, 0, 25, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillRect(-5, -18, 8, 36); // Asas
-        ctx.fillRect(-22, -10, 6, 12); // Cauda
+        ctx.fillRect(-5, -18, 8, 36); ctx.fillRect(-22, -10, 6, 12);
       } else if (vehicle.type === 'helicopter') {
         ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillRect(-20, -2, 18, 4); // Cauda
-        const prop = Math.sin(Date.now() * 0.05) * 20; ctx.strokeRect(-prop, -16, prop * 2, 2); // Hélice
+        ctx.fillRect(-20, -2, 18, 4);
+        const prop = Math.sin(Date.now() * 0.05) * 20; ctx.strokeRect(-prop, -16, prop * 2, 2);
       } else if (vehicle.type === 'balloon') {
         ctx.beginPath(); ctx.arc(0, -10, 16, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#ff0055"; ctx.fillRect(-4, 10, 8, 8); // Cesto
+        ctx.fillStyle = "#ff0055"; ctx.fillRect(-4, 10, 8, 8);
       } else if (vehicle.type === 'rocket') {
         ctx.beginPath(); ctx.ellipse(0, 0, 20, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#ffcc00"; ctx.fillRect(-25, -3, 8, 6); // Fogo
+        ctx.fillStyle = "#ffcc00"; ctx.fillRect(-25, -3, 8, 6);
       }
 
       ctx.restore();
     }
 
-    // ESCUDO DO DR. CHÁCARA (TAMANHO DAS LETRAS COM NOME ESCRITO)
     function drawShieldWeapon(x, y) {
       ctx.save();
       ctx.translate(x, y);
 
-      const w = 35; const h = 42;
-      ctx.fillStyle = "#00ffcc";
+      const w = player.shieldPowerUp ? 45 : 35;
+      const h = player.shieldPowerUp ? 52 : 42;
+      ctx.fillStyle = player.shieldPowerUp ? "#ffcc00" : "#00ffcc";
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 2;
 
-      // Formato do Escudo
       ctx.beginPath();
       ctx.moveTo(-w/2, -h/2);
       ctx.lineTo(w/2, -h/2);
@@ -645,7 +841,6 @@
       ctx.closePath();
       ctx.fill(); ctx.stroke();
 
-      // Texto gravado no escudo
       ctx.fillStyle = "#000000";
       ctx.font = "bold 10px 'Segoe UI'";
       ctx.textAlign = "center";
@@ -656,24 +851,25 @@
       ctx.restore();
     }
 
-    // DESENHO DO JOGADOR EM PERFIL LATERAL
+    // PERSONAGEM DR. CHÁCARA COM ANIMAÇÃO DE PERNAS REALISTA
     function drawDrChacaraSide(x, y, facing, crouching) {
       ctx.save();
       ctx.translate(x + player.width / 2, y);
       if (facing === 'left') ctx.scale(-1, 1);
 
-      const legAngle = Math.sin(walkCycle) * 20;
-      const armAngle = Math.sin(walkCycle) * 25;
+      const legAngle = Math.sin(walkCycle) * 25;
+      const armAngle = Math.sin(walkCycle) * 30;
       const h = crouching ? 45 : 65;
 
-      // Pernas
-      ctx.strokeStyle = "#1a1a24"; ctx.lineWidth = 5; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(-2, h - 25); ctx.lineTo(-2 - Math.sin((-legAngle * Math.PI)/180) * 14, h); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(2, h - 25); ctx.lineTo(2 + Math.sin((legAngle * Math.PI)/180) * 14, h); ctx.stroke();
+      // Animação Alternada das Pernas
+      ctx.strokeStyle = "#1a1a24"; ctx.lineWidth = 6; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(-3, h - 25); ctx.lineTo(-3 - Math.sin((-legAngle * Math.PI)/180) * 16, h); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(3, h - 25); ctx.lineTo(3 + Math.sin((legAngle * Math.PI)/180) * 16, h); ctx.stroke();
 
-      // Tronco e Jaleco
+      // Tronco e Jaleco (Muda para verde se tiver o Jaleco Especial)
       ctx.fillStyle = "#0066cc"; ctx.fillRect(-7, crouching ? 15 : 18, 14, 22);
-      ctx.fillStyle = "#ffffff"; ctx.fillRect(-9, crouching ? 10 : 16, 18, crouching ? 18 : 26);
+      ctx.fillStyle = player.hasGreenCoat ? "#00ff66" : "#ffffff"; 
+      ctx.fillRect(-9, crouching ? 10 : 16, 18, crouching ? 18 : 26);
 
       // Rosto
       ctx.fillStyle = "#f3c099"; ctx.fillRect(-3, 0, 15, 16);
@@ -691,12 +887,11 @@
       ctx.restore();
     }
 
-    // DESENHO DA LETRA INIMIGA (AJUSTADO E JUSTO)
     function drawLetterEnemy(enemy) {
       if (!enemy.alive) return;
 
       ctx.save();
-      ctx.translate(enemy.x + enemy.width / 2, enemy.y);
+      ctx.translate(enemy.x + enemy.width / 2, enemy.y + (enemy.mockOffset || 0));
 
       const legCycle = Math.sin(Date.now() * 0.01 + enemy.x) * 10;
 
@@ -723,40 +918,42 @@
       grad.addColorStop(0, "#120826"); grad.addColorStop(0.6, "#7a223b"); grad.addColorStop(1, "#2e1200");
       ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Sol Animado
       drawAnimatedSun(680, 120, 42);
 
-      // Símbolos Aéreos por Fase
       if (currentStage > 1) drawAerialVehicle(aerialVehicle);
 
       ctx.fillStyle = "#26150d"; ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
       ctx.fillStyle = "#00ffcc"; ctx.fillRect(0, groundY, canvas.width, 3);
 
-      // ANIMAÇÃO DO DISCO VOADOR
+      // Desenho do Caderno (Power-up)
+      if (notebookItem && notebookItem.active) {
+        ctx.fillStyle = "#0088ff"; ctx.fillRect(notebookItem.x, notebookItem.y, notebookItem.width, notebookItem.height);
+        ctx.fillStyle = "#fff"; ctx.font = "bold 10px sans-serif"; ctx.fillText("📖", notebookItem.x + 5, notebookItem.y + 16);
+      }
+
+      // Desenho do Jaleco Verde (Power-up)
+      if (greenCoatItem && greenCoatItem.active) {
+        ctx.fillStyle = "#00ff66"; ctx.fillRect(greenCoatItem.x, greenCoatItem.y, greenCoatItem.width, greenCoatItem.height);
+        ctx.fillStyle = "#000"; ctx.font = "bold 10px sans-serif"; ctx.fillText("🥼", greenCoatItem.x + 6, greenCoatItem.y + 18);
+      }
+
       if (isIntroPlaying) {
-        // Raio Abdutor
         if (ufoState.beamOpacity > 0) {
           ctx.fillStyle = `rgba(0, 255, 204, ${ufoState.beamOpacity * 0.4})`;
           ctx.beginPath();
-          ctx.moveTo(ufoState.x - 15, ufoState.y);
-          ctx.lineTo(ufoState.x + 15, ufoState.y);
-          ctx.lineTo(ufoState.x + 45, groundY);
-          ctx.lineTo(ufoState.x - 45, groundY);
-          ctx.closePath();
-          ctx.fill();
+          ctx.moveTo(ufoState.x - 15, ufoState.y); ctx.lineTo(ufoState.x + 15, ufoState.y);
+          ctx.lineTo(ufoState.x + 45, groundY); ctx.lineTo(ufoState.x - 45, groundY);
+          ctx.closePath(); ctx.fill();
         }
 
-        // Desenha UFO
         ctx.fillStyle = "#00ffcc"; ctx.beginPath(); ctx.ellipse(ufoState.x, ufoState.y, 35, 12, 0, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(ufoState.x, ufoState.y - 6, 15, 0, Math.PI, true); ctx.fill();
 
-        // Desenha Doutor Chácara caindo do feixe
         drawDrChacaraSide(ufoState.x - player.width / 2, ufoState.playerY, 'right', false);
       } else {
         drawDrChacaraSide(player.x, player.y, player.facing, player.crouching);
       }
 
-      // Escudo voador no lugar da bola
       if (player.attacking && !isIntroPlaying) {
         ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 4; ctx.beginPath();
         ctx.moveTo(player.x + player.width / 2, player.y + 25); ctx.lineTo(weapon.x, weapon.y); ctx.stroke();
@@ -764,6 +961,14 @@
       }
 
       enemies.forEach(enemy => drawLetterEnemy(enemy));
+
+      // DESENHO DOS BALÕES DE FALA (3X MAIORES) EM COLISÃO
+      if (collisionAnimationActive) {
+        drawSpeechBubble(player.x + player.width / 2, player.y - 20, playerSpeechBubble, 1.8, true);
+        if (mockingEnemy) {
+          drawSpeechBubble(mockingEnemy.x + mockingEnemy.width / 2, mockingEnemy.y - 20, enemySpeechBubble, 1.8, false);
+        }
+      }
 
       const currentRule = getRuleForStage(currentStage);
       ctx.fillStyle = "#ffffff"; ctx.font = "bold 16px 'Segoe UI'"; ctx.textAlign = "left";
