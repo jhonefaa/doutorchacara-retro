@@ -97,7 +97,7 @@
       <h2 id="stage-title">FASE 1</h2>
       <p id="stage-instruction">Destrua os alvos solicitados!</p>
       <div id="stage-score-info"></div>
-      <button class="btn-main" onclick="startStage()">INICIAR FASE ▶</button>
+      <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
     </div>
 
     <!-- PAINEL GAME OVER & REGISTRO DE NOME -->
@@ -106,7 +106,7 @@
       <p id="game-over-reason">Você perdeu a fase!</p>
       <p>Sua pontuação: <strong id="final-score">0</strong></p>
       <input type="text" id="player-name" placeholder="Digite seu nome" maxlength="12">
-      <button class="btn-main" onclick="saveScoreAndRestart()">SALVAR RECORD '🔄</button>
+      <button class="btn-main" id="btn-save-score">SALVAR RECORD 🔄</button>
       
       <h3 style="margin-top: 10px; color: #ffcc00; font-size: 1rem;">🏆 TOP 10 RECORDES</h3>
       <div class="leaderboard-list" id="leaderboard-list"></div>
@@ -136,6 +136,8 @@
     const finalScoreTxt = document.getElementById("final-score");
     const playerNameInput = document.getElementById("player-name");
     const leaderboardList = document.getElementById("leaderboard-list");
+    const btnStartAction = document.getElementById("btn-start-action");
+    const btnSaveScore = document.getElementById("btn-save-score");
 
     // SINTETIZADOR DE ÁUDIO (Web Audio API)
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -155,7 +157,6 @@
         gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
         osc.start(); osc.stop(audioCtx.currentTime + 0.15);
       } else if (type === 'hitTarget') {
-        // NOVO SOM: Raio atingiu o alvo correto (Laser / Cristal Impact)
         osc.type = 'sine';
         osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.25);
@@ -251,7 +252,6 @@
       stageMissionText = currentRule.instruction;
       stageStarted = false;
 
-      // Configura modal da fase
       stageTitle.innerText = currentRule.title;
       stageInstruction.innerText = currentRule.instruction;
       
@@ -269,19 +269,23 @@
           y: groundY - 45, width: 35, height: 45,
           speed: 1.4 + (currentStage * 0.1), alive: true,
           symbol: charSymbol, isTarget: currentRule.isValid(charSymbol),
-          dir: -1, expression: 'normal', exprTimer: 0 // 'normal', 'happy', 'sad'
+          dir: -1, expression: 'normal'
         });
       }
     }
 
     function startStage() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
       stageStarted = true;
       panelStageStart.style.display = "none";
       const currentRule = getRuleForStage(currentStage);
       speakText(`${currentRule.title}. ${currentRule.instruction}`);
     }
 
-    // GESTÃO DE HIGHSCORES (LOCALSTORAGE)
+    btnStartAction.addEventListener("click", startStage);
+    btnSaveScore.addEventListener("click", saveScoreAndRestart);
+
+    // GESTÃO DE HIGHSCORES
     function getTopScores() {
       const data = localStorage.getItem("dr_chacara_scores");
       return data ? JSON.parse(data) : [];
@@ -411,7 +415,7 @@
 
       if (player.x < 0) player.x = 0;
 
-      // Mudança de Fase
+      // Avanço de Fase
       if (player.x + player.width >= canvas.width) {
         if (currentStage < maxStages) {
           currentStage++; player.x = 20;
@@ -444,23 +448,22 @@
         if (player.attackTimer <= 0) player.attacking = false;
       }
 
-      // Lógica das Letras Inimigas
+      // Inimigos e Colisões
       enemies.forEach(enemy => {
         if (!enemy.alive) return;
 
         enemy.x += enemy.speed * enemy.dir;
         if (enemy.x < -50) enemy.x = canvas.width + 50;
 
-        // Ataque Atingindo Letra
         if (player.attacking) {
           const hit = (enemy.x < weapon.x + 25 && enemy.x + enemy.width > weapon.x - 25 &&
                        enemy.y < weapon.y + 25 && enemy.y + enemy.height > weapon.y - 25);
           if (hit) {
             if (enemy.isTarget) {
               enemy.expression = 'sad';
-              playSound('hitTarget'); // Som de impacto ao atingir alvo correto
+              playSound('hitTarget');
               score += 500;
-              setTimeout(() => { enemy.alive = false; }, 150);
+              setTimeout(() => { enemy.alive = false; }, 120);
             } else {
               enemy.expression = 'sad';
               triggerGameOver("Você destruiu o elemento incorreto!");
@@ -468,17 +471,16 @@
           }
         }
 
-        // Colisão com o Personagem
         if (enemy.alive &&
             player.x < enemy.x + enemy.width && player.x + player.width > enemy.x &&
             player.y < enemy.y + enemy.height && player.y + player.height > enemy.y) {
-          enemy.expression = 'happy'; // Sorriso feliz ao tocar no jogador
+          enemy.expression = 'happy';
           triggerGameOver("A letra encostou em você!");
         }
       });
     }
 
-    // DESENHO DO DOUTOR CHÁCARA EM PERFIL LATERAL
+    // VISÃO LATERAL PERFEITA DO PERSONAGEM
     function drawDrChacaraSide(x, y, facing, crouching) {
       ctx.save();
       ctx.translate(x + player.width / 2, y);
@@ -488,51 +490,32 @@
       const armAngle = Math.sin(walkCycle) * 25;
       const h = crouching ? 45 : 70;
 
-      // Pernas Visão Lateral
+      // Pernas
       ctx.strokeStyle = "#1a1a24"; ctx.lineWidth = 6; ctx.lineCap = "round";
-      
-      // Perna Traseira
-      ctx.beginPath();
-      ctx.moveTo(-2, h - 30);
-      ctx.lineTo(-2 - Math.sin((-legAngle * Math.PI)/180) * 15, h);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-2, h - 30); ctx.lineTo(-2 - Math.sin((-legAngle * Math.PI)/180) * 15, h); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(2, h - 30); ctx.lineTo(2 + Math.sin((legAngle * Math.PI)/180) * 15, h); ctx.stroke();
 
-      // Perna Dianteira
-      ctx.beginPath();
-      ctx.moveTo(2, h - 30);
-      ctx.lineTo(2 + Math.sin((legAngle * Math.PI)/180) * 15, h);
-      ctx.stroke();
-
-      // Tronco Lateral
+      // Tronco e Jaleco Lateral
       ctx.fillStyle = "#0066cc"; ctx.fillRect(-8, crouching ? 15 : 20, 16, 25);
-      ctx.fillStyle = "#ffffff"; ctx.fillRect(-10, crouching ? 10 : 18, 20, crouching ? 20 : 30); // Jaleco
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(-10, crouching ? 10 : 18, 20, crouching ? 20 : 30);
 
-      // Cabeça de Perfil Lateral
-      ctx.fillStyle = "#f3c099"; ctx.fillRect(-4, 0, 16, 18); // Rosto
-      ctx.fillStyle = "#111111"; ctx.fillRect(-6, -1, 18, 5);  // Cabelo traseiro
-      ctx.fillStyle = "#5A5A66"; ctx.fillRect(-7, -7, 20, 7);  // Cabelo topo
+      // Rosto em Perfil Lateral
+      ctx.fillStyle = "#f3c099"; ctx.fillRect(-4, 0, 16, 18);
+      ctx.fillStyle = "#111111"; ctx.fillRect(-6, -1, 18, 5);
+      ctx.fillStyle = "#5A5A66"; ctx.fillRect(-7, -7, 20, 7);
       
-      // Óculos Lateral
       ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.strokeRect(4, 4, 7, 5);
       ctx.beginPath(); ctx.moveTo(-4, 6); ctx.lineTo(4, 6); ctx.stroke();
 
-      // Braço Traseiro
+      // Braços
       ctx.strokeStyle = "#f3c099"; ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.moveTo(-4, crouching ? 20 : 25);
-      ctx.lineTo(-4 - Math.sin((armAngle * Math.PI)/180) * 15, (crouching ? 20 : 25) + 15);
-      ctx.stroke();
-
-      // Braço Dianteiro
-      ctx.beginPath();
-      ctx.moveTo(4, crouching ? 20 : 25);
-      ctx.lineTo(4 + Math.sin((armAngle * Math.PI)/180) * 15, (crouching ? 20 : 25) + 15);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-4, crouching ? 20 : 25); ctx.lineTo(-4 - Math.sin((armAngle * Math.PI)/180) * 15, (crouching ? 20 : 25) + 15); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(4, crouching ? 20 : 25); ctx.lineTo(4 + Math.sin((armAngle * Math.PI)/180) * 15, (crouching ? 20 : 25) + 15); ctx.stroke();
 
       ctx.restore();
     }
 
-    // DESENHO DAS LETRAS COM PERNAS (SEM QUADRADO)
+    // DESENHO DA LETRA COM PERNAS E EXPRESSÕES
     function drawLetterEnemy(enemy) {
       if (!enemy.alive) return;
 
@@ -541,32 +524,19 @@
 
       const legCycle = Math.sin(Date.now() * 0.01 + enemy.x) * 12;
 
-      // Perninhas caminhando
       ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.lineCap = "round";
-      
-      // Perna 1
-      ctx.beginPath();
-      ctx.moveTo(-8, enemy.height - 10);
-      ctx.lineTo(-8 + legCycle, enemy.height);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-8, enemy.height - 10); ctx.lineTo(-8 + legCycle, enemy.height); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(8, enemy.height - 10); ctx.lineTo(8 - legCycle, enemy.height); ctx.stroke();
 
-      // Perna 2
-      ctx.beginPath();
-      ctx.moveTo(8, enemy.height - 10);
-      ctx.lineTo(8 - legCycle, enemy.height);
-      ctx.stroke();
-
-      // Símbolo da Letra Grandes
       ctx.fillStyle = enemy.isTarget ? "#00ffcc" : "#ff0055";
       ctx.font = "bold 34px 'Segoe UI'"; ctx.textAlign = "center";
       ctx.fillText(enemy.symbol, 0, enemy.height - 12);
 
-      // Expressão / Sorriso
       ctx.fillStyle = "#ffffff"; ctx.font = "bold 12px 'Segoe UI'";
       if (enemy.expression === 'happy') {
-        ctx.fillText(":D", 14, 15); // Sorriso Feliz ao tocar no jogador
+        ctx.fillText(":D", 14, 15);
       } else if (enemy.expression === 'sad') {
-        ctx.fillText(":(", 14, 15); // Sorriso Triste ao ser atingido
+        ctx.fillText(":(", 14, 15);
       }
 
       ctx.restore();
@@ -598,6 +568,9 @@
     }
 
     function loop() { update(); draw(); requestAnimationFrame(loop); }
+    
+    // Inicializa a primeira fase
+    prepareStage();
     loop();
   </script>
 </body>
