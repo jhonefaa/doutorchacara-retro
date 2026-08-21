@@ -20,6 +20,19 @@
       background: #000; width: 100%; height: 100%; object-fit: contain; display: block;
     }
 
+    #main-menu-screen {
+      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 100; display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+    }
+    .main-menu-box {
+      background: rgba(10, 10, 18, 0.95); border: 2px solid #00ffcc;
+      border-radius: 20px; padding: 20px; width: 90%; max-width: 420px;
+      display: flex; flex-direction: column; gap: 10px;
+      box-shadow: 0 0 25px rgba(0, 255, 204, 0.5);
+    }
+
     .overlay-panel {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: rgba(10, 10, 18, 0.98); border: 2px solid #00ffcc;
@@ -27,8 +40,6 @@
       z-index: 150; display: none; flex-direction: column; align-items: center; gap: 12px;
       width: 90%; max-width: 550px; max-height: 90vh; overflow-y: auto; color: #fff;
     }
-
-    #main-menu-screen { display: flex; }
 
     .study-text-box {
       background: rgba(255, 255, 255, 0.08);
@@ -39,19 +50,41 @@
       font-size: 0.95rem;
       line-height: 1.5;
       margin: 10px 0;
-      max-height: 250px;
+      max-height: 300px;
       overflow-y: auto;
       width: 100%;
     }
 
-    .timer-badge {
-      background: rgba(0, 255, 204, 0.2);
-      border: 1px solid #00ffcc;
-      color: #00ffcc;
-      padding: 5px 12px;
-      border-radius: 15px;
-      font-size: 0.85rem;
-      font-weight: bold;
+    .touch-controls {
+      position: absolute; bottom: 30px; left: 0; width: 100%;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      padding: 0 30px; pointer-events: none; z-index: 5;
+    }
+    
+    #joystick-zone {
+      width: 120px; height: 120px; background: rgba(255, 255, 255, 0.15);
+      border: 2px solid #00ffcc; border-radius: 50%; position: relative;
+      pointer-events: auto; touch-action: none;
+    }
+    #joystick-stick {
+      width: 50px; height: 50px; background: #00ffcc; border-radius: 50%;
+      position: absolute; top: 35px; left: 35px;
+      box-shadow: 0 0 10px #00ffcc; pointer-events: none;
+    }
+
+    .action-buttons { display: flex; gap: 15px; pointer-events: auto; }
+    .btn-action {
+      width: 65px; height: 65px; border-radius: 50%; font-size: 0.85rem; font-weight: bold;
+      border: 2px solid #fff; box-shadow: 0 0 10px rgba(255,255,255,0.3);
+      display: flex; justify-content: center; align-items: center; color: #fff;
+    }
+    .btn-jump { background: #0088ff; }
+    .btn-attack { background: #ff0055; }
+
+    #btn-fullscreen {
+      position: absolute; top: 15px; right: 15px; background: rgba(0, 255, 204, 0.2);
+      border: 1px solid #00ffcc; color: #00ffcc; padding: 8px 15px; border-radius: 20px;
+      font-size: 0.8rem; font-weight: bold; cursor: pointer; z-index: 10;
     }
 
     .overlay-panel h2 { color: #00ffcc; font-size: 1.3rem; }
@@ -63,23 +96,23 @@
       box-shadow: 0 0 15px #00ffcc; margin: 4px; width: 100%;
     }
 
+    .btn-eja {
+      background: #ff9900; color: #000; font-size: 0.95rem; font-weight: bold;
+      padding: 10px 20px; border-radius: 25px; border: none; cursor: pointer;
+      box-shadow: 0 0 15px #ff9900; margin: 4px; width: 100%;
+    }
+
     .btn-sub {
       background: #ff0055; color: #fff; font-size: 0.9rem; font-weight: bold;
       padding: 10px 18px; border-radius: 25px; border: none; cursor: pointer;
       box-shadow: 0 0 10px #ff0055; margin: 4px; width: 100%;
     }
 
-    .btn-group { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 10px; }
+    .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
 
     input[type="text"], select {
       padding: 10px 12px; border-radius: 10px; border: 2px solid #00ffcc;
       background: #111; color: #fff; font-size: 0.95rem; text-align: center; width: 100%; margin: 5px 0;
-    }
-
-    #btn-fullscreen {
-      position: absolute; top: 15px; right: 15px; background: rgba(0, 255, 204, 0.2);
-      border: 1px solid #00ffcc; color: #00ffcc; padding: 8px 15px; border-radius: 20px;
-      font-size: 0.8rem; font-weight: bold; cursor: pointer; z-index: 10;
     }
   </style>
 </head>
@@ -89,16 +122,19 @@
     <button id="btn-fullscreen" onclick="toggleFullScreen()">TELA CHEIA ⛶</button>
 
     <!-- MENU INICIAL PRINCIPAL -->
-    <div id="main-menu-screen" class="overlay-panel">
-      <h2 style="color:#00ffcc; font-size: 1.4rem;">MENU PRINCIPAL</h2>
-      <button class="btn-main" onclick="openStudyMenu()">1. Treinar p/ Supletivo (Aprenda)</button>
-      <button class="btn-main" style="background:#0088ff; color:#fff;" onclick="startMode('grade')">2. Jogos Educativos (1ª à 5ª Série)</button>
-      <button class="btn-main" style="background:#ff0055; color:#fff;" onclick="startMode('normal')">3. Jogos Nível Normal</button>
+    <div id="main-menu-screen">
+      <div class="main-menu-box">
+        <h2 style="color:#00ffcc; font-size: 1.2rem;">MENU PRINCIPAL</h2>
+        <button class="btn-main" onclick="openStudyMenu()">1. Treinar p/ Supletivo (Aprenda)</button>
+        <button class="btn-main" style="background:#0088ff; color:#fff;" onclick="startMode('grade')">2. Jogos Educativos (1ª à 5ª Série)</button>
+        <button class="btn-main" style="background:#ff0055; color:#fff;" onclick="startMode('normal')">3. Jogos Nível Normal</button>
+        <button class="btn-eja" onclick="openEjaMenu()">4. Alfabetizar – Conduzir pela Mão (EJA)</button>
+      </div>
     </div>
 
     <canvas id="gameCanvas" width="800" height="450"></canvas>
 
-    <!-- FORMULÁRIO DE SELEÇÃO DE ESTUDO -->
+    <!-- FORMULÁRIO DE SELEÇÃO DE ESTUDO SUPLETIVO -->
     <div id="panel-study-mode" class="overlay-panel">
       <h2>APRENDA PARA O SUPLETIVO 📚</h2>
       <p>Preencha os dados abaixo para abrir o conteúdo:</p>
@@ -110,63 +146,71 @@
         <option value="Ensino Médio">Ensino Médio / Supletivo Final</option>
       </select>
       <select id="study-subject">
-        <option value="apostila_portugues">Apostila: Língua Portuguesa Completa</option>
-        <option value="questoes_portugues">Apostila: Questões de Língua Portuguesa</option>
-        <option value="matematica">Matemática Básica</option>
+        <option value="matematica">Matemática</option>
+        <option value="portugues">Língua Portuguesa</option>
         <option value="ciencias">Ciências da Natureza</option>
         <option value="geografia">Geografia e História</option>
+        <option value="geral">Conhecimentos Gerais</option>
       </select>
       <button class="btn-main" onclick="loadStudyContent()">ABRIR MATÉRIA DE ESTUDO ▶</button>
-      <button class="btn-sub" onclick="openMainMenu()">VOLTAR</button>
+      <button class="btn-sub" onclick="closeStudyMenu()">VOLTAR</button>
     </div>
 
-    <!-- TELA DE LEITURA DO CONTEÚDO DIDÁTICO COM TIMING -->
+    <!-- TELA DE ESTUDOS DA APOSTILA EJA -->
+    <div id="panel-eja-mode" class="overlay-panel" style="border-color: #ff9900; box-shadow: 0 0 25px rgba(255, 153, 0, 0.5);">
+      <h2 style="color: #ff9900;">ALFABETIZAR: CONDUZIR PELA MÃO 📖</h2>
+      <p>Apostila de Alfabetização e Letramento - EJA (1º Segmento)</p>
+      <select id="eja-topic-select" style="border-color: #ff9900;">
+        <option value="historia_escrita">1. A História da Escrita (Pinturas, Cuneiforme, Hieróglifos)</option>
+        <option value="alfabeto_tipos">2. O Alfabeto (26 Letras, Vogais, Consoantes e Tipos de Letra)</option>
+        <option value="fonemas_sons">3. Os Sons da Língua (Fonemas x Letras)</option>
+        <option value="regras_m_n">4. Regra Ortográfica: Uso do M antes de P e B</option>
+        <option value="leitura_slogans">5. Leitura do Cotidiano (Slogans e Marcas)</option>
+      </select>
+      <button class="btn-eja" onclick="loadEjaTopic()">LER MÓDULO DA APOSTILA ▶</button>
+      <button class="btn-sub" onclick="closeEjaMenu()">VOLTAR AO MENU</button>
+    </div>
+
+    <!-- TELA DE LEITURA DO CONTEÚDO DIDÁTICO -->
     <div id="panel-study-content" class="overlay-panel">
       <h2 id="study-content-title">MATÉRIA DE ESTUDO</h2>
       <p id="study-content-subtitle">Nível: Fundamental</p>
-
-      <div class="timer-badge">
-        ⏱️ Próximo Teste de Revisão em: <span id="study-timer">10:00</span>
-      </div>
-
-      <!-- BOTÃO PARA APOSTILA EM PDF -->
-      <a id="btn-open-pdf-external" href="#" target="_blank" class="btn-main" style="background: #0088ff; color: #fff; text-decoration: none; display: none; width: 100%;">
-        📄 ABRIR APOSTILA EM PDF
-      </a>
-
       <div class="study-text-box" id="study-text-body">
         Carregando conteúdo...
       </div>
-
-      <button class="btn-main" onclick="triggerQuizNow()">FAZER O TESTE AGORA ▶</button>
-      <button class="btn-sub" onclick="openStudyMenu()">ALTERAR MATÉRIA</button>
+      <button class="btn-main" id="btn-start-game-content" onclick="startStudyGame()">COMEÇAR O JOGO PRÁTICO ▶</button>
+      <button class="btn-sub" id="btn-back-content" onclick="backToStudyForm()">ALTERAR MATÉRIA</button>
     </div>
 
-    <!-- PAINEL TESTE DE REVISÃO AUTOMÁTICO DE 10 MIN -->
+    <!-- PAINEL TESTE DE REVISÃO (10 MIN) -->
     <div id="panel-quiz-test" class="overlay-panel">
-      <h2>TESTE DE REVISÃO DE 10 MINUTOS ⏱️</h2>
+      <h2>TESTE DE REVISÃO (10 MIN) ⏱️</h2>
       <p id="quiz-question-text">Carregando pergunta...</p>
       <div id="quiz-options-container" class="btn-group"></div>
     </div>
 
-    <!-- PAINEL DE PÓS-TESTE (OPÇÕES DO USUÁRIO) -->
-    <div id="panel-post-quiz" class="overlay-panel">
-      <h2 id="quiz-result-title">RESULTADO DO TESTE</h2>
-      <p id="quiz-result-text">Você acertou a questão!</p>
-      <p>Pontuação acumulada: <strong id="final-score">0</strong></p>
-      
-      <div class="btn-group">
-        <button class="btn-main" onclick="continueStudying()">📘 CONTINUAR ESTUDANDO</button>
-        <button class="btn-main" style="background:#0088ff; color:#fff;" onclick="startStudyGame()">🎮 IR PARA O JOGO PRÁTICO</button>
-        <button class="btn-sub" onclick="openMainMenu()">🏠 MENU PRINCIPAL</button>
-      </div>
-    </div>
-
-    <!-- PAINEL DE FASE DE JOGO -->
+    <!-- PAINEL DE FASE -->
     <div id="panel-stage-start" class="overlay-panel">
       <h2 id="stage-title">FASE 1</h2>
-      <p id="stage-instruction">Prepare-se para o jogo!</p>
+      <p id="stage-instruction">Destrua os alvos solicitados!</p>
+      <div id="stage-score-info"></div>
       <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
+    </div>
+
+    <!-- PAINEL GAME OVER -->
+    <div id="panel-game-over" class="overlay-panel">
+      <h2 style="color: #ff0055;">GAME OVER</h2>
+      <p id="game-over-reason">Você perdeu a fase!</p>
+      <p>Sua pontuação: <strong id="final-score">0</strong></p>
+      <button class="btn-main" onclick="resetGame()">TENTAR NOVAMENTE 🔄</button>
+    </div>
+
+    <div class="touch-controls">
+      <div id="joystick-zone"><div id="joystick-stick"></div></div>
+      <div class="action-buttons">
+        <div class="btn-action btn-jump" id="touch-jump">PULO</div>
+        <div class="btn-action btn-attack" id="touch-attack">ATAQUE</div>
+      </div>
     </div>
   </div>
 
@@ -174,78 +218,171 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    const panels = {
-      main: document.getElementById("main-menu-screen"),
-      studyForm: document.getElementById("panel-study-mode"),
-      studyContent: document.getElementById("panel-study-content"),
-      quiz: document.getElementById("panel-quiz-test"),
-      postQuiz: document.getElementById("panel-post-quiz"),
-      stage: document.getElementById("panel-stage-start")
+    const mainMenuScreen = document.getElementById("main-menu-screen");
+    const panelStudyMode = document.getElementById("panel-study-mode");
+    const panelEjaMode = document.getElementById("panel-eja-mode");
+    const panelStudyContent = document.getElementById("panel-study-content");
+    const panelQuizTest = document.getElementById("panel-quiz-test");
+    const panelStageStart = document.getElementById("panel-stage-start");
+    const panelGameOver = document.getElementById("panel-game-over");
+
+    // CONTEÚDO EXTRAÍDO DA APOSTILA EJA ("Alfabetizar - Conduzir pela Mão")
+    const ejaDatabase = {
+      "historia_escrita": {
+        title: "HISTÓRIA DA ESCRITA",
+        subtitle: "Apostila EJA - Módulo 1",
+        text: "<strong>História da Comunicação:</strong><br>• Há 40 mil anos, humanos trocavam mensagens por <em>Pinturas Rupestres</em> em cavernas[cite: 4].<br>• Por volta de 3.500 a.C. surgiram os escritos <strong>Cuneiformes</strong> (tabuinhas de argila impressas com troncos e assadas no forno)[cite: 4].<br>• Os egípcios criaram os <strong>Hieróglifos</strong> ('escrita sagrada') baseados em pictogramas e símbolos[cite: 4].",
+        quiz: [{ q: "Como eram chamadas as primeiras pinturas em cavernas?", options: ["Hieróglifos", "Pinturas Rupestres", "Letra de Imprensa"], correct: 1 }]
+      },
+      "alfabeto_tipos": {
+        title: "O ALFABETO E TIPOS DE LETRA",
+        subtitle: "Apostila EJA - Módulo 2",
+        text: "<strong>Estrutura do Nosso Alfabeto:</strong><br>• Composto por <strong>26 letras</strong> (incluindo K, W e Y)[cite: 4].<br>• Possui <strong>5 Vogais</strong> (A, E, I, O, U) e <strong>19 Consoantes</strong>[cite: 4].<br>• <strong>Tipos de Letras:</strong> Cursiva (manuscrita), Imprensa e Caixa Alta (maiúsculas originadas dos blocos do alto das prensas de Gutenberg)[cite: 4].",
+        quiz: [{ q: "Quantas letras possui o alfabeto atual em língua portuguesa?", options: ["23", "25", "26"], correct: 2 }]
+      },
+      "fonemas_sons": {
+        title: "OS SONS DA LÍNGUA (FONEMAS)",
+        subtitle: "Apostila EJA - Módulo 3",
+        text: "<strong>Letras x Fonemas:</strong><br>• <strong>Letra:</strong> Sinal gráfico escrito.<br>• <strong>Fonema:</strong> Som emitido na fala[cite: 4].<br>• Nem sempre a quantidade coincide! Exemplo: A palavra <em>CHUTE</em> possui 5 letras, porém apenas 4 fonemas (/x/ /u/ /t/ /e/)[cite: 4].",
+        quiz: [{ q: "A palavra 'CHUTE' possui quantas letras e quantos fonemas?", options: ["5 letras e 4 fonemas", "5 letras e 5 fonemas", "4 letras e 4 fonemas"], correct: 0 }]
+      },
+      "regras_m_n": {
+        title: "ORTOGRAFIA: M ANTES DE P E B",
+        subtitle: "Apostila EJA - Módulo 4",
+        text: "<strong>Regra Ortográfica Importante:</strong><br>• Antes das consoantes <strong>P</strong> e <strong>B</strong>, usa-se obrigatoriamente a letra <strong>M</strong> (Ex: Po<strong>m</strong>ba, Ba<strong>m</strong>bu, Te<strong>m</strong>po, La<strong>m</strong>pada)[cite: 4].<br>• Antes de qualquer outra consoante, utiliza-se a letra <strong>N</strong> (Ex: Ca<strong>n</strong>to, Ce<strong>n</strong>to, Pra<strong>n</strong>to)[cite: 4].",
+        quiz: [{ q: "Qual letra deve ser usada antes das letras P e B?", options: ["Letra N", "Letra M", "Letra L"], correct: 1 }]
+      },
+      "leitura_slogans": {
+        title: "LEITURA DO COTIDIANO E SLOGANS",
+        subtitle: "Apostila EJA - Módulo 5",
+        text: "<strong>Leitura no Dia a Dia:</strong><br>• Ler rótulos, marcas e slogans nos ajuda na alfabetização funcional do cotidiano[cite: 4].<br>• Exemplos de Slogans conhecidos:<br>- <em>'Amo muito tudo isso'</em> (McDonald's)[cite: 4]<br>- <em>'Vale por um bifinho'</em> (Danoninho)[cite: 4]<br>- <em>'Energia que dá gosto'</em> (Nescau)[cite: 4]",
+        quiz: [{ q: "De qual marca é o bordão/slogan 'Energia que dá gosto'?", options: ["Danoninho", "Nescau", "Coca-Cola"], correct: 1 }]
+      }
     };
 
+    // BANCO DE DADOS DE ESTUDO SUPLETIVO
     const studyDatabase = {
-      "apostila_portugues": {
-        title: "Apostila: Língua Portuguesa",
-        pdfUrl: "pdf/ApostilaLínguaPortuguesa.pdf",
-        text: "<strong>SÍNTESE DA APOSTILA DE PORTUGUÊS:</strong><br><br>" +
-              "• <strong>Gramática e Ortografia:</strong> Uso do porquê, crase, pontuação e concordância verbal/nominal.<br>" +
-              "• <strong>Acentuação Gráfica:</strong> Regras de oxítonas, paroxítonas e proparoxítonas.<br>" +
-              "• <strong>Interpretação de Texto:</strong> Identificação de ideia central, ambiguidade, metáforas e coerência textual.",
-        quiz: [
-          { q: "Qual palavra é uma PROPAROXÍTONA e deve sempre ser acentuada?", options: ["Lâmpada", "Café", "Mesa"], correct: 0 },
-          { q: "Qual frase apresenta uso correto do porquê em perguntas?", options: ["Por que você não estudou?", "Porque você não estudou?", "Por que? você não foi"], correct: 0 }
-        ]
+      "Fundamental I": {
+        "matematica": {
+          text: "<strong>Operações Básicas e Pares/Ímpares:</strong><br>• Números Pares terminam em 0, 2, 4, 6 e 8.<br>• Números Ímpares terminam em 1, 3, 5, 7 e 9.<br>• Adição junta quantidades; Subtração retira quantidades.<br>• Exemplo: 4 + 2 = 6 (Par), 5 - 2 = 3 (Ímpar).",
+          quiz: [{ q: "Qual destes números é PAR?", options: ["7", "12", "15"], correct: 1 }]
+        },
+        "portugues": {
+          text: "<strong>Vogais e Encontros Vocálicos:</strong><br>• As vogais são: A, E, I, O, U.<br>• Todas as outras letras do alfabeto são consoantes.<br>• MASCULINO: O menino, Um gato.<br>• FEMININO: A menina, Uma casa.",
+          quiz: [{ q: "Qual letra é uma VOGAL?", options: ["B", "E", "F"], correct: 1 }]
+        },
+        "ciencias": {
+          text: "<strong>Seres Vivos e Meio Ambiente:</strong><br>• Seres vivos nascem, crescem e se reproduzem.<br>• As plantas precisam de água e Luz do Sol para viver.<br>• Partes do corpo: Cabeça, Tronco e Membros.",
+          quiz: [{ q: "Do que as plantas precisam para crescer?", options: ["Luz do Sol", "Refrigerante", "Escuridão"], correct: 0 }]
+        },
+        "geografia": {
+          text: "<strong>Zona Urbana e Zona Rural:</strong><br>• Zona Urbana: Cidade, carros, prédios e asfalto.<br>• Zona Rural: Campo, sítios, plantações e animais.",
+          quiz: [{ q: "Onde ficam as grandes plantações?", options: ["Zona Urbana", "Zona Rural"], correct: 1 }]
+        },
+        "geral": {
+          text: "<strong>Higiene e Saude:</strong><br>• Lavar as mãos previne contaminações.<br>• Escovar os dentes após as refeições evita cáries.",
+          quiz: [{ q: "Qual hábito evita contaminação?", options: ["Lavar as mãos", "Comer com a mão suja"], correct: 0 }]
+        }
       },
-      "questoes_portugues": {
-        title: "Apostila: Questões de Português",
-        pdfUrl: "pdf/QuestõesLínguaPortuguesa.pdf",
-        text: "<strong>TREINAMENTO PRÁTICO DE PORTUGUÊS:</strong><br><br>" +
-              "• <strong>Questão Frequente 1:</strong> Identificação de sujeitos ocultos e indeterminados em frases longas.<br>" +
-              "• <strong>Questão Frequente 2:</strong> Substituição de termos para evitar repetições em redações.<br>" +
-              "• <strong>Questão Frequente 3:</strong> Emprego da crase antes de palavras femininas e horas exatas.",
-        quiz: [
-          { q: "Assinale a opção com o uso CORRETO da crase:", options: ["Fui à escola ontem.", "Fui à pé para casa.", "Entreguei o livro à ele."], correct: 0 },
-          { q: "Qual é o sujeito da frase 'Estudamos muito para a prova'?", options: ["Nós (Oculto)", "A prova", "Indeterminado"], correct: 0 }
-        ]
+      "Fundamental II": {
+        "matematica": {
+          text: "<strong>Equações e Porcentagem:</strong><br>• Porcentagem (%): Representa partes de 100.<br>• Regra de Sinais: Menos com menos dá mais (- com - = +).<br>• Exemplo: 50% de 80 é 40.",
+          quiz: [{ q: "Quanto é 50% de 100?", options: ["25", "50", "75"], correct: 1 }]
+        },
+        "portugues": {
+          text: "<strong>Classes de Palavras:</strong><br>• Substantivo: Dá nome às coisas.<br>• Verbo: Indica ação ou estado (Ex: correr, estudar).<br>• Adjetivo: Dá características (Ex: bonito, grande).",
+          quiz: [{ q: "A palavra 'estudar' é um:", options: ["Substantivo", "Verbo", "Adjetivo"], correct: 1 }]
+        },
+        "ciencias": {
+          text: "<strong>Sistemas do Corpo Humano:</strong><br>• Sistema Respiratório: Absorve Oxigênio (O2).<br>• Sistema Circulatório: O coração bombeia o sangue.",
+          quiz: [{ q: "Qual órgão bombeia o sangue?", options: ["Pulmão", "Coração"], correct: 1 }]
+        },
+        "geografia": {
+          text: "<strong> Regiões do Brasil:</strong><br>• O Brasil possui 5 regiões oficiais: Norte, Nordeste, Centro-Oeste, Sudeste e Sul.<br>• A Floresta Amazônica situa-se na Região Norte.",
+          quiz: [{ q: "Quantas regiões tem o Brasil?", options: ["4", "5", "6"], correct: 1 }]
+        },
+        "geral": {
+          text: "<strong>História do Brasil:</strong><br>• Proclamação da República: 15 de Novembro de 1889.<br>• A moeda oficial do Brasil é o Real.",
+          quiz: [{ q: "Qual a moeda do Brasil?", options: ["Dólar", "Real", "Euro"], correct: 1 }]
+        }
       },
-      "matematica": {
-        title: "Matemática Básica",
-        pdfUrl: "",
-        text: "<strong>Operações e Porcentagem:</strong><br>• Frações e números decimais.<br>• Porcentagem e regra de três simples.",
-        quiz: [{ q: "Quanto é 20% de 100?", options: ["10", "20", "30"], correct: 1 }]
-      },
-      "ciencias": {
-        title: "Ciências da Natureza",
-        pdfUrl: "",
-        text: "<strong>Meio Ambiente e Biologia:</strong><br>• Ecossistemas e reciclagem.<br>• O corpo humano e nutrição saudável.",
-        quiz: [{ q: "Qual gás é essencial para a nossa respiração?", options: ["Oxigênio", "Gás Carbônico", "Nitrogênio"], correct: 0 }]
-      },
-      "geografia": {
-        title: "Geografia e História",
-        pdfUrl: "",
-        text: "<strong>Sociedade e Espaço:</strong><br>• Regiões brasileiras e clima.<br>• História do Brasil e cidadania.",
-        quiz: [{ q: "Qual a capital do Brasil?", options: ["São Paulo", "Rio de Janeiro", "Brasília"], correct: 2 }]
+      "Ensino Médio": {
+        "matematica": {
+          text: "<strong>Geometria e Funções:</strong><br>• Teorema de Pitágoras: a² = b² + c².<br>• Função do 1º Grau: f(x) = ax + b.",
+          quiz: [{ q: "No triângulo de lados 3 e 4, a hipotenusa vale:", options: ["5", "6", "7"], correct: 0 }]
+        },
+        "portugues": {
+          text: "<strong>Figuras de Linguagem:</strong><br>• Metáfora: Comparação direta (Ex: 'Seus olhos são estrelas').<br>• Crase (à): Fusão da preposição 'a' com artigo 'a'.",
+          quiz: [{ q: "'Ele é um leão' é um exemplo de:", options: ["Metáfora", "Ironia"], correct: 0 }]
+        },
+        "ciencias": {
+          text: "<strong>Química e Física:</strong><br>• Tabela Periódica: O é Oxigênio, H é Hidrogênio.<br>• Velocidade Média: Distância dividida pelo Tempo.",
+          quiz: [{ q: "Qual o símbolo do Oxigênio?", options: ["O", "Ox", "H"], correct: 0 }]
+        },
+        "geografia": {
+          text: "<strong>Globalização e Recursos:</strong><br>• Energias Renováveis: Solar, Eólica e Hídrica.<br>• Preservação ambiental reduz o aquecimento global.",
+          quiz: [{ q: "Qual é uma fonte de energia renovável?", options: ["Petróleo", "Energia Solar"], correct: 1 }]
+        },
+        "geral": {
+          text: "<strong>Cidadania e Leis:</strong><br>• Três Poderes: Executivo, Legislativo e Judiciário.<br>• A Constituição de 1988 garante os direitos do cidadão.",
+          quiz: [{ q: "Quem aprova as leis no Brasil?", options: ["Poder Legislativo", "Poder Executivo"], correct: 0 }]
+        }
       }
     };
 
     let studentData = { name: '', grade: '', subject: '' };
+    let currentGameMode = 'normal';
+    let currentStage = 1;
     let score = 0;
-    let timerInterval = null;
-    let secondsLeft = 600; // 10 Minutos
-
-    function hideAllPanels() {
-      clearInterval(timerInterval);
-      Object.values(panels).forEach(p => { if (p) p.style.display = "none"; });
-    }
-
-    function openMainMenu() {
-      hideAllPanels();
-      panels.main.style.display = "flex";
-    }
+    let gameOver = false;
+    let stageStarted = false;
+    let currentOrigin = 'study';
 
     function openStudyMenu() {
-      hideAllPanels();
-      panels.studyForm.style.display = "flex";
+      mainMenuScreen.style.display = "none";
+      panelStudyMode.style.display = "flex";
+    }
+
+    function closeStudyMenu() {
+      panelStudyMode.style.display = "none";
+      mainMenuScreen.style.display = "flex";
+    }
+
+    function openEjaMenu() {
+      mainMenuScreen.style.display = "none";
+      panelEjaMode.style.display = "flex";
+    }
+
+    function closeEjaMenu() {
+      panelEjaMode.style.display = "none";
+      mainMenuScreen.style.display = "flex";
+    }
+
+    function loadEjaTopic() {
+      const topicKey = document.getElementById("eja-topic-select").value;
+      const topicObj = ejaDatabase[topicKey];
+
+      currentOrigin = 'eja';
+      document.getElementById("study-content-title").innerText = topicObj.title;
+      document.getElementById("study-content-subtitle").innerText = topicObj.subtitle;
+      document.getElementById("study-text-body").innerHTML = topicObj.text;
+
+      document.getElementById("btn-back-content").setAttribute("onclick", "backToEjaForm()");
+      document.getElementById("btn-start-game-content").setAttribute("onclick", "startEjaGame()");
+
+      panelEjaMode.style.display = "none";
+      panelStudyContent.style.display = "flex";
+    }
+
+    function backToEjaForm() {
+      panelStudyContent.style.display = "none";
+      panelEjaMode.style.display = "flex";
+    }
+
+    function startEjaGame() {
+      panelStudyContent.style.display = "none";
+      currentGameMode = 'eja_apostila';
+      resetGame();
     }
 
     function loadStudyContent() {
@@ -254,114 +391,54 @@
       const subject = document.getElementById("study-subject").value;
 
       if (!name || !grade) {
-        alert("Por favor, preencha o seu nome e selecione o seu nível!");
+        alert("Por favor, preencha o seu nome e escolha um nível!");
         return;
       }
 
+      currentOrigin = 'study';
       studentData = { name, grade, subject };
-      const contentObj = studyDatabase[subject];
+      const contentObj = studyDatabase[grade][subject];
 
-      document.getElementById("study-content-title").innerText = contentObj.title.toUpperCase();
+      document.getElementById("study-content-title").innerText = subject.toUpperCase();
       document.getElementById("study-content-subtitle").innerText = `Aluno: ${name} | Nível: ${grade}`;
       document.getElementById("study-text-body").innerHTML = contentObj.text;
 
-      const pdfBtn = document.getElementById("btn-open-pdf-external");
-      if (contentObj.pdfUrl) {
-        pdfBtn.href = contentObj.pdfUrl;
-        pdfBtn.style.display = "block";
-      } else {
-        pdfBtn.style.display = "none";
-      }
+      document.getElementById("btn-back-content").setAttribute("onclick", "backToStudyForm()");
+      document.getElementById("btn-start-game-content").setAttribute("onclick", "startStudyGame()");
 
-      hideAllPanels();
-      panels.studyContent.style.display = "flex";
-      start10MinTimer();
+      panelStudyMode.style.display = "none";
+      panelStudyContent.style.display = "flex";
     }
 
-    function start10MinTimer() {
-      clearInterval(timerInterval);
-      secondsLeft = 600; // 10 minutos (600 segundos)
-      updateTimerDisplay();
-
-      timerInterval = setInterval(() => {
-        secondsLeft--;
-        updateTimerDisplay();
-
-        if (secondsLeft <= 0) {
-          clearInterval(timerInterval);
-          triggerQuizNow();
-        }
-      }, 1000);
-    }
-
-    function updateTimerDisplay() {
-      const mins = Math.floor(secondsLeft / 60);
-      const secs = secondsLeft % 60;
-      document.getElementById("study-timer").innerText = 
-        `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-
-    function triggerQuizNow() {
-      hideAllPanels();
-      panels.quiz.style.display = "flex";
-
-      const subjectData = studyDatabase[studentData.subject];
-      const randomQuestion = subjectData.quiz[Math.floor(Math.random() * subjectData.quiz.length)];
-
-      document.getElementById("quiz-question-text").innerText = randomQuestion.q;
-      const container = document.getElementById("quiz-options-container");
-      container.innerHTML = "";
-
-      randomQuestion.options.forEach((opt, idx) => {
-        const btn = document.createElement("button");
-        btn.className = "btn-main";
-        btn.innerText = opt;
-        btn.onclick = () => finishQuiz(idx === randomQuestion.correct);
-        container.appendChild(btn);
-      });
-    }
-
-    function finishQuiz(isCorrect) {
-      hideAllPanels();
-      panels.postQuiz.style.display = "flex";
-
-      const title = document.getElementById("quiz-result-title");
-      const text = document.getElementById("quiz-result-text");
-
-      if (isCorrect) {
-        score += 10;
-        title.innerText = "PARABÉNS! 🎉";
-        title.style.color = "#00ffcc";
-        text.innerText = "Você acertou a questão de revisão!";
-      } else {
-        title.innerText = "OPS! TENTE NOVAMENTE ❌";
-        title.style.color = "#ff0055";
-        text.innerText = "Resposta incorreta. Continue estudando o conteúdo para melhorar!";
-      }
-
-      document.getElementById("final-score").innerText = score;
-    }
-
-    function continueStudying() {
-      loadStudyContent();
+    function backToStudyForm() {
+      panelStudyContent.style.display = "none";
+      panelStudyMode.style.display = "flex";
     }
 
     function startStudyGame() {
-      hideAllPanels();
-      panels.stage.style.display = "flex";
-      document.getElementById("stage-title").innerText = "FASE DE PRÁTICA";
-      document.getElementById("stage-instruction").innerText = `Aplicando conhecimentos de: ${studentData.subject}`;
+      panelStudyContent.style.display = "none";
+      currentGameMode = 'supletivo';
+      resetGame();
     }
 
     function startMode(mode) {
-      hideAllPanels();
-      panels.stage.style.display = "flex";
-      document.getElementById("stage-title").innerText = "FASE 1";
-      document.getElementById("stage-instruction").innerText = `Modo: ${mode.toUpperCase()}`;
+      currentGameMode = mode;
+      mainMenuScreen.style.display = "none";
+      resetGame();
+    }
+
+    function resetGame() {
+      gameOver = false;
+      score = 0;
+      currentStage = 1;
+      panelStageStart.style.display = "flex";
+      document.getElementById("stage-title").innerText = `FASE ${currentStage}`;
+      document.getElementById("stage-instruction").innerText = currentGameMode === 'eja_apostila' ? "Pratique os conhecimentos da Apostila EJA!" : "Elimine os alvos corretos!";
     }
 
     document.getElementById("btn-start-action").addEventListener("click", () => {
-      hideAllPanels();
+      panelStageStart.style.display = "none";
+      stageStarted = true;
     });
 
     function toggleFullScreen() {
@@ -377,6 +454,13 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#00ffcc";
       ctx.fillRect(0, 370, canvas.width, 5);
+
+      if (stageStarted) {
+        ctx.fillStyle = "#fff";
+        ctx.font = "20px 'Segoe UI'";
+        ctx.fillText(`Modo: ${currentGameMode.toUpperCase()}`, 30, 40);
+        ctx.fillText(`Pontos: ${score}`, 650, 40);
+      }
     }
 
     function loop() {
