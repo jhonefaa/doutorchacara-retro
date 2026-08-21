@@ -20,7 +20,7 @@
       background: #000; width: 100%; height: 100%; object-fit: contain; display: block;
     }
 
-    /* CONTROLES VIRTUAIS TOUCH COM TRANSPARÊNCIA */
+    /* CONTROLES VIRTUAIS TOUCH */
     .touch-controls {
       position: absolute; bottom: 65px; left: 0; width: 100%;
       display: flex; justify-content: space-between; align-items: flex-end;
@@ -78,25 +78,21 @@
     .btn-tool.recording { background: rgba(255, 0, 85, 0.8); border-color: #ff0055; animation: pulse 1s infinite; }
     .btn-tool.off { background: rgba(100, 100, 100, 0.5); opacity: 0.6; }
 
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
-    }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-    /* PAINÉIS / MENUS COM Z-INDEX ELEVADO E SEM SOBREPOSIÇÃO ERRÔNEA */
+    /* PAINÉIS OVERLAY SOBREPOSIÇÃO SUPREMA (Z-INDEX 2000) */
     .overlay-panel {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: rgba(10, 10, 18, 0.92); 
-      backdrop-filter: blur(8px);
+      background: rgba(10, 10, 18, 0.95); 
+      backdrop-filter: blur(10px);
       border: 2px solid rgba(0, 255, 204, 0.8);
-      border-radius: 20px; padding: 25px; box-shadow: 0 0 30px rgba(0, 255, 204, 0.5);
-      z-index: 1000; display: none; flex-direction: column; align-items: center; gap: 15px;
-      width: 85%; max-width: 480px; color: #fff;
+      border-radius: 20px; padding: 25px; box-shadow: 0 0 35px rgba(0, 255, 204, 0.6);
+      z-index: 2000; display: none; flex-direction: column; align-items: center; gap: 15px;
+      width: 90%; max-width: 480px; color: #fff;
     }
 
     .overlay-panel h2 { color: #00ffcc; font-size: 1.4rem; text-shadow: 0 0 5px #000; }
-    .overlay-panel p { font-size: 1rem; line-height: 1.4; text-shadow: 0 0 5px #000; }
+    .overlay-panel p { font-size: 0.95rem; line-height: 1.4; text-shadow: 0 0 5px #000; }
     
     .btn-main {
       background: rgba(0, 255, 204, 0.85); color: #000; font-size: 1rem; font-weight: bold;
@@ -112,25 +108,35 @@
       width: 100%; max-width: 320px;
     }
 
+    .btn-back {
+      background: rgba(255, 204, 0, 0.9); color: #000; font-size: 0.95rem; font-weight: bold;
+      padding: 10px 20px; border-radius: 25px; border: none; cursor: pointer;
+      box-shadow: 0 0 12px rgba(255, 204, 0, 0.6); margin-top: 10px; width: 100%; max-width: 320px;
+    }
+
     .btn-group { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
 
     input[type="text"], textarea {
       padding: 8px 12px; border-radius: 10px; border: 2px solid #00ffcc;
-      background: rgba(17, 17, 17, 0.9); color: #fff; font-size: 1rem; text-align: center; width: 80%;
+      background: rgba(17, 17, 17, 0.9); color: #fff; font-size: 0.95rem; text-align: center; width: 90%;
     }
 
-    textarea { text-align: left; resize: none; height: 70px; }
+    textarea { text-align: left; resize: none; height: 60px; }
 
-    .comments-list {
-      width: 100%; max-height: 120px; overflow-y: auto; text-align: left;
-      font-size: 0.85rem; background: rgba(0,0,0,0.6);
-      padding: 8px; border-radius: 10px; border: 1px solid #333; margin-top: 5px;
+    /* MENU LATERAL FIXO DE COMENTÁRIOS INSTANTÂNEOS NO JOGO */
+    .instant-comments-box {
+      position: absolute; top: 60px; right: 15px; width: 220px; max-height: 180px;
+      background: rgba(10, 10, 18, 0.85); backdrop-filter: blur(6px);
+      border: 1px solid rgba(0, 255, 204, 0.5); border-radius: 12px;
+      padding: 8px; z-index: 12; display: flex; flex-direction: column; text-align: left;
     }
-    .comment-item { padding: 4px 0; border-bottom: 1px dashed #444; word-break: break-word; }
-    .comment-item strong { color: #00ffcc; }
+    .instant-comments-header { font-size: 0.75rem; font-weight: bold; color: #00ffcc; margin-bottom: 5px; border-bottom: 1px solid rgba(0,255,204,0.3); padding-bottom: 3px; }
+    .instant-comments-list { overflow-y: auto; max-height: 140px; font-size: 0.75rem; display: flex; flex-direction: column; gap: 4px; }
+    .instant-item { background: rgba(255,255,255,0.05); padding: 4px 6px; border-radius: 6px; word-break: break-word; }
+    .instant-item strong { color: #ffcc00; }
 
     .leaderboard-list {
-      width: 100%; max-height: 140px; overflow-y: auto; text-align: left;
+      width: 100%; max-height: 120px; overflow-y: auto; text-align: left;
       font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.6);
       padding: 8px; border-radius: 10px; border: 1px solid #333;
     }
@@ -142,7 +148,7 @@
     .pix-box {
       background: rgba(0, 255, 204, 0.1); border: 1px dashed #00ffcc;
       padding: 10px; border-radius: 10px; word-break: break-all; font-weight: bold;
-      color: #00ffcc; margin: 5px 0; width: 100%; font-size: 0.9rem;
+      color: #00ffcc; margin: 5px 0; width: 100%; font-size: 0.85rem;
     }
   </style>
 </head>
@@ -154,15 +160,40 @@
 
     <canvas id="gameCanvas" width="800" height="450"></canvas>
 
+    <!-- MENU DE COMENTÁRIOS INSTANTÂNEOS NO CANTO DA TELA -->
+    <div class="instant-comments-box">
+      <div class="instant-comments-header">💬 COMENTÁRIOS AO VIVO</div>
+      <div class="instant-comments-list" id="instant-comments-list"></div>
+    </div>
+
     <!-- BARRA INFERIOR DE RECURSOS E AÇÕES -->
     <div class="bottom-bar">
       <button class="btn-tool" id="btn-record" onclick="toggleRecordGame()">🎥 Gravar Jogo</button>
       <button class="btn-tool" onclick="takeScreenshot()">📸 Print</button>
       <button class="btn-tool" onclick="openYoutubeChannel()">🔴 YouTube</button>
-      <button class="btn-tool" onclick="openPixTab()">⚡ Pix</button>
-      <button class="btn-tool" onclick="openCommentsTab()">💬 Comentários</button>
+      <button class="btn-tool" onclick="openPixOverlay()">⚡ Pix</button>
+      <button class="btn-tool" onclick="openCommentsOverlay()">💬 Comentários</button>
       <button class="btn-tool" id="btn-toggle-music" onclick="toggleMusic()">🎵 Música: ON</button>
       <button class="btn-tool" id="btn-toggle-voice" onclick="toggleVoice()">🔊 Voz: ON</button>
+    </div>
+
+    <!-- PAINEL OVERLAY: PIX -->
+    <div id="panel-pix-overlay" class="overlay-panel">
+      <h2>APOIE O JOGO COM PIX ⚡</h2>
+      <p>Sua ajuda garante novos conteúdos e melhorias para o jogo!</p>
+      <div class="pix-box" id="pixKey">jhonemercadopago2023@gmail.com</div>
+      <button class="btn-main" onclick="copyPixKey()">COPIAR CHAVE PIX 📋</button>
+      <button class="btn-back" onclick="closeAllPanels()">◀ VOLTAR AO JOGO</button>
+    </div>
+
+    <!-- PAINEL OVERLAY: DEIXAR COMENTÁRIO -->
+    <div id="panel-comments-overlay" class="overlay-panel">
+      <h2>DEIXE SEU COMENTÁRIO 💬</h2>
+      <p>Envie sua mensagem para aparecer no jogo!</p>
+      <input type="text" id="comm-author" placeholder="Seu Nome" maxlength="15">
+      <textarea id="comm-text" placeholder="Escreva seu comentário..." maxlength="120"></textarea>
+      <button class="btn-main" onclick="saveNewComment()">ENVIAR COMENTÁRIO 📝</button>
+      <button class="btn-back" onclick="closeAllPanels()">◀ VOLTAR AO JOGO</button>
     </div>
 
     <!-- PAINEL INICIAR FASE / TRANSIÇÃO -->
@@ -239,6 +270,8 @@
     const panelYtPromo = document.getElementById("panel-youtube-promo");
     const panelYtReturn = document.getElementById("panel-yt-return");
     const panelKeyConfig = document.getElementById("panel-key-config");
+    const panelPixOverlay = document.getElementById("panel-pix-overlay");
+    const panelCommentsOverlay = document.getElementById("panel-comments-overlay");
     
     const stageTitle = document.getElementById("stage-title");
     const stageInstruction = document.getElementById("stage-instruction");
@@ -248,8 +281,9 @@
     const leaderboardList = document.getElementById("leaderboard-list");
     const btnStartAction = document.getElementById("btn-start-action");
     const btnSaveScore = document.getElementById("btn-save-score");
+    const instantCommentsList = document.getElementById("instant-comments-list");
 
-    // RECURSOS DA BARRA INFERIOR (GRAVAÇÃO, PRINT, ABAS AO LADO)
+    // RECURSOS DA BARRA INFERIOR E SISTEMAS
     let mediaRecorder = null;
     let recordedChunks = [];
     let isRecording = false;
@@ -262,89 +296,66 @@
       panelYtPromo.style.display = "none";
       panelYtReturn.style.display = "none";
       panelKeyConfig.style.display = "none";
+      panelPixOverlay.style.display = "none";
+      panelCommentsOverlay.style.display = "none";
     }
 
     function openYoutubeChannel() {
       window.open("https://www.youtube.com/@DoutorChacara", "_blank");
     }
 
-    function openPixTab() {
-      const pixWindow = window.open("", "_blank");
-      if (pixWindow) {
-        pixWindow.document.write(`
-          <html>
-            <head>
-              <title>Apoie com um Pix - Doutor Chácara</title>
-              <style>
-                body { background: #0d0d11; color: #fff; font-family: sans-serif; text-align: center; padding: 40px; }
-                .box { border: 2px solid #00ffcc; padding: 25px; border-radius: 15px; display: inline-block; background: #161622; }
-                h2 { color: #00ffcc; }
-                .key { font-size: 1.2rem; color: #ffcc00; background: #000; padding: 10px; border-radius: 8px; margin: 15px 0; word-break: break-all; }
-                button { background: #00ffcc; border: none; padding: 12px 25px; font-weight: bold; border-radius: 20px; cursor: pointer; }
-              </style>
-            </head>
-            <body>
-              <div class="box">
-                <h2>APOIE COM UM PIX ⚡</h2>
-                <p>Ajude a manter e melhorar o jogo do Doutor Chácara!</p>
-                <p>Chave Pix (E-mail):</p>
-                <div class="key" id="pixKey">jhonemercadopago2023@gmail.com</div>
-                <button onclick="navigator.clipboard.writeText('jhonemercadopago2023@gmail.com'); alert('Chave Pix Copiada!')">COPIAR CHAVE PIX 📋</button>
-              </div>
-            </body>
-          </html>
-        `);
-      }
+    function openPixOverlay() {
+      closeAllPanels();
+      panelPixOverlay.style.display = "flex";
     }
 
-    function openCommentsTab() {
-      const commWindow = window.open("", "_blank");
-      if (commWindow) {
-        const storedComments = localStorage.getItem("dr_chacara_comments") || "[]";
-        commWindow.document.write(`
-          <html>
-            <head>
-              <title>Mural de Comentários - Doutor Chácara</title>
-              <style>
-                body { background: #0d0d11; color: #fff; font-family: sans-serif; padding: 30px; text-align: center; }
-                .container { max-width: 500px; margin: 0 auto; background: #161622; border: 2px solid #00ffcc; padding: 20px; border-radius: 15px; }
-                h2 { color: #00ffcc; }
-                input, textarea { width: 100%; margin: 8px 0; padding: 10px; border-radius: 8px; border: 1px solid #00ffcc; background: #000; color: #fff; }
-                button { background: #00ffcc; border: none; padding: 10px 20px; font-weight: bold; border-radius: 20px; cursor: pointer; }
-                .list { margin-top: 15px; text-align: left; max-height: 250px; overflow-y: auto; background: #000; padding: 10px; border-radius: 8px; }
-                .item { padding: 6px 0; border-bottom: 1px dashed #444; }
-                .item strong { color: #00ffcc; }
-              </style>
-            </head>
-            <body>
-              <div class="container">
-                <h2>DEIXE SEU COMENTÁRIO 💬</h2>
-                <input type="text" id="author" placeholder="Seu Nome" maxlength="20">
-                <textarea id="msg" placeholder="Escreva seu comentário..." maxlength="150"></textarea>
-                <button onclick="addComment()">GRAVAR COMENTÁRIO 📝</button>
-                <div class="list" id="list"></div>
-              </div>
-              <script>
-                let comments = ${storedComments};
-                function render() {
-                  document.getElementById('list').innerHTML = comments.map(c => '<div class="item"><strong>' + c.author + ':</strong> ' + c.text + '</div>').join('') || 'Nenhum comentário registrado.';
-                }
-                function addComment() {
-                  const author = document.getElementById('author').value.trim() || 'Anônimo';
-                  const text = document.getElementById('msg').value.trim();
-                  if (!text) return alert('Digite uma mensagem!');
-                  comments.unshift({ author, text });
-                  localStorage.setItem('dr_chacara_comments', JSON.stringify(comments.slice(0, 30)));
-                  document.getElementById('msg').value = '';
-                  render();
-                }
-                render();
-              <\/script>
-            </body>
-          </html>
-        `);
-      }
+    function copyPixKey() {
+      navigator.clipboard.writeText("jhonemercadopago2023@gmail.com");
+      alert("Chave Pix copiada com sucesso!");
     }
+
+    function openCommentsOverlay() {
+      closeAllPanels();
+      panelCommentsOverlay.style.display = "flex";
+    }
+
+    // FEED DE COMENTÁRIOS INSTANTÂNEOS NO JOGO
+    function loadAndRenderComments() {
+      const stored = localStorage.getItem("dr_chacara_comments") || "[]";
+      const comments = JSON.parse(stored);
+      if (comments.length === 0) {
+        instantCommentsList.innerHTML = `<div class="instant-item">Nenhum comentário enviado ainda.</div>`;
+        return;
+      }
+      instantCommentsList.innerHTML = comments.map(c => `
+        <div class="instant-item">
+          <strong>${c.author}:</strong> ${c.text}
+        </div>
+      `).join('');
+    }
+
+    function saveNewComment() {
+      const authorInput = document.getElementById("comm-author");
+      const textInput = document.getElementById("comm-text");
+      const author = authorInput.value.trim() || "Anônimo";
+      const text = textInput.value.trim();
+
+      if (!text) { alert("Digite sua mensagem antes de enviar!"); return; }
+
+      const stored = localStorage.getItem("dr_chacara_comments") || "[]";
+      const comments = JSON.parse(stored);
+      comments.unshift({ author, text });
+      localStorage.setItem("dr_chacara_comments", JSON.stringify(comments.slice(0, 30)));
+
+      textInput.value = "";
+      alert("Comentário enviado e adicionado ao jogo!");
+      loadAndRenderComments();
+      closeAllPanels();
+    }
+
+    // SINCRONIZAÇÃO AUTOMÁTICA DOS COMENTÁRIOS
+    window.addEventListener("storage", loadAndRenderComments);
+    loadAndRenderComments();
 
     function takeScreenshot() {
       const dataURL = canvas.toDataURL("image/png");
@@ -429,13 +440,19 @@
     const keyBinds = { attack: "KeyA", jump: "KeyS" };
     let listeningKeyAction = null;
 
-    // SINTETIZADOR DE ÁUDIO E MÚSICA SEM DIREITOS AUTORAIS (VOLUME BAIXO)
+    // SINTETIZADOR DE ÁUDIO E MÚSICAS VARIADAS POR FASE (VOLUME AUMENTADO)
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let bgMusicTimer = null;
     let bgMusicNoteIndex = 0;
 
-    // Notas de uma melodia harmônica e suave (sem copyright)
-    const melodyNotes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
+    // Escalas de notas para cada fase (Sem Direitos Autorais)
+    const stageScales = [
+      [261.63, 293.66, 329.63, 349.23, 392.00, 440.00], // Fase 1
+      [293.66, 329.63, 369.99, 392.00, 440.00, 493.88], // Fase 2
+      [329.63, 369.99, 392.00, 440.00, 493.88, 523.25], // Fase 3
+      [349.23, 392.00, 440.00, 466.16, 523.25, 587.33], // Fase 4
+      [392.00, 440.00, 493.88, 523.25, 587.33, 659.25]  // Fase 5+
+    ];
 
     function startBackgroundMusic() {
       if (!isMusicEnabled || bgMusicTimer) return;
@@ -446,24 +463,25 @@
 
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.type = 'sine';
+        osc.type = (currentStage % 2 === 0) ? 'triangle' : 'sine';
         
-        // Seleciona nota suave
-        const note = melodyNotes[bgMusicNoteIndex % melodyNotes.length];
+        // Seleciona escala e nota única com base na FASE atual
+        const scale = stageScales[(currentStage - 1) % stageScales.length];
+        const note = scale[bgMusicNoteIndex % scale.length];
         bgMusicNoteIndex++;
 
         osc.frequency.setValueAtTime(note, audioCtx.currentTime);
         
-        // Volume muito suave (baixo)
-        gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+        // Volume Aumentado para melhor imersão (0.08)
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.002, audioCtx.currentTime + 0.35);
 
         osc.connect(gain);
         gain.connect(audioCtx.destination);
 
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.4);
-      }, 400);
+        osc.stop(audioCtx.currentTime + 0.35);
+      }, 350);
     }
 
     function stopBackgroundMusic() {
