@@ -22,7 +22,7 @@
 
     /* CONTROLES VIRTUAIS TOUCH COM TRANSPARÊNCIA */
     .touch-controls {
-      position: absolute; bottom: 50px; left: 0; width: 100%;
+      position: absolute; bottom: 65px; left: 0; width: 100%;
       display: flex; justify-content: space-between; align-items: flex-end;
       padding: 0 30px; pointer-events: none; z-index: 5;
     }
@@ -55,9 +55,32 @@
     }
     
     #btn-config-keys {
-      position: absolute; bottom: 10px; background: rgba(255, 255, 255, 0.1);
-      border: 1px solid #fff; color: #fff; padding: 5px 15px; border-radius: 12px;
+      position: absolute; top: 15px; left: 15px; background: rgba(255, 255, 255, 0.1);
+      border: 1px solid #fff; color: #fff; padding: 8px 15px; border-radius: 20px;
       font-size: 0.75rem; cursor: pointer; z-index: 10;
+    }
+
+    /* BARRA DE FERRAMENTAS INFERIOR */
+    .bottom-bar {
+      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 8px; background: rgba(10, 10, 18, 0.65);
+      backdrop-filter: blur(8px); padding: 6px 12px; border-radius: 20px;
+      border: 1px solid rgba(0, 255, 204, 0.4); z-index: 15; max-width: 95vw; overflow-x: auto;
+    }
+
+    .btn-tool {
+      background: rgba(255, 255, 255, 0.12); color: #fff; border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 6px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;
+      cursor: pointer; display: flex; align-items: center; gap: 5px; white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .btn-tool:hover { background: rgba(0, 255, 204, 0.3); border-color: #00ffcc; }
+    .btn-tool.recording { background: rgba(255, 0, 85, 0.8); border-color: #ff0055; animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
     }
 
     /* PAINÉIS / MENUS 50% TRANSPARENTES */
@@ -90,10 +113,20 @@
 
     .btn-group { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
 
-    input[type="text"] {
+    input[type="text"], textarea {
       padding: 8px 12px; border-radius: 10px; border: 2px solid #00ffcc;
       background: rgba(17, 17, 17, 0.7); color: #fff; font-size: 1rem; text-align: center; width: 80%;
     }
+
+    textarea { text-align: left; resize: none; height: 70px; }
+
+    .comments-list {
+      width: 100%; max-height: 120px; overflow-y: auto; text-align: left;
+      font-size: 0.85rem; background: rgba(0,0,0,0.4);
+      padding: 8px; border-radius: 10px; border: 1px solid #333; margin-top: 5px;
+    }
+    .comment-item { padding: 4px 0; border-bottom: 1px dashed #444; word-break: break-word; }
+    .comment-item strong { color: #00ffcc; }
 
     .leaderboard-list {
       width: 100%; max-height: 140px; overflow-y: auto; text-align: left;
@@ -104,15 +137,52 @@
 
     .key-bind-row { display: flex; justify-content: space-between; width: 100%; align-items: center; padding: 5px 0; }
     .key-bind-btn { background: rgba(34, 34, 34, 0.8); border: 1px solid #00ffcc; color: #00ffcc; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+    
+    .pix-box {
+      background: rgba(0, 255, 204, 0.1); border: 1px dashed #00ffcc;
+      padding: 10px; border-radius: 10px; word-break: break-all; font-weight: bold;
+      color: #00ffcc; margin: 5px 0; width: 100%; font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
 
   <div id="game-container">
     <button id="btn-fullscreen" onclick="toggleFullScreen()">TELA CHEIA ⛶</button>
-    <button id="btn-config-keys" onclick="openKeyConfig()">⚙️ CONFIGURAR TECLAS (PC)</button>
+    <button id="btn-config-keys" onclick="openKeyConfig()">⚙️ TECLAS (PC)</button>
 
     <canvas id="gameCanvas" width="800" height="450"></canvas>
+
+    <!-- BARRA INFERIOR DE RECURSOS E AÇÕES -->
+    <div class="bottom-bar">
+      <button class="btn-tool" id="btn-record" onclick="toggleRecordGame()">🎥 Gravar Jogo</button>
+      <button class="btn-tool" onclick="takeScreenshot()">📸 Print</button>
+      <button class="btn-tool" onclick="openYoutubeChannel()">🔴 YouTube</button>
+      <button class="btn-tool" onclick="openPixModal()">⚡ Pix</button>
+      <button class="btn-tool" onclick="openCommentsModal()">💬 Comentários</button>
+    </div>
+
+    <!-- PAINEL PIX DE APOIO -->
+    <div id="panel-pix" class="overlay-panel">
+      <h2>APOIE COM UM PIX ⚡</h2>
+      <p>Ajude a manter e melhorar o jogo do Doutor Chácara!</p>
+      <p style="font-size: 0.85rem;">Chave Pix (E-mail):</p>
+      <div class="pix-box" id="pix-key-text">jhonemercadopago2023@gmail.com</div>
+      <button class="btn-main" onclick="copyPixKey()">📋 COPIAR CHAVE PIX</button>
+      <button class="btn-sub" onclick="closePixModal()">FECHAR</button>
+    </div>
+
+    <!-- PAINEL COMENTÁRIOS -->
+    <div id="panel-comments" class="overlay-panel">
+      <h2>DEIXE SEU COMENTÁRIO 💬</h2>
+      <input type="text" id="comment-author" placeholder="Seu Nome" maxlength="15">
+      <textarea id="comment-text" placeholder="Escreva seu comentário..." maxlength="120"></textarea>
+      <button class="btn-main" onclick="saveComment()">GRAVAR COMENTÁRIO 📝</button>
+      
+      <p style="margin-top: 5px; font-size: 0.85rem; color: #00ffcc;">Mural de Comentários:</p>
+      <div class="comments-list" id="comments-list"></div>
+      <button class="btn-sub" onclick="closeCommentsModal()">FECHAR</button>
+    </div>
 
     <!-- PAINEL INICIAR FASE / TRANSIÇÃO -->
     <div id="panel-stage-start" class="overlay-panel">
@@ -188,6 +258,8 @@
     const panelYtPromo = document.getElementById("panel-youtube-promo");
     const panelYtReturn = document.getElementById("panel-yt-return");
     const panelKeyConfig = document.getElementById("panel-key-config");
+    const panelPix = document.getElementById("panel-pix");
+    const panelComments = document.getElementById("panel-comments");
     
     const stageTitle = document.getElementById("stage-title");
     const stageInstruction = document.getElementById("stage-instruction");
@@ -197,6 +269,117 @@
     const leaderboardList = document.getElementById("leaderboard-list");
     const btnStartAction = document.getElementById("btn-start-action");
     const btnSaveScore = document.getElementById("btn-save-score");
+
+    // RECURSOS DA BARRA INFERIOR (GRAVAÇÃO E PRINT)
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let isRecording = false;
+
+    function openYoutubeChannel() {
+      window.open("https://www.youtube.com/@DoutorChacara", "_blank");
+    }
+
+    function openPixModal() { panelPix.style.display = "flex"; }
+    function closePixModal() { panelPix.style.display = "none"; }
+
+    function copyPixKey() {
+      const pixKey = "jhonemercadopago2023@gmail.com";
+      navigator.clipboard.writeText(pixKey).then(() => {
+        alert("Chave Pix copiada com sucesso!");
+      }).catch(() => {
+        alert("Chave Pix: " + pixKey);
+      });
+    }
+
+    function takeScreenshot() {
+      const dataURL = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.download = `doutor-chacara-print-${Date.now()}.png`;
+      link.href = dataURL;
+      link.click();
+    }
+
+    function toggleRecordGame() {
+      const btn = document.getElementById("btn-record");
+      if (!isRecording) {
+        startRecording();
+        btn.innerText = "⏹️ Parar Gravação";
+        btn.classList.add("recording");
+      } else {
+        stopRecording();
+        btn.innerText = "🎥 Gravar Jogo";
+        btn.classList.remove("recording");
+      }
+    }
+
+    function startRecording() {
+      recordedChunks = [];
+      const stream = canvas.captureStream(30);
+      mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) recordedChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: "video/webm" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `doutor-chacara-gameplay-${Date.now()}.webm`;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      mediaRecorder.start();
+      isRecording = true;
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+      }
+    }
+
+    // MURAL DE COMENTÁRIOS
+    function openCommentsModal() {
+      renderComments();
+      panelComments.style.display = "flex";
+    }
+
+    function closeCommentsModal() {
+      panelComments.style.display = "none";
+    }
+
+    function getComments() {
+      const data = localStorage.getItem("dr_chacara_comments");
+      return data ? JSON.parse(data) : [];
+    }
+
+    function renderComments() {
+      const comments = getComments();
+      const list = document.getElementById("comments-list");
+      list.innerHTML = comments.map(c => `
+        <div class="comment-item">
+          <strong>${c.author}:</strong> ${c.text}
+        </div>
+      `).join('') || '<div>Nenhum comentário gravado ainda! Seja o primeiro!</div>';
+    }
+
+    function saveComment() {
+      const author = document.getElementById("comment-author").value.trim() || "Anônimo";
+      const text = document.getElementById("comment-text").value.trim();
+      
+      if (!text) { alert("Digite uma mensagem para comentar!"); return; }
+
+      const comments = getComments();
+      comments.unshift({ author, text });
+      localStorage.setItem("dr_chacara_comments", JSON.stringify(comments.slice(0, 20)));
+
+      document.getElementById("comment-text").value = "";
+      renderComments();
+    }
 
     // CONFIGURAÇÃO DE CONTROLES DO TECLADO
     const keyBinds = { attack: "KeyA", jump: "KeyS" };
@@ -977,8 +1160,8 @@
 
       const currentRule = getRuleForStage(currentStage);
       ctx.fillStyle = "#ffffff"; ctx.font = "bold 16px 'Segoe UI'"; ctx.textAlign = "left";
-      ctx.fillText(`${currentRule.title}`, 20, 30);
-      ctx.fillText(`PONTOS: ${score}`, 650, 30);
+      ctx.fillText(`${currentRule.title}`, 20, 35);
+      ctx.fillText(`PONTOS: ${score}`, 650, 35);
     }
 
     function loop() { update(); draw(); requestAnimationFrame(loop); }
