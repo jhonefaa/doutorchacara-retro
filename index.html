@@ -20,7 +20,7 @@
       background: #000; width: 100%; height: 100%; object-fit: contain; display: block;
     }
 
-    /* CONTROLES VIRTUAIS TOUCH */
+    /* CONTROLES VIRTUAIS TOUCH COM TRANSPARÊNCIA */
     .touch-controls {
       position: absolute; bottom: 50px; left: 0; width: 100%;
       display: flex; justify-content: space-between; align-items: flex-end;
@@ -29,11 +29,11 @@
     
     #joystick-zone {
       width: 120px; height: 120px; background: rgba(255, 255, 255, 0.15);
-      border: 2px solid #00ffcc; border-radius: 50%; position: relative;
+      border: 2px solid rgba(0, 255, 204, 0.5); border-radius: 50%; position: relative;
       pointer-events: auto; touch-action: none;
     }
     #joystick-stick {
-      width: 50px; height: 50px; background: #00ffcc; border-radius: 50%;
+      width: 50px; height: 50px; background: rgba(0, 255, 204, 0.7); border-radius: 50%;
       position: absolute; top: 35px; left: 35px;
       box-shadow: 0 0 10px #00ffcc; pointer-events: none;
     }
@@ -43,9 +43,10 @@
       width: 65px; height: 65px; border-radius: 50%; font-size: 0.85rem; font-weight: bold;
       border: 2px solid #fff; box-shadow: 0 0 10px rgba(255,255,255,0.3);
       display: flex; justify-content: center; align-items: center; color: #fff;
+      opacity: 0.75;
     }
-    .btn-jump { background: #0088ff; }
-    .btn-attack { background: #ff0055; }
+    .btn-jump { background: rgba(0, 136, 255, 0.6); }
+    .btn-attack { background: rgba(255, 0, 85, 0.6); }
 
     #btn-fullscreen {
       position: absolute; top: 15px; right: 15px; background: rgba(0, 255, 204, 0.2);
@@ -59,45 +60,50 @@
       font-size: 0.75rem; cursor: pointer; z-index: 10;
     }
 
+    /* PAINÉIS / MENUS 50% TRANSPARENTES */
     .overlay-panel {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: rgba(10, 10, 18, 0.96); border: 2px solid #00ffcc;
-      border-radius: 20px; padding: 25px; box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
+      background: rgba(10, 10, 18, 0.5); 
+      backdrop-filter: blur(4px);
+      border: 2px solid rgba(0, 255, 204, 0.6);
+      border-radius: 20px; padding: 25px; box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
       z-index: 20; display: none; flex-direction: column; align-items: center; gap: 15px;
       width: 85%; max-width: 480px; color: #fff;
     }
 
-    .overlay-panel h2 { color: #00ffcc; font-size: 1.4rem; }
-    .overlay-panel p { font-size: 1rem; line-height: 1.4; }
+    .overlay-panel h2 { color: #00ffcc; font-size: 1.4rem; text-shadow: 0 0 5px #000; }
+    .overlay-panel p { font-size: 1rem; line-height: 1.4; text-shadow: 0 0 5px #000; }
     
     .btn-main {
-      background: #00ffcc; color: #000; font-size: 1rem; font-weight: bold;
+      background: rgba(0, 255, 204, 0.85); color: #000; font-size: 1rem; font-weight: bold;
       padding: 10px 22px; border-radius: 25px; border: none; cursor: pointer;
-      box-shadow: 0 0 15px #00ffcc; margin: 4px;
+      box-shadow: 0 0 15px rgba(0, 255, 204, 0.5); margin: 4px;
+      width: 100%; max-width: 320px;
     }
 
     .btn-sub {
-      background: #ff0055; color: #fff; font-size: 0.95rem; font-weight: bold;
+      background: rgba(255, 0, 85, 0.85); color: #fff; font-size: 0.95rem; font-weight: bold;
       padding: 10px 20px; border-radius: 25px; border: none; cursor: pointer;
-      box-shadow: 0 0 10px #ff0055; margin: 4px;
+      box-shadow: 0 0 10px rgba(255, 0, 85, 0.5); margin: 4px;
+      width: 100%; max-width: 320px;
     }
 
-    .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+    .btn-group { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
 
     input[type="text"] {
       padding: 8px 12px; border-radius: 10px; border: 2px solid #00ffcc;
-      background: #111; color: #fff; font-size: 1rem; text-align: center; width: 80%;
+      background: rgba(17, 17, 17, 0.7); color: #fff; font-size: 1rem; text-align: center; width: 80%;
     }
 
     .leaderboard-list {
       width: 100%; max-height: 140px; overflow-y: auto; text-align: left;
-      font-family: monospace; font-size: 0.85rem; background: rgba(255,255,255,0.05);
+      font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.4);
       padding: 8px; border-radius: 10px; border: 1px solid #333;
     }
     .leaderboard-item { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed #444; }
 
     .key-bind-row { display: flex; justify-content: space-between; width: 100%; align-items: center; padding: 5px 0; }
-    .key-bind-btn { background: #222; border: 1px solid #00ffcc; color: #00ffcc; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+    .key-bind-btn { background: rgba(34, 34, 34, 0.8); border: 1px solid #00ffcc; color: #00ffcc; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -116,23 +122,23 @@
       <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
     </div>
 
-    <!-- PAINEL INTERAÇÃO YOUTUBE (TRANSIÇÃO DE FASE) -->
+    <!-- PAINEL INTERAÇÃO YOUTUBE (TRANSIÇÃO DE FASE DE 3 BOTÕES) -->
     <div id="panel-youtube-promo" class="overlay-panel">
-      <h2>MUITO BEM! FASE CONCLUÍDA! 🎉</h2>
-      <p>Você já se inscreveu no canal do <strong>Doutor Chácara</strong> no YouTube?</p>
+      <h2>FASE CONCLUÍDA! 🎉</h2>
+      <p>Apoie o canal do Doutor Chácara para continuar:</p>
       <div class="btn-group">
-        <button class="btn-main" onclick="handleYtAnswer('sim')">Sim, já sou inscrito! 👍</button>
-        <button class="btn-sub" onclick="handleYtAnswer('nao')">Ainda não 😅</button>
-        <button class="btn-main" style="background: #ff0000; color:#fff;" onclick="handleYtAnswer('inscrever')">Quero me inscrever! 🔴</button>
+        <button class="btn-main" style="background: rgba(255, 0, 0, 0.85); color:#fff;" onclick="handleYtAnswer('inscrever')">🔴 Se inscreva no canal Doutor Chácara</button>
+        <button class="btn-main" onclick="handleYtAnswer('sim')">👍 Já é inscrito</button>
+        <button class="btn-sub" style="background: rgba(0, 153, 255, 0.85);" onclick="handleYtAnswer('continuar')">▶ Continuar jogo</button>
       </div>
-      <div id="yt-feedback-msg" style="margin-top: 10px; font-weight: bold; color: #ffcc00;"></div>
+      <div id="yt-feedback-msg" style="margin-top: 10px; font-weight: bold; color: #ffcc00; text-shadow: 0 0 5px #000;"></div>
     </div>
 
     <!-- PAINEL PAUSA YOUTUBE RETORNO -->
     <div id="panel-yt-return" class="overlay-panel">
-      <h2>INSCRIÇÃO YOUTUBE</h2>
-      <p>O jogo foi pausado para você visitar o canal!</p>
-      <button class="btn-main" onclick="resumeGameFromYt()">CONTINUAR O JOGO ▶</button>
+      <h2>JOGO PAUSADO ⏸️</h2>
+      <p>O jogo está pausado enquanto você visita o canal!</p>
+      <button class="btn-main" onclick="resumeGameFromYt()">CONTINUAR JOGO ▶</button>
     </div>
 
     <!-- PAINEL CONFIGURAÇÃO DE TECLAS (PC) -->
@@ -431,23 +437,22 @@
     function openYoutubePromo() {
       document.getElementById("yt-feedback-msg").innerText = "";
       panelYtPromo.style.display = "flex";
-      speakText("Você já se inscreveu no canal do Doutor Chácara?");
+      speakText("Se inscreva no canal do Doutor Chácara!");
     }
 
     function handleYtAnswer(option) {
       const msgBox = document.getElementById("yt-feedback-msg");
-      if (option === 'sim') {
-        msgBox.innerText = "Muito obrigado por fazer parte do nosso canal! 💙";
-        speakText("Muito obrigado por fazer parte do nosso canal!");
-        setTimeout(() => { panelYtPromo.style.display = "none"; advanceToNextStage(); }, 2000);
-      } else if (option === 'nao') {
-        msgBox.innerText = "Inscreva-se para apoiar o Doutor Chácara! 🎓";
-        speakText("Inscreva-se para apoiar o Doutor Chácara!");
-        setTimeout(() => { panelYtPromo.style.display = "none"; advanceToNextStage(); }, 2500);
-      } else if (option === 'inscrever') {
+      if (option === 'inscrever') {
         window.open("https://www.youtube.com/@DoutorChacara", "_blank");
         panelYtPromo.style.display = "none";
         panelYtReturn.style.display = "flex";
+      } else if (option === 'sim') {
+        msgBox.innerText = "Muito obrigado por fazer parte do nosso canal! 💙";
+        speakText("Muito obrigado por fazer parte do nosso canal!");
+        setTimeout(() => { panelYtPromo.style.display = "none"; advanceToNextStage(); }, 1500);
+      } else if (option === 'continuar') {
+        panelYtPromo.style.display = "none";
+        advanceToNextStage();
       }
     }
 
