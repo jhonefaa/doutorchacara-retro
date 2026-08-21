@@ -39,30 +39,19 @@
       font-size: 0.95rem;
       line-height: 1.5;
       margin: 10px 0;
-      max-height: 300px;
+      max-height: 250px;
       overflow-y: auto;
       width: 100%;
     }
 
-    .touch-controls {
-      position: absolute; bottom: 30px; left: 0; width: 100%;
-      display: flex; justify-content: space-between; align-items: flex-end;
-      padding: 0 30px; pointer-events: none; z-index: 5;
-    }
-
-    .action-buttons { display: flex; gap: 15px; pointer-events: auto; }
-    .btn-action {
-      width: 65px; height: 65px; border-radius: 50%; font-size: 0.85rem; font-weight: bold;
-      border: 2px solid #fff; box-shadow: 0 0 10px rgba(255,255,255,0.3);
-      display: flex; justify-content: center; align-items: center; color: #fff; cursor: pointer;
-    }
-    .btn-jump { background: #0088ff; }
-    .btn-attack { background: #ff0055; }
-
-    #btn-fullscreen {
-      position: absolute; top: 15px; right: 15px; background: rgba(0, 255, 204, 0.2);
-      border: 1px solid #00ffcc; color: #00ffcc; padding: 8px 15px; border-radius: 20px;
-      font-size: 0.8rem; font-weight: bold; cursor: pointer; z-index: 10;
+    .timer-badge {
+      background: rgba(0, 255, 204, 0.2);
+      border: 1px solid #00ffcc;
+      color: #00ffcc;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      font-weight: bold;
     }
 
     .overlay-panel h2 { color: #00ffcc; font-size: 1.3rem; }
@@ -85,6 +74,12 @@
     input[type="text"], select {
       padding: 10px 12px; border-radius: 10px; border: 2px solid #00ffcc;
       background: #111; color: #fff; font-size: 0.95rem; text-align: center; width: 100%; margin: 5px 0;
+    }
+
+    #btn-fullscreen {
+      position: absolute; top: 15px; right: 15px; background: rgba(0, 255, 204, 0.2);
+      border: 1px solid #00ffcc; color: #00ffcc; padding: 8px 15px; border-radius: 20px;
+      font-size: 0.8rem; font-weight: bold; cursor: pointer; z-index: 10;
     }
   </style>
 </head>
@@ -115,54 +110,63 @@
         <option value="Ensino Médio">Ensino Médio / Supletivo Final</option>
       </select>
       <select id="study-subject">
-        <option value="matematica">Matemática</option>
-        <option value="portugues">Língua Portuguesa</option>
+        <option value="apostila_portugues">Apostila: Língua Portuguesa Completa</option>
+        <option value="questoes_portugues">Apostila: Questões de Língua Portuguesa</option>
+        <option value="matematica">Matemática Básica</option>
         <option value="ciencias">Ciências da Natureza</option>
         <option value="geografia">Geografia e História</option>
-        <option value="geral">Conhecimentos Gerais</option>
       </select>
       <button class="btn-main" onclick="loadStudyContent()">ABRIR MATÉRIA DE ESTUDO ▶</button>
       <button class="btn-sub" onclick="openMainMenu()">VOLTAR</button>
     </div>
 
-    <!-- TELA DE LEITURA DO CONTEÚDO DIDÁTICO -->
+    <!-- TELA DE LEITURA DO CONTEÚDO DIDÁTICO COM TIMING -->
     <div id="panel-study-content" class="overlay-panel">
       <h2 id="study-content-title">MATÉRIA DE ESTUDO</h2>
       <p id="study-content-subtitle">Nível: Fundamental</p>
+
+      <div class="timer-badge">
+        ⏱️ Próximo Teste de Revisão em: <span id="study-timer">10:00</span>
+      </div>
+
+      <!-- BOTÃO PARA APOSTILA EM PDF -->
+      <a id="btn-open-pdf-external" href="#" target="_blank" class="btn-main" style="background: #0088ff; color: #fff; text-decoration: none; display: none; width: 100%;">
+        📄 ABRIR APOSTILA EM PDF
+      </a>
+
       <div class="study-text-box" id="study-text-body">
         Carregando conteúdo...
       </div>
-      <button class="btn-main" onclick="startStudyQuiz()">COMEÇAR O JOGO PRÁTICO ▶</button>
+
+      <button class="btn-main" onclick="triggerQuizNow()">FAZER O TESTE AGORA ▶</button>
       <button class="btn-sub" onclick="openStudyMenu()">ALTERAR MATÉRIA</button>
     </div>
 
-    <!-- PAINEL TESTE DE REVISÃO -->
+    <!-- PAINEL TESTE DE REVISÃO AUTOMÁTICO DE 10 MIN -->
     <div id="panel-quiz-test" class="overlay-panel">
-      <h2>TESTE DE REVISÃO ⏱️</h2>
+      <h2>TESTE DE REVISÃO DE 10 MINUTOS ⏱️</h2>
       <p id="quiz-question-text">Carregando pergunta...</p>
       <div id="quiz-options-container" class="btn-group"></div>
     </div>
 
-    <!-- PAINEL DE FASE -->
+    <!-- PAINEL DE PÓS-TESTE (OPÇÕES DO USUÁRIO) -->
+    <div id="panel-post-quiz" class="overlay-panel">
+      <h2 id="quiz-result-title">RESULTADO DO TESTE</h2>
+      <p id="quiz-result-text">Você acertou a questão!</p>
+      <p>Pontuação acumulada: <strong id="final-score">0</strong></p>
+      
+      <div class="btn-group">
+        <button class="btn-main" onclick="continueStudying()">📘 CONTINUAR ESTUDANDO</button>
+        <button class="btn-main" style="background:#0088ff; color:#fff;" onclick="startStudyGame()">🎮 IR PARA O JOGO PRÁTICO</button>
+        <button class="btn-sub" onclick="openMainMenu()">🏠 MENU PRINCIPAL</button>
+      </div>
+    </div>
+
+    <!-- PAINEL DE FASE DE JOGO -->
     <div id="panel-stage-start" class="overlay-panel">
       <h2 id="stage-title">FASE 1</h2>
-      <p id="stage-instruction">Destrua os alvos solicitados!</p>
+      <p id="stage-instruction">Prepare-se para o jogo!</p>
       <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
-    </div>
-
-    <!-- PAINEL GAME OVER -->
-    <div id="panel-game-over" class="overlay-panel">
-      <h2 style="color: #ff0055;">FIM DE JOGO</h2>
-      <p id="game-over-reason">Resultado da fase</p>
-      <p>Sua pontuação: <strong id="final-score">0</strong></p>
-      <button class="btn-main" onclick="openMainMenu()">MENU PRINCIPAL 🔄</button>
-    </div>
-
-    <div class="touch-controls">
-      <div class="action-buttons">
-        <div class="btn-action btn-jump" id="touch-jump">PULO</div>
-        <div class="btn-action btn-attack" id="touch-attack">ATAQUE</div>
-      </div>
     </div>
   </div>
 
@@ -175,108 +179,68 @@
       studyForm: document.getElementById("panel-study-mode"),
       studyContent: document.getElementById("panel-study-content"),
       quiz: document.getElementById("panel-quiz-test"),
-      stage: document.getElementById("panel-stage-start"),
-      gameOver: document.getElementById("panel-game-over")
+      postQuiz: document.getElementById("panel-post-quiz"),
+      stage: document.getElementById("panel-stage-start")
     };
 
     const studyDatabase = {
-      "Fundamental I": {
-        "matematica": {
-          title: "Matemática Básica",
-          text: "<strong>Operações Básicas e Pares/Ímpares:</strong><br>• Números Pares terminam em 0, 2, 4, 6 e 8.<br>• Números Ímpares terminam em 1, 3, 5, 7 e 9.<br>• Adição junta quantidades; Subtração retira quantidades.<br>• Exemplo: 4 + 2 = 6 (Par), 5 - 2 = 3 (Ímpar).",
-          quiz: [{ q: "Qual destes números é PAR?", options: ["7", "12", "15"], correct: 1 }]
-        },
-        "portugues": {
-          title: "Língua Portuguesa",
-          text: "<strong>Vogais e Encontros Vocálicos:</strong><br>• As vogais são: A, E, I, O, U.<br>• Todas as outras letras do alfabeto são consoantes.<br>• MASCULINO: O menino, Um gato.<br>• FEMININO: A menina, Uma casa.",
-          quiz: [{ q: "Qual letra é uma VOGAL?", options: ["B", "E", "F"], correct: 1 }]
-        },
-        "ciencias": {
-          title: "Ciências da Natureza",
-          text: "<strong>Seres Vivos e Meio Ambiente:</strong><br>• Seres vivos nascem, crescem e se reproduzem.<br>• As plantas precisam de água e Luz do Sol para viver.<br>• Partes do corpo: Cabeça, Tronco e Membros.",
-          quiz: [{ q: "Do que as plantas precisam para crescer?", options: ["Luz do Sol", "Refrigerante", "Escuridão"], correct: 0 }]
-        },
-        "geografia": {
-          title: "Geografia e História",
-          text: "<strong>Zona Urbana e Zona Rural:</strong><br>• Zona Urbana: Cidade, carros, prédios e asfalto.<br>• Zona Rural: Campo, sítios, plantações e animais.",
-          quiz: [{ q: "Onde ficam as grandes plantações?", options: ["Zona Urbana", "Zona Rural"], correct: 1 }]
-        },
-        "geral": {
-          title: "Conhecimentos Gerais",
-          text: "<strong>Higiene e Saúde:</strong><br>• Lavar as mãos previne contaminações.<br>• Escovar os dentes após as refeições evita cáries.",
-          quiz: [{ q: "Qual hábito evita contaminação?", options: ["Lavar as mãos", "Comer com a mão suja"], correct: 0 }]
-        }
+      "apostila_portugues": {
+        title: "Apostila: Língua Portuguesa",
+        pdfUrl: "pdf/ApostilaLínguaPortuguesa.pdf",
+        text: "<strong>SÍNTESE DA APOSTILA DE PORTUGUÊS:</strong><br><br>" +
+              "• <strong>Gramática e Ortografia:</strong> Uso do porquê, crase, pontuação e concordância verbal/nominal.<br>" +
+              "• <strong>Acentuação Gráfica:</strong> Regras de oxítonas, paroxítonas e proparoxítonas.<br>" +
+              "• <strong>Interpretação de Texto:</strong> Identificação de ideia central, ambiguidade, metáforas e coerência textual.",
+        quiz: [
+          { q: "Qual palavra é uma PROPAROXÍTONA e deve sempre ser acentuada?", options: ["Lâmpada", "Café", "Mesa"], correct: 0 },
+          { q: "Qual frase apresenta uso correto do porquê em perguntas?", options: ["Por que você não estudou?", "Porque você não estudou?", "Por que? você não foi"], correct: 0 }
+        ]
       },
-      "Fundamental II": {
-        "matematica": {
-          title: "Matemática",
-          text: "<strong>Equações e Porcentagem:</strong><br>• Porcentagem (%): Representa partes de 100.<br>• Regra de Sinais: Menos com menos dá mais (- com - = +).<br>• Exemplo: 50% de 80 é 40.",
-          quiz: [{ q: "Quanto é 50% de 100?", options: ["25", "50", "75"], correct: 1 }]
-        },
-        "portugues": {
-          title: "Língua Portuguesa",
-          text: "<strong>Classes de Palavras:</strong><br>• Substantivo: Dá nome às coisas.<br>• Verbo: Indica ação ou estado (Ex: correr, estudar).<br>• Adjetivo: Dá características (Ex: bonito, grande).",
-          quiz: [{ q: "A palavra 'estudar' é um:", options: ["Substantivo", "Verbo", "Adjetivo"], correct: 1 }]
-        },
-        "ciencias": {
-          title: "Ciências da Natureza",
-          text: "<strong>Sistemas do Corpo Humano:</strong><br>• Sistema Respiratório: Absorve Oxigênio (O2).<br>• Sistema Circulatório: O coração bombeia o sangue.",
-          quiz: [{ q: "Qual órgão bombeia o sangue?", options: ["Pulmão", "Coração"], correct: 1 }]
-        },
-        "geografia": {
-          title: "Geografia e História",
-          text: "<strong>Regiões do Brasil:</strong><br>• O Brasil possui 5 regiões oficiais: Norte, Nordeste, Centro-Oeste, Sudeste e Sul.<br>• A Floresta Amazônica situa-se na Região Norte.",
-          quiz: [{ q: "Quantas regiões tem o Brasil?", options: ["4", "5", "6"], correct: 1 }]
-        },
-        "geral": {
-          title: "Conhecimentos Gerais",
-          text: "<strong>História do Brasil:</strong><br>• Proclamação da República: 15 de Novembro de 1889.<br>• A moeda oficial do Brasil é o Real.",
-          quiz: [{ q: "Qual a moeda do Brasil?", options: ["Dólar", "Real", "Euro"], correct: 1 }]
-        }
+      "questoes_portugues": {
+        title: "Apostila: Questões de Português",
+        pdfUrl: "pdf/QuestõesLínguaPortuguesa.pdf",
+        text: "<strong>TREINAMENTO PRÁTICO DE PORTUGUÊS:</strong><br><br>" +
+              "• <strong>Questão Frequente 1:</strong> Identificação de sujeitos ocultos e indeterminados em frases longas.<br>" +
+              "• <strong>Questão Frequente 2:</strong> Substituição de termos para evitar repetições em redações.<br>" +
+              "• <strong>Questão Frequente 3:</strong> Emprego da crase antes de palavras femininas e horas exatas.",
+        quiz: [
+          { q: "Assinale a opção com o uso CORRETO da crase:", options: ["Fui à escola ontem.", "Fui à pé para casa.", "Entreguei o livro à ele."], correct: 0 },
+          { q: "Qual é o sujeito da frase 'Estudamos muito para a prova'?", options: ["Nós (Oculto)", "A prova", "Indeterminado"], correct: 0 }
+        ]
       },
-      "Ensino Médio": {
-        "matematica": {
-          title: "Matemática Avançada",
-          text: "<strong>Geometria e Funções:</strong><br>• Teorema de Pitágoras: a² = b² + c².<br>• Função do 1º Grau: f(x) = ax + b.",
-          quiz: [{ q: "No triângulo de lados 3 e 4, a hipotenusa vale:", options: ["5", "6", "7"], correct: 0 }]
-        },
-        "portugues": {
-          title: "Língua Portuguesa",
-          text: "<strong>Figuras de Linguagem:</strong><br>• Metáfora: Comparação direta (Ex: 'Seus olhos são estrelas').<br>• Crase (à): Fusão da preposição 'a' com artigo 'a'.",
-          quiz: [{ q: "'Ele é um leão' é um exemplo de:", options: ["Metáfora", "Ironia"], correct: 0 }]
-        },
-        "ciencias": {
-          title: "Ciências da Natureza",
-          text: "<strong>Química e Física:</strong><br>• Tabela Periódica: O é Oxigênio, H é Hidrogênio.<br>• Velocidade Média: Distância dividida pelo Tempo.",
-          quiz: [{ q: "Qual o símbolo do Oxigênio?", options: ["O", "Ox", "H"], correct: 0 }]
-        },
-        "geografia": {
-          title: "Geografia e História",
-          text: "<strong>Globalização e Recursos:</strong><br>• Energias Renováveis: Solar, Eólica e Hídrica.<br>• Preservação ambiental reduz o aquecimento global.",
-          quiz: [{ q: "Qual é uma fonte de energia renovável?", options: ["Petróleo", "Energia Solar"], correct: 1 }]
-        },
-        "geral": {
-          title: "Conhecimentos Gerais",
-          text: "<strong>Cidadania e Leis:</strong><br>• Três Poderes: Executivo, Legislativo e Judiciário.<br>• A Constituição de 1988 garante os direitos do cidadão.",
-          quiz: [{ q: "Quem aprova as leis no Brasil?", options: ["Poder Legislativo", "Poder Executivo"], correct: 0 }]
-        }
+      "matematica": {
+        title: "Matemática Básica",
+        pdfUrl: "",
+        text: "<strong>Operações e Porcentagem:</strong><br>• Frações e números decimais.<br>• Porcentagem e regra de três simples.",
+        quiz: [{ q: "Quanto é 20% de 100?", options: ["10", "20", "30"], correct: 1 }]
+      },
+      "ciencias": {
+        title: "Ciências da Natureza",
+        pdfUrl: "",
+        text: "<strong>Meio Ambiente e Biologia:</strong><br>• Ecossistemas e reciclagem.<br>• O corpo humano e nutrição saudável.",
+        quiz: [{ q: "Qual gás é essencial para a nossa respiração?", options: ["Oxigênio", "Gás Carbônico", "Nitrogênio"], correct: 0 }]
+      },
+      "geografia": {
+        title: "Geografia e História",
+        pdfUrl: "",
+        text: "<strong>Sociedade e Espaço:</strong><br>• Regiões brasileiras e clima.<br>• História do Brasil e cidadania.",
+        quiz: [{ q: "Qual a capital do Brasil?", options: ["São Paulo", "Rio de Janeiro", "Brasília"], correct: 2 }]
       }
     };
 
     let studentData = { name: '', grade: '', subject: '' };
     let score = 0;
-    let stageStarted = false;
+    let timerInterval = null;
+    let secondsLeft = 600; // 10 Minutos
 
     function hideAllPanels() {
-      Object.values(panels).forEach(panel => {
-        if (panel) panel.style.display = "none";
-      });
+      clearInterval(timerInterval);
+      Object.values(panels).forEach(p => { if (p) p.style.display = "none"; });
     }
 
     function openMainMenu() {
       hideAllPanels();
       panels.main.style.display = "flex";
-      stageStarted = false;
     }
 
     function openStudyMenu() {
@@ -295,61 +259,109 @@
       }
 
       studentData = { name, grade, subject };
-      const contentObj = studyDatabase[grade][subject];
+      const contentObj = studyDatabase[subject];
 
       document.getElementById("study-content-title").innerText = contentObj.title.toUpperCase();
       document.getElementById("study-content-subtitle").innerText = `Aluno: ${name} | Nível: ${grade}`;
       document.getElementById("study-text-body").innerHTML = contentObj.text;
 
+      const pdfBtn = document.getElementById("btn-open-pdf-external");
+      if (contentObj.pdfUrl) {
+        pdfBtn.href = contentObj.pdfUrl;
+        pdfBtn.style.display = "block";
+      } else {
+        pdfBtn.style.display = "none";
+      }
+
       hideAllPanels();
       panels.studyContent.style.display = "flex";
+      start10MinTimer();
     }
 
-    function startStudyQuiz() {
+    function start10MinTimer() {
+      clearInterval(timerInterval);
+      secondsLeft = 600; // 10 minutos (600 segundos)
+      updateTimerDisplay();
+
+      timerInterval = setInterval(() => {
+        secondsLeft--;
+        updateTimerDisplay();
+
+        if (secondsLeft <= 0) {
+          clearInterval(timerInterval);
+          triggerQuizNow();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(secondsLeft / 60);
+      const secs = secondsLeft % 60;
+      document.getElementById("study-timer").innerText = 
+        `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function triggerQuizNow() {
       hideAllPanels();
       panels.quiz.style.display = "flex";
 
-      const currentData = studyDatabase[studentData.grade][studentData.subject].quiz[0];
-      document.getElementById("quiz-question-text").innerText = currentData.q;
-      
+      const subjectData = studyDatabase[studentData.subject];
+      const randomQuestion = subjectData.quiz[Math.floor(Math.random() * subjectData.quiz.length)];
+
+      document.getElementById("quiz-question-text").innerText = randomQuestion.q;
       const container = document.getElementById("quiz-options-container");
       container.innerHTML = "";
 
-      currentData.options.forEach((opt, idx) => {
+      randomQuestion.options.forEach((opt, idx) => {
         const btn = document.createElement("button");
         btn.className = "btn-main";
         btn.innerText = opt;
-        btn.onclick = () => checkAnswer(idx === currentData.correct);
+        btn.onclick = () => finishQuiz(idx === randomQuestion.correct);
         container.appendChild(btn);
       });
     }
 
-    function checkAnswer(isCorrect) {
+    function finishQuiz(isCorrect) {
       hideAllPanels();
-      panels.gameOver.style.display = "flex";
-      const reasonText = document.getElementById("game-over-reason");
-      
+      panels.postQuiz.style.display = "flex";
+
+      const title = document.getElementById("quiz-result-title");
+      const text = document.getElementById("quiz-result-text");
+
       if (isCorrect) {
         score += 10;
-        reasonText.innerText = "Parabéns! Você acertou a questão!";
-        reasonText.style.color = "#00ffcc";
+        title.innerText = "PARABÉNS! 🎉";
+        title.style.color = "#00ffcc";
+        text.innerText = "Você acertou a questão de revisão!";
       } else {
-        reasonText.innerText = "Ops! Resposta incorreta. Revise a matéria e tente novamente.";
-        reasonText.style.color = "#ff0055";
+        title.innerText = "OPS! TENTE NOVAMENTE ❌";
+        title.style.color = "#ff0055";
+        text.innerText = "Resposta incorreta. Continue estudando o conteúdo para melhorar!";
       }
+
       document.getElementById("final-score").innerText = score;
+    }
+
+    function continueStudying() {
+      loadStudyContent();
+    }
+
+    function startStudyGame() {
+      hideAllPanels();
+      panels.stage.style.display = "flex";
+      document.getElementById("stage-title").innerText = "FASE DE PRÁTICA";
+      document.getElementById("stage-instruction").innerText = `Aplicando conhecimentos de: ${studentData.subject}`;
     }
 
     function startMode(mode) {
       hideAllPanels();
       panels.stage.style.display = "flex";
       document.getElementById("stage-title").innerText = "FASE 1";
-      document.getElementById("stage-instruction").innerText = `Modo: ${mode.toUpperCase()} - Prepare-se!`;
+      document.getElementById("stage-instruction").innerText = `Modo: ${mode.toUpperCase()}`;
     }
 
     document.getElementById("btn-start-action").addEventListener("click", () => {
       hideAllPanels();
-      stageStarted = true;
     });
 
     function toggleFullScreen() {
@@ -365,12 +377,6 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#00ffcc";
       ctx.fillRect(0, 370, canvas.width, 5);
-
-      if (stageStarted) {
-        ctx.fillStyle = "#fff";
-        ctx.font = "20px 'Segoe UI'";
-        ctx.fillText(`Pontos: ${score}`, 650, 40);
-      }
     }
 
     function loop() {
