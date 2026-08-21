@@ -27,7 +27,6 @@
       padding: 0 30px; pointer-events: none; z-index: 5;
     }
     
-    /* JOYSTICK ANALÓGICO 360° */
     #joystick-zone {
       width: 120px; height: 120px; background: rgba(255, 255, 255, 0.15);
       border: 2px solid #00ffcc; border-radius: 50%; position: relative;
@@ -39,7 +38,6 @@
       box-shadow: 0 0 10px #00ffcc; pointer-events: none;
     }
 
-    /* BOTÕES DE AÇÃO */
     .action-buttons { display: flex; gap: 15px; pointer-events: auto; }
     .btn-action {
       width: 65px; height: 65px; border-radius: 50%; font-size: 0.9rem; font-weight: bold;
@@ -49,7 +47,6 @@
     .btn-jump { background: #0088ff; }
     .btn-attack { background: #ff0055; }
 
-    /* UI DE MODAIS E BOTÕES */
     #btn-fullscreen {
       position: absolute; top: 15px; right: 15px; background: rgba(0, 255, 204, 0.2);
       border: 1px solid #00ffcc; color: #00ffcc; padding: 8px 15px; border-radius: 20px;
@@ -139,7 +136,7 @@
     const btnStartAction = document.getElementById("btn-start-action");
     const btnSaveScore = document.getElementById("btn-save-score");
 
-    // SINTETIZADOR DE ÁUDIO (Web Audio API)
+    // SINTETIZADOR DE ÁUDIO
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     function playSound(type) {
@@ -178,10 +175,16 @@
         gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
         gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
         osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+      } else if (type === 'ufo') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 1.5);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
+        osc.start(); osc.stop(audioCtx.currentTime + 1.5);
       }
     }
 
-    // SINTETIZADOR DE VOZ
     function speakText(text) {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -208,9 +211,14 @@
     let stageMissionText = "";
     let winMessage = "";
     let walkCycle = 0;
+    let sunAngle = 0;
+
+    // INTRO ANIMAÇÃO DISCO VOADOR
+    let isIntroPlaying = false;
+    let ufoState = { x: -100, y: 50, beamOpacity: 0, playerY: -100, step: 0 };
 
     const player = {
-      x: 50, y: 280, width: 35, height: 70,
+      x: 50, y: 280, width: 30, height: 65,
       vx: 0, vy: 0, speed: 4.8, friction: 0.82,
       grounded: false, crouching: false, facing: 'right', aimingUp: false,
       attacking: false, attackTimer: 0, attackMaxTime: 12
@@ -219,6 +227,9 @@
     const gravity = 0.65;
     const groundY = 370;
     const weapon = { x: 0, y: 0, length: 0, maxLength: 150 };
+
+    // SÍMBOLOS AÉREOS DA FASE (Aeronaves / Objetos Voadores)
+    const aerialSymbols = ['plane', 'helicopter', 'balloon', 'rocket', 'ufo_mini', 'bird', 'dragon', 'blimp'];
 
     const stageRules = {
       1: {
@@ -246,6 +257,8 @@
     }
 
     const enemies = [];
+    let aerialVehicle = { x: -100, y: 80, speed: 1.5, type: 'plane' };
+
     function prepareStage() {
       enemies.length = 0;
       const currentRule = getRuleForStage(currentStage);
@@ -261,12 +274,18 @@
       panelStageStart.style.display = "flex";
       panelGameOver.style.display = "none";
 
+      // Configura objeto aéreo para a fase
+      if (currentStage > 1) {
+        const symbolType = aerialSymbols[(currentStage - 2) % aerialSymbols.length];
+        aerialVehicle = { x: -80, y: 60 + Math.random() * 40, speed: 1.2 + Math.random() * 0.8, type: symbolType };
+      }
+
       const count = 4 + Math.floor(currentStage * 0.5);
       for (let i = 0; i < count; i++) {
         const charSymbol = currentRule.generateChar();
         enemies.push({
           x: 450 + i * 150 + Math.random() * 30,
-          y: groundY - 45, width: 35, height: 45,
+          y: groundY - 40, width: 28, height: 40,
           speed: 1.4 + (currentStage * 0.1), alive: true,
           symbol: charSymbol, isTarget: currentRule.isValid(charSymbol),
           dir: -1, expression: 'normal'
@@ -276,16 +295,24 @@
 
     function startStage() {
       if (audioCtx.state === 'suspended') audioCtx.resume();
-      stageStarted = true;
       panelStageStart.style.display = "none";
-      const currentRule = getRuleForStage(currentStage);
-      speakText(`${currentRule.title}. ${currentRule.instruction}`);
+      
+      if (currentStage === 1) {
+        // Dispara Animação de Entrada do Disco Voador
+        isIntroPlaying = true;
+        ufoState = { x: -100, y: 80, beamOpacity: 0, playerY: 80, step: 0 };
+        playSound('ufo');
+        speakText("Doutor Chácara foi trazido pelo Disco Voador. Prepare-se!");
+      } else {
+        stageStarted = true;
+        const currentRule = getRuleForStage(currentStage);
+        speakText(`${currentRule.title}. ${currentRule.instruction}`);
+      }
     }
 
     btnStartAction.addEventListener("click", startStage);
     btnSaveScore.addEventListener("click", saveScoreAndRestart);
 
-    // GESTÃO DE HIGHSCORES
     function getTopScores() {
       const data = localStorage.getItem("dr_chacara_scores");
       return data ? JSON.parse(data) : [];
@@ -356,7 +383,6 @@
       joyVector.y = dy / maxDist;
     }
 
-    // CONTROLES DE BOTÃO
     document.getElementById("touch-jump").addEventListener("pointerdown", (e) => {
       e.preventDefault();
       if (player.grounded && stageStarted && !gameOver) { player.vy = -12.5; player.grounded = false; }
@@ -372,7 +398,7 @@
 
     function resetGame() {
       gameOver = false; score = 0; currentStage = 1;
-      player.x = 50; player.y = 280; player.vx = 0; player.vy = 0;
+      player.x = 50; player.y = groundY - player.height; player.vx = 0; player.vy = 0;
       prepareStage();
     }
 
@@ -380,7 +406,54 @@
     window.addEventListener("keydown", (e) => { keys[e.code] = true; });
     window.addEventListener("keyup", (e) => { keys[e.code] = false; });
 
+    function updateIntro() {
+      if (!isIntroPlaying) return;
+
+      // Estágio 0: Disco Voador entra na tela até o x=100
+      if (ufoState.step === 0) {
+        ufoState.x += 3;
+        if (ufoState.x >= 100) ufoState.step = 1;
+      } 
+      // Estágio 1: Acende raio abdutor
+      else if (ufoState.step === 1) {
+        ufoState.beamOpacity += 0.05;
+        if (ufoState.beamOpacity >= 1) ufoState.step = 2;
+      } 
+      // Estágio 2: Baixa o jogador até o chão
+      else if (ufoState.step === 2) {
+        ufoState.playerY += 2.5;
+        if (ufoState.playerY >= groundY - player.height) {
+          ufoState.playerY = groundY - player.height;
+          ufoState.step = 3;
+        }
+      } 
+      // Estágio 3: Desliga raio e UFO vai embora
+      else if (ufoState.step === 3) {
+        ufoState.beamOpacity -= 0.05;
+        if (ufoState.beamOpacity <= 0) {
+          ufoState.x += 4;
+          if (ufoState.x > canvas.width + 100) {
+            isIntroPlaying = false;
+            stageStarted = true;
+            player.x = 100;
+            player.y = groundY - player.height;
+            const currentRule = getRuleForStage(currentStage);
+            speakText(`${currentRule.title}. ${currentRule.instruction}`);
+          }
+        }
+      }
+    }
+
     function update() {
+      sunAngle += 0.01;
+
+      // Movimento da Aeronave da fase
+      if (currentStage > 1) {
+        aerialVehicle.x += aerialVehicle.speed;
+        if (aerialVehicle.x > canvas.width + 100) aerialVehicle.x = -100;
+      }
+
+      if (isIntroPlaying) { updateIntro(); return; }
       if (gameOver || !stageStarted) return;
 
       const moveX = joyVector.x || (keys["ArrowRight"] ? 1 : keys["ArrowLeft"] ? -1 : 0);
@@ -429,7 +502,7 @@
         }
       }
 
-      // Ataque Diskarmor
+      // Ataque Escudo Dr. Chácara
       if (player.attacking) {
         player.attackTimer--;
         const progress = 1 - (player.attackTimer / player.attackMaxTime);
@@ -448,16 +521,17 @@
         if (player.attackTimer <= 0) player.attacking = false;
       }
 
-      // Inimigos e Colisões
+      // Inimigos e Colisões Ajustadas (Proximidade Estreita)
       enemies.forEach(enemy => {
         if (!enemy.alive) return;
 
         enemy.x += enemy.speed * enemy.dir;
         if (enemy.x < -50) enemy.x = canvas.width + 50;
 
+        // Escudo Atingindo Inimigo
         if (player.attacking) {
-          const hit = (enemy.x < weapon.x + 25 && enemy.x + enemy.width > weapon.x - 25 &&
-                       enemy.y < weapon.y + 25 && enemy.y + enemy.height > weapon.y - 25);
+          const hit = (enemy.x < weapon.x + 20 && enemy.x + enemy.width > weapon.x - 20 &&
+                       enemy.y < weapon.y + 20 && enemy.y + enemy.height > weapon.y - 20);
           if (hit) {
             if (enemy.isTarget) {
               enemy.expression = 'sad';
@@ -471,16 +545,118 @@
           }
         }
 
+        // Colisão Exata / Proximidade Mínima do Jogador com a Letra
+        const padding = 6; // Margem para exigir toque físico exato
+        const playerBox = {
+          left: player.x + padding,
+          right: player.x + player.width - padding,
+          top: player.y + padding,
+          bottom: player.y + player.height
+        };
+        const enemyBox = {
+          left: enemy.x + padding,
+          right: enemy.x + enemy.width - padding,
+          top: enemy.y + padding,
+          bottom: enemy.y + enemy.height
+        };
+
         if (enemy.alive &&
-            player.x < enemy.x + enemy.width && player.x + player.width > enemy.x &&
-            player.y < enemy.y + enemy.height && player.y + player.height > enemy.y) {
+            playerBox.left < enemyBox.right &&
+            playerBox.right > enemyBox.left &&
+            playerBox.top < enemyBox.bottom &&
+            playerBox.bottom > enemyBox.top) {
           enemy.expression = 'happy';
           triggerGameOver("A letra encostou em você!");
         }
       });
     }
 
-    // VISÃO LATERAL PERFEITA DO PERSONAGEM
+    // SOL COM ANIMACÃO E RAIOS GIRATÓRIOS
+    function drawAnimatedSun(x, y, radius) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      // Raios de Sol Visíveis
+      ctx.strokeStyle = "rgba(255, 204, 0, 0.5)";
+      ctx.lineWidth = 3;
+      const numRays = 12;
+      for (let i = 0; i < numRays; i++) {
+        const angle = sunAngle + (i * Math.PI * 2) / numRays;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(angle) * (radius + 5), Math.sin(angle) * (radius + 5));
+        ctx.lineTo(Math.cos(angle) * (radius + 20), Math.sin(angle) * (radius + 20));
+        ctx.stroke();
+      }
+
+      // Núcleo do Sol
+      const pulse = Math.sin(sunAngle * 3) * 3;
+      ctx.fillStyle = "#ffcc00";
+      ctx.beginPath();
+      ctx.arc(0, 0, radius + pulse, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // VEÍCULO AÉREO POR FASE
+    function drawAerialVehicle(vehicle) {
+      ctx.save();
+      ctx.translate(vehicle.x, vehicle.y);
+      ctx.fillStyle = "#ffffff";
+      ctx.strokeStyle = "#00ffcc";
+      ctx.lineWidth = 2;
+
+      if (vehicle.type === 'plane') {
+        ctx.beginPath(); ctx.ellipse(0, 0, 25, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillRect(-5, -18, 8, 36); // Asas
+        ctx.fillRect(-22, -10, 6, 12); // Cauda
+      } else if (vehicle.type === 'helicopter') {
+        ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillRect(-20, -2, 18, 4); // Cauda
+        const prop = Math.sin(Date.now() * 0.05) * 20; ctx.strokeRect(-prop, -16, prop * 2, 2); // Hélice
+      } else if (vehicle.type === 'balloon') {
+        ctx.beginPath(); ctx.arc(0, -10, 16, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#ff0055"; ctx.fillRect(-4, 10, 8, 8); // Cesto
+      } else if (vehicle.type === 'rocket') {
+        ctx.beginPath(); ctx.ellipse(0, 0, 20, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#ffcc00"; ctx.fillRect(-25, -3, 8, 6); // Fogo
+      }
+
+      ctx.restore();
+    }
+
+    // ESCUDO DO DR. CHÁCARA (TAMANHO DAS LETRAS COM NOME ESCRITO)
+    function drawShieldWeapon(x, y) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      const w = 35; const h = 42;
+      ctx.fillStyle = "#00ffcc";
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+
+      // Formato do Escudo
+      ctx.beginPath();
+      ctx.moveTo(-w/2, -h/2);
+      ctx.lineTo(w/2, -h/2);
+      ctx.lineTo(w/2, 0);
+      ctx.quadraticCurveTo(w/2, h/2, 0, h/2 + 5);
+      ctx.quadraticCurveTo(-w/2, h/2, -w/2, 0);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      // Texto gravado no escudo
+      ctx.fillStyle = "#000000";
+      ctx.font = "bold 10px 'Segoe UI'";
+      ctx.textAlign = "center";
+      ctx.fillText("Dr.", 0, -5);
+      ctx.font = "bold 8px 'Segoe UI'";
+      ctx.fillText("Chácara", 0, 8);
+
+      ctx.restore();
+    }
+
+    // DESENHO DO JOGADOR EM PERFIL LATERAL
     function drawDrChacaraSide(x, y, facing, crouching) {
       ctx.save();
       ctx.translate(x + player.width / 2, y);
@@ -488,55 +664,55 @@
 
       const legAngle = Math.sin(walkCycle) * 20;
       const armAngle = Math.sin(walkCycle) * 25;
-      const h = crouching ? 45 : 70;
+      const h = crouching ? 45 : 65;
 
       // Pernas
-      ctx.strokeStyle = "#1a1a24"; ctx.lineWidth = 6; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(-2, h - 30); ctx.lineTo(-2 - Math.sin((-legAngle * Math.PI)/180) * 15, h); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(2, h - 30); ctx.lineTo(2 + Math.sin((legAngle * Math.PI)/180) * 15, h); ctx.stroke();
+      ctx.strokeStyle = "#1a1a24"; ctx.lineWidth = 5; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(-2, h - 25); ctx.lineTo(-2 - Math.sin((-legAngle * Math.PI)/180) * 14, h); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(2, h - 25); ctx.lineTo(2 + Math.sin((legAngle * Math.PI)/180) * 14, h); ctx.stroke();
 
-      // Tronco e Jaleco Lateral
-      ctx.fillStyle = "#0066cc"; ctx.fillRect(-8, crouching ? 15 : 20, 16, 25);
-      ctx.fillStyle = "#ffffff"; ctx.fillRect(-10, crouching ? 10 : 18, 20, crouching ? 20 : 30);
+      // Tronco e Jaleco
+      ctx.fillStyle = "#0066cc"; ctx.fillRect(-7, crouching ? 15 : 18, 14, 22);
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(-9, crouching ? 10 : 16, 18, crouching ? 18 : 26);
 
-      // Rosto em Perfil Lateral
-      ctx.fillStyle = "#f3c099"; ctx.fillRect(-4, 0, 16, 18);
-      ctx.fillStyle = "#111111"; ctx.fillRect(-6, -1, 18, 5);
-      ctx.fillStyle = "#5A5A66"; ctx.fillRect(-7, -7, 20, 7);
+      // Rosto
+      ctx.fillStyle = "#f3c099"; ctx.fillRect(-3, 0, 15, 16);
+      ctx.fillStyle = "#111111"; ctx.fillRect(-5, -1, 16, 4);
+      ctx.fillStyle = "#5A5A66"; ctx.fillRect(-6, -6, 18, 6);
       
-      ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.strokeRect(4, 4, 7, 5);
-      ctx.beginPath(); ctx.moveTo(-4, 6); ctx.lineTo(4, 6); ctx.stroke();
+      ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.strokeRect(3, 3, 6, 5);
+      ctx.beginPath(); ctx.moveTo(-3, 5); ctx.lineTo(3, 5); ctx.stroke();
 
       // Braços
-      ctx.strokeStyle = "#f3c099"; ctx.lineWidth = 5;
-      ctx.beginPath(); ctx.moveTo(-4, crouching ? 20 : 25); ctx.lineTo(-4 - Math.sin((armAngle * Math.PI)/180) * 15, (crouching ? 20 : 25) + 15); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(4, crouching ? 20 : 25); ctx.lineTo(4 + Math.sin((armAngle * Math.PI)/180) * 15, (crouching ? 20 : 25) + 15); ctx.stroke();
+      ctx.strokeStyle = "#f3c099"; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(-3, crouching ? 18 : 22); ctx.lineTo(-3 - Math.sin((armAngle * Math.PI)/180) * 12, (crouching ? 18 : 22) + 12); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(3, crouching ? 18 : 22); ctx.lineTo(3 + Math.sin((armAngle * Math.PI)/180) * 12, (crouching ? 18 : 22) + 12); ctx.stroke();
 
       ctx.restore();
     }
 
-    // DESENHO DA LETRA COM PERNAS E EXPRESSÕES
+    // DESENHO DA LETRA INIMIGA (AJUSTADO E JUSTO)
     function drawLetterEnemy(enemy) {
       if (!enemy.alive) return;
 
       ctx.save();
       ctx.translate(enemy.x + enemy.width / 2, enemy.y);
 
-      const legCycle = Math.sin(Date.now() * 0.01 + enemy.x) * 12;
+      const legCycle = Math.sin(Date.now() * 0.01 + enemy.x) * 10;
 
       ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(-8, enemy.height - 10); ctx.lineTo(-8 + legCycle, enemy.height); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(8, enemy.height - 10); ctx.lineTo(8 - legCycle, enemy.height); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-6, enemy.height - 8); ctx.lineTo(-6 + legCycle, enemy.height); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(6, enemy.height - 8); ctx.lineTo(6 - legCycle, enemy.height); ctx.stroke();
 
       ctx.fillStyle = enemy.isTarget ? "#00ffcc" : "#ff0055";
-      ctx.font = "bold 34px 'Segoe UI'"; ctx.textAlign = "center";
-      ctx.fillText(enemy.symbol, 0, enemy.height - 12);
+      ctx.font = "bold 30px 'Segoe UI'"; ctx.textAlign = "center";
+      ctx.fillText(enemy.symbol, 0, enemy.height - 10);
 
-      ctx.fillStyle = "#ffffff"; ctx.font = "bold 12px 'Segoe UI'";
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 11px 'Segoe UI'";
       if (enemy.expression === 'happy') {
-        ctx.fillText(":D", 14, 15);
+        ctx.fillText(":D", 12, 12);
       } else if (enemy.expression === 'sad') {
-        ctx.fillText(":(", 14, 15);
+        ctx.fillText(":(", 12, 12);
       }
 
       ctx.restore();
@@ -547,16 +723,44 @@
       grad.addColorStop(0, "#120826"); grad.addColorStop(0.6, "#7a223b"); grad.addColorStop(1, "#2e1200");
       ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = "#ff3300"; ctx.beginPath(); ctx.arc(680, 140, 48, 0, Math.PI * 2); ctx.fill();
+      // Sol Animado
+      drawAnimatedSun(680, 120, 42);
+
+      // Símbolos Aéreos por Fase
+      if (currentStage > 1) drawAerialVehicle(aerialVehicle);
+
       ctx.fillStyle = "#26150d"; ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
       ctx.fillStyle = "#00ffcc"; ctx.fillRect(0, groundY, canvas.width, 3);
 
-      drawDrChacaraSide(player.x, player.y, player.facing, player.crouching);
+      // ANIMAÇÃO DO DISCO VOADOR
+      if (isIntroPlaying) {
+        // Raio Abdutor
+        if (ufoState.beamOpacity > 0) {
+          ctx.fillStyle = `rgba(0, 255, 204, ${ufoState.beamOpacity * 0.4})`;
+          ctx.beginPath();
+          ctx.moveTo(ufoState.x - 15, ufoState.y);
+          ctx.lineTo(ufoState.x + 15, ufoState.y);
+          ctx.lineTo(ufoState.x + 45, groundY);
+          ctx.lineTo(ufoState.x - 45, groundY);
+          ctx.closePath();
+          ctx.fill();
+        }
 
-      if (player.attacking) {
-        ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 5; ctx.beginPath();
+        // Desenha UFO
+        ctx.fillStyle = "#00ffcc"; ctx.beginPath(); ctx.ellipse(ufoState.x, ufoState.y, 35, 12, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(ufoState.x, ufoState.y - 6, 15, 0, Math.PI, true); ctx.fill();
+
+        // Desenha Doutor Chácara caindo do feixe
+        drawDrChacaraSide(ufoState.x - player.width / 2, ufoState.playerY, 'right', false);
+      } else {
+        drawDrChacaraSide(player.x, player.y, player.facing, player.crouching);
+      }
+
+      // Escudo voador no lugar da bola
+      if (player.attacking && !isIntroPlaying) {
+        ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 4; ctx.beginPath();
         ctx.moveTo(player.x + player.width / 2, player.y + 25); ctx.lineTo(weapon.x, weapon.y); ctx.stroke();
-        ctx.fillStyle = "#00ffcc"; ctx.beginPath(); ctx.arc(weapon.x, weapon.y, 12, 0, Math.PI * 2); ctx.fill();
+        drawShieldWeapon(weapon.x, weapon.y);
       }
 
       enemies.forEach(enemy => drawLetterEnemy(enemy));
@@ -569,7 +773,6 @@
 
     function loop() { update(); draw(); requestAnimationFrame(loop); }
     
-    // Inicializa a primeira fase
     prepareStage();
     loop();
   </script>
