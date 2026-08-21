@@ -3,50 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Doutor Chácara - Legendary Warrior Arcade</title>
-  
+  <title>Doutor Chácara - Rygar Edition</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body {
-      width: 100%; height: 100%;
+    body {
+      background-color: #0d0d11; color: #fff;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #0d0d11; color: #ffffff; text-align: center;
+      text-align: center; overflow-x: hidden;
     }
     .hero-background {
       width: 100vw; height: 100vh;
-      background-image: linear-gradient(to bottom, rgba(13, 13, 17, 0.2), rgba(13, 13, 17, 0.85)), url('capa-doutorchacara.jpg.jpg');
-      background-size: cover; background-position: center; background-repeat: no-repeat;
-      display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 40px 20px;
+      background: linear-gradient(to bottom, rgba(13,13,17,0.2), rgba(13,13,17,0.85)), url('capa-doutorchacara.jpg.jfif');
+      background-size: cover; background-position: center;
+      display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 40px;
     }
     .btn-jogar {
-      display: inline-block; background-color: #ff0055; color: #ffffff; font-size: 1.2rem;
-      font-weight: bold; text-transform: uppercase; padding: 16px 36px; border-radius: 50px;
-      text-decoration: none; border: 2px solid #ffffff; box-shadow: 0 0 15px rgba(255, 0, 85, 0.6);
-      transition: all 0.3s ease; margin-bottom: 20px; cursor: pointer;
+      background: #ff0055; color: #fff; font-size: 1.2rem; font-weight: bold;
+      padding: 16px 36px; border-radius: 50px; text-decoration: none;
+      border: 2px solid #fff; box-shadow: 0 0 15px rgba(255,0,85,0.6);
+      transition: 0.3s; margin-bottom: 20px;
     }
-    .btn-jogar:hover { background-color: #00ffcc; color: #000000; box-shadow: 0 0 25px rgba(0, 255, 204, 0.9); transform: scale(1.08); }
-    #area-arcade { min-height: 100vh; padding: 40px 20px; background-color: #121218; }
+    .btn-jogar:hover { background: #00ffcc; color: #000; box-shadow: 0 0 25px rgba(0,255,204,0.9); }
+    #area-arcade { min-height: 100vh; padding: 40px 20px; background: #121218; }
     .status-controle {
-      display: inline-block; padding: 10px 20px; background-color: #1a1a24;
+      display: inline-block; padding: 10px 20px; background: #1a1a24;
       border: 1px solid #33334d; border-radius: 20px; font-size: 0.95rem; color: #ffcc00; margin-bottom: 15px;
     }
     #gameCanvas {
-      background: #000000; border: 3px solid #00ffcc; border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0, 255, 204, 0.3); max-width: 100%; display: block; margin: 0 auto;
+      background: #000; border: 3px solid #00ffcc; border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0,255,204,0.3); max-width: 100%; display: block; margin: 0 auto;
     }
   </style>
 </head>
 <body>
 
   <header class="hero-background">
-    <a href="#area-arcade" class="btn-jogar">INICIAR ARCADE REALISTA</a>
-    <p style="letter-spacing: 2px; text-transform: uppercase; color: #d1d1e0;">27 FASES • MODO ARCADE COMPLETO</p>
+    <a href="#area-arcade" class="btn-jogar">JOGAR COM DR. CHÁCARA</a>
+    <p style="letter-spacing: 2px; color: #d1d1e0;">27 FASES • ANIMAÇÃO PROCEDURAL RETRO</p>
   </header>
 
   <main id="area-arcade">
-    <h2>Doutor Chácara Arcade (1986 Edition)</h2>
-    <p style="margin-top: 5px; color: #a0a0b0; margin-bottom: 15px;">
-      Mover: Setas / D-Pad | Agachar: Seta Baixo | Pulo: Espaço / Botão A | Diskarmor (Ataque 360°): Z / Botão B
+    <h2>Doutor Chácara em: Legendary Warrior Arcade</h2>
+    <p style="color: #a0a0b0; margin-bottom: 15px;">
+      Setas/D-Pad: Mover/Agachar | Espaço/A: Pular | Z/X/B: Atacar Diskarmor (360°)
     </p>
 
     <div class="status-controle" id="gamepad-status">
@@ -60,29 +59,28 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // CARREGAR IMAGEM DO DOUTOR CHÁCARA
-    const playerImg = new Image();
-    playerImg.src = 'capa-doutorchacara.jpg.jpg';
-
     let currentStage = 1;
     const maxStages = 27;
     let score = 0;
     let gameOver = false;
 
-    // JOGADOR COM MOVIMENTOS COMPLETO DO RYGAR
+    // FÍSICA E ANIMAÇÃO DO DOUTOR CHÁCARA
     const player = {
-      x: 50, y: 280, width: 45, height: 65,
-      speed: 4.5, dx: 0, dy: 0,
-      jumping: false, grounded: false, crouching: false,
-      facing: 'right', aimingUp: false, aimingDown: false,
-      attacking: false, attackTimer: 0, attackMaxTime: 14
+      x: 50, y: 280,
+      width: 40, height: 70,
+      vx: 0, vy: 0,
+      speed: 4.8, friction: 0.82,
+      grounded: false, crouching: false,
+      facing: 'right', aimingUp: false,
+      attacking: false, attackTimer: 0, attackMaxTime: 12,
+      animFrame: 0, animTimer: 0
     };
 
     const gravity = 0.65;
     const groundY = 370;
 
-    // DISKARMOR (CORRENTE E DISCO REALISTA)
-    const weapon = { x: 0, y: 0, length: 0, maxLength: 140, angle: 0 };
+    // ATAQUE DISKARMOR
+    const weapon = { x: 0, y: 0, length: 0, maxLength: 150 };
 
     // INIMIGOS
     const enemies = [];
@@ -100,7 +98,7 @@
     }
     spawnEnemies();
 
-    // TECLADO
+    // TECLADO E GAMEPAD
     const keys = {};
     window.addEventListener("keydown", (e) => {
       keys[e.code] = true;
@@ -108,7 +106,6 @@
     });
     window.addEventListener("keyup", (e) => { keys[e.code] = false; });
 
-    // GAMEPAD USB
     let gamepadIndex = null;
     window.addEventListener("gamepadconnected", (e) => {
       gamepadIndex = e.gamepad.index;
@@ -122,20 +119,19 @@
       const gp = navigator.getGamepads()[gamepadIndex];
       if (!gp) return;
 
-      // Direções
       player.aimingUp = gp.axes[1] < -0.5 || gp.buttons[12]?.pressed;
       player.crouching = gp.axes[1] > 0.5 || gp.buttons[13]?.pressed;
 
-      if (gp.axes[0] < -0.3 || gp.buttons[14]?.pressed) player.dx = -player.speed;
-      else if (gp.axes[0] > 0.3 || gp.buttons[15]?.pressed) player.dx = player.speed;
-      else if (!keys["ArrowLeft"] && !keys["ArrowRight"]) player.dx = 0;
-
-      // Pulo (Botão A)
-      if ((gp.buttons[0]?.pressed) && player.grounded) {
-        player.jumping = true; player.grounded = false; player.dy = -12;
+      if (gp.axes[0] < -0.3 || gp.buttons[14]?.pressed) {
+        player.vx = -player.speed; player.facing = 'left';
+      } else if (gp.axes[0] > 0.3 || gp.buttons[15]?.pressed) {
+        player.vx = player.speed; player.facing = 'right';
       }
 
-      // Ataque Diskarmor (Botão B / X)
+      if ((gp.buttons[0]?.pressed) && player.grounded) {
+        player.vy = -12.5; player.grounded = false;
+      }
+
       if ((gp.buttons[1]?.pressed || gp.buttons[2]?.pressed) && !player.attacking) {
         triggerAttack();
       }
@@ -151,21 +147,18 @@
 
       pollGamepad();
 
-      // Mapeamento de Teclado
       if (gamepadIndex === null) {
         player.aimingUp = keys["ArrowUp"];
         player.crouching = keys["ArrowDown"] && player.grounded;
 
         if (keys["ArrowLeft"] && !player.crouching) {
-          player.dx = -player.speed; player.facing = 'left';
+          player.vx = -player.speed; player.facing = 'left';
         } else if (keys["ArrowRight"] && !player.crouching) {
-          player.dx = player.speed; player.facing = 'right';
-        } else {
-          player.dx = 0;
+          player.vx = player.speed; player.facing = 'right';
         }
 
         if (keys["Space"] && player.grounded) {
-          player.jumping = true; player.grounded = false; player.dy = -12;
+          player.vy = -12.5; player.grounded = false;
         }
 
         if ((keys["KeyZ"] || keys["KeyX"]) && !player.attacking) {
@@ -173,29 +166,39 @@
         }
       }
 
-      // Gravidade e Pulo
-      player.x += player.dx;
-      player.dy += gravity;
-      player.y += player.dy;
+      // Aplicação de Inércia e Gravidade
+      player.vx *= player.friction;
+      player.x += player.vx;
+      player.vy += gravity;
+      player.y += player.vy;
 
+      // Colisão com Chão
       if (player.y + player.height >= groundY) {
         player.y = groundY - player.height;
-        player.dy = 0; player.grounded = true; player.jumping = false;
+        player.vy = 0; player.grounded = true;
       }
 
       if (player.x < 0) player.x = 0;
 
-      // Troca de Fase (Chegar no fim da tela)
+      // Troca de Fase
       if (player.x + player.width >= canvas.width) {
         if (currentStage < maxStages) {
           currentStage++; player.x = 20; spawnEnemies();
         } else {
-          alert("ZEROU O JOGO! Você completou as 27 Fases de Rygar!");
+          alert("PARABÉNS! Você completou as 27 Fases de Rygar com o Dr. Chácara!");
           currentStage = 1; player.x = 20; score = 0; spawnEnemies();
         }
       }
 
-      // LÓGICA DE ATAQUE EM 360 GRAUS (DISKARMOR ORIGINAL)
+      // Contador de Animação
+      if (Math.abs(player.vx) > 0.5 && player.grounded) {
+        player.animTimer++;
+        if (player.animTimer % 6 === 0) player.animFrame = (player.animFrame + 1) % 4;
+      } else {
+        player.animFrame = 0;
+      }
+
+      // Lógica de Ataque 360°
       if (player.attacking) {
         player.attackTimer--;
         const progress = 1 - (player.attackTimer / player.attackMaxTime);
@@ -215,7 +218,7 @@
         if (player.attackTimer <= 0) player.attacking = false;
       }
 
-      // INIMIGOS
+      // Colisão com Inimigos
       enemies.forEach(enemy => {
         if (!enemy.alive) return;
 
@@ -228,17 +231,12 @@
           enemy.y += 2;
         }
 
-        // Colisão com o Ataque
         if (player.attacking) {
-          const hit = (enemy.x < weapon.x + 20 && enemy.x + enemy.width > weapon.x - 20 &&
-                       enemy.y < weapon.y + 20 && enemy.y + enemy.height > weapon.y - 20);
-          if (hit) {
-            enemy.alive = false;
-            score += 300;
-          }
+          const hit = (enemy.x < weapon.x + 25 && enemy.x + enemy.width > weapon.x - 25 &&
+                       enemy.y < weapon.y + 25 && enemy.y + enemy.height > weapon.y - 25);
+          if (hit) { enemy.alive = false; score += 300; }
         }
 
-        // Dano no Jogador
         if (enemy.alive &&
             player.x < enemy.x + enemy.width && player.x + player.width > enemy.x &&
             player.y < enemy.y + enemy.height && player.y + player.height > enemy.y) {
@@ -247,44 +245,86 @@
       });
     }
 
-    function draw() {
-      // Fundo Arcade com gradiente de Pôr do Sol do Rygar
-      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      grad.addColorStop(0, "#1a0b2e"); grad.addColorStop(0.6, "#8b263e"); grad.addColorStop(1, "#3a1700");
-      ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // DESENHAR O DOUTOR CHÁCARA PROCEDURALMENTE
+    function drawDrChacara(x, y, facing, frame, crouching, grounded) {
+      ctx.save();
+      ctx.translate(x + player.width / 2, y);
+      if (facing === 'left') ctx.scale(-1, 1);
 
-      // Sol Vermelho do Rygar
-      ctx.fillStyle = "#ff3300"; ctx.beginPath(); ctx.arc(680, 140, 50, 0, Math.PI * 2); ctx.fill();
+      const legOffset = Math.sin(frame * Math.PI / 2) * 10;
+      const h = crouching ? 45 : 70;
 
-      // Chão Retrô
-      ctx.fillStyle = "#2b1810"; ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
-      ctx.fillStyle = "#ffcc00"; ctx.fillRect(0, groundY, canvas.width, 3);
-
-      // DESENHAR PERSONAGEM DO DOUTOR CHÁCARA
-      const drawHeight = player.crouching ? player.height / 2 : player.height;
-      const drawY = player.crouching ? player.y + player.height / 2 : player.y;
-
-      if (playerImg.complete) {
-        ctx.drawImage(playerImg, player.x, drawY, player.width, drawHeight);
+      // Pernas (Calça Preta)
+      ctx.fillStyle = "#1a1a24";
+      if (grounded && !crouching && Math.abs(player.vx) > 0.5) {
+        ctx.fillRect(-12 + legOffset, h - 25, 8, 25);
+        ctx.fillRect(4 - legOffset, h - 25, 8, 25);
+      } else if (crouching) {
+        ctx.fillRect(-14, h - 15, 12, 15);
+        ctx.fillRect(2, h - 15, 12, 15);
       } else {
-        ctx.fillStyle = "#ffffff"; ctx.fillRect(player.x, drawY, player.width, drawHeight);
+        ctx.fillRect(-10, h - 25, 8, 25);
+        ctx.fillRect(2, h - 25, 8, 25);
       }
 
-      // DESENHAR DISKARMOR (CORRENTE E DISCO)
-      if (player.attacking) {
-        ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.moveTo(player.x + player.width / 2, player.y + 20);
-        ctx.lineTo(weapon.x, weapon.y);
-        ctx.stroke();
+      // Camisa Azul
+      ctx.fillStyle = "#0066cc";
+      ctx.fillRect(-10, crouching ? 15 : 20, 20, 25);
 
-        // Disco Giratório
-        ctx.fillStyle = "#00ffcc"; ctx.beginPath();
-        ctx.arc(weapon.x, weapon.y, 12, 0, Math.PI * 2); ctx.fill();
+      // Jaleco Branco
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(-14, crouching ? 10 : 18, 8, crouching ? 25 : 35); // Lado esquerdo
+      ctx.fillRect(6, crouching ? 10 : 18, 8, crouching ? 25 : 35);  // Lado direito
+      ctx.fillRect(-14, crouching ? 10 : 18, 28, 10);              // Ombro
+
+      // Detalhe da Oliva no Bolso do Jaleco
+      ctx.fillStyle = "#486e2e";
+      ctx.beginPath(); ctx.arc(9, crouching ? 28 : 36, 2.5, 0, Math.PI * 2); ctx.fill();
+
+      // Cabeça / Rosto
+      ctx.fillStyle = "#f3c099";
+      ctx.fillRect(-9, 0, 18, 18);
+
+      // Cabelo Grisalho / Faixa Preta
+      ctx.fillStyle = "#111111"; // Faixa preta na cabeça
+      ctx.fillRect(-10, -1, 20, 5);
+      ctx.fillStyle = "#5A5A66"; // Cabelo grisalho
+      ctx.fillRect(-11, -7, 22, 7);
+
+      // Óculos
+      ctx.strokeStyle = "#000000"; ctx.lineWidth = 1.5;
+      ctx.strokeRect(1, 4, 7, 5);
+
+      ctx.restore();
+    }
+
+    function draw() {
+      // Fundo Arcade com Pôr do Sol estilo Rygar
+      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grad.addColorStop(0, "#120826"); grad.addColorStop(0.6, "#7a223b"); grad.addColorStop(1, "#2e1200");
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Sol Vermelho
+      ctx.fillStyle = "#ff3300"; ctx.beginPath(); ctx.arc(680, 140, 48, 0, Math.PI * 2); ctx.fill();
+
+      // Chão estilo Templo
+      ctx.fillStyle = "#26150d"; ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+      ctx.fillStyle = "#00ffcc"; ctx.fillRect(0, groundY, canvas.width, 3);
+
+      // Desenhar o Doutor Chácara Animado
+      drawDrChacara(player.x, player.y, player.facing, player.animFrame, player.crouching, player.grounded);
+
+      // Desenhar Diskarmor (Corrente Neon)
+      if (player.attacking) {
+        ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 5; ctx.beginPath();
+        ctx.moveTo(player.x + player.width / 2, player.y + 25);
+        ctx.lineTo(weapon.x, weapon.y); ctx.stroke();
+
+        ctx.fillStyle = "#00ffcc"; ctx.beginPath(); ctx.arc(weapon.x, weapon.y, 12, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
       }
 
-      // INIMIGOS
+      // Inimigos
       enemies.forEach(enemy => {
         if (enemy.alive) {
           ctx.fillStyle = enemy.type === 'jumper' ? "#ff0055" : "#ff9900";
@@ -292,15 +332,15 @@
         }
       });
 
-      // HUD ARCADE
+      // HUD
       ctx.fillStyle = "#ffffff"; ctx.font = "bold 16px 'Segoe UI', sans-serif";
-      ctx.fillText(`ROUND: ${currentStage} / ${maxStages}`, 20, 30);
-      ctx.fillText(`SCORE: ${score}`, 200, 30);
+      ctx.fillText(`FASE: ${currentStage} / ${maxStages}`, 20, 30);
+      ctx.fillText(`PONTOS: ${score}`, 200, 30);
 
       if (gameOver) {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.85)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#ff0055"; ctx.font = "bold 36px 'Segoe UI', sans-serif"; ctx.textAlign = "center";
-        ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 10);
+        ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2);
       }
     }
 
@@ -309,4 +349,3 @@
   </script>
 </body>
 </html>
-       
