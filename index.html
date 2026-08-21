@@ -20,9 +20,29 @@
       background: #000; width: 100%; height: 100%; object-fit: contain; display: block;
     }
 
+    /* MENU INICIAL PRINCIPAL COM IMAGEM DE FUNDO */
+    #main-menu-screen {
+      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: url('fundo.jpg.jpg') no-repeat center center / cover;
+      z-index: 100; display: flex; flex-direction: column;
+      justify-content: flex-end; align-items: center; padding-bottom: 40px;
+    }
+    .main-menu-box {
+      background: rgba(0, 0, 0, 0.82); border: 2px solid #00ffcc;
+      border-radius: 20px; padding: 20px; width: 90%; max-width: 420px;
+      display: flex; flex-direction: column; gap: 12px;
+      box-shadow: 0 0 25px rgba(0, 255, 204, 0.5);
+    }
+
+    /* PAINEL DE ESTUDO MAIOR QUE O NORMAL */
+    #panel-study-mode {
+      width: 92% !important; max-width: 650px !important;
+      max-height: 85vh; overflow-y: auto;
+    }
+
     /* CONTROLES VIRTUAIS TOUCH */
     .touch-controls {
-      position: absolute; bottom: 50px; left: 0; width: 100%;
+      position: absolute; bottom: 30px; left: 0; width: 100%;
       display: flex; justify-content: space-between; align-items: flex-end;
       padding: 0 30px; pointer-events: none; z-index: 5;
     }
@@ -62,37 +82,45 @@
     .overlay-panel {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: rgba(10, 10, 18, 0.96); border: 2px solid #00ffcc;
-      border-radius: 20px; padding: 25px; box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
-      z-index: 20; display: none; flex-direction: column; align-items: center; gap: 15px;
-      width: 85%; max-width: 480px; color: #fff;
+      border-radius: 20px; padding: 20px; box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
+      z-index: 20; display: none; flex-direction: column; align-items: center; gap: 12px;
+      width: 88%; max-width: 480px; max-height: 90vh; overflow-y: auto; color: #fff;
     }
 
-    .overlay-panel h2 { color: #00ffcc; font-size: 1.4rem; }
-    .overlay-panel p { font-size: 1rem; line-height: 1.4; }
+    /* PAINEL DE GAME OVER TRANSPARENTE */
+    #panel-game-over {
+      background: rgba(10, 10, 18, 0.45) !important;
+      backdrop-filter: blur(2px);
+      border-color: #ff0055;
+      box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
+    }
+
+    .overlay-panel h2 { color: #00ffcc; font-size: 1.3rem; }
+    .overlay-panel p { font-size: 0.95rem; line-height: 1.3; }
     
     .btn-main {
-      background: #00ffcc; color: #000; font-size: 1rem; font-weight: bold;
-      padding: 10px 22px; border-radius: 25px; border: none; cursor: pointer;
-      box-shadow: 0 0 15px #00ffcc; margin: 4px;
+      background: #00ffcc; color: #000; font-size: 0.95rem; font-weight: bold;
+      padding: 10px 20px; border-radius: 25px; border: none; cursor: pointer;
+      box-shadow: 0 0 15px #00ffcc; margin: 4px; width: 100%;
     }
 
     .btn-sub {
-      background: #ff0055; color: #fff; font-size: 0.95rem; font-weight: bold;
-      padding: 10px 20px; border-radius: 25px; border: none; cursor: pointer;
+      background: #ff0055; color: #fff; font-size: 0.9rem; font-weight: bold;
+      padding: 10px 18px; border-radius: 25px; border: none; cursor: pointer;
       box-shadow: 0 0 10px #ff0055; margin: 4px;
     }
 
-    .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+    .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
 
-    input[type="text"] {
+    input[type="text"], select {
       padding: 8px 12px; border-radius: 10px; border: 2px solid #00ffcc;
-      background: #111; color: #fff; font-size: 1rem; text-align: center; width: 80%;
+      background: #111; color: #fff; font-size: 0.95rem; text-align: center; width: 90%; margin: 3px 0;
     }
 
     .leaderboard-list {
-      width: 100%; max-height: 140px; overflow-y: auto; text-align: left;
-      font-family: monospace; font-size: 0.85rem; background: rgba(255,255,255,0.05);
-      padding: 8px; border-radius: 10px; border: 1px solid #333;
+      width: 100%; max-height: 110px; overflow-y: auto; text-align: left;
+      font-family: monospace; font-size: 0.8rem; background: rgba(0,0,0,0.3);
+      padding: 8px; border-radius: 10px; border: 1px solid #444;
     }
     .leaderboard-item { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed #444; }
 
@@ -106,7 +134,46 @@
     <button id="btn-fullscreen" onclick="toggleFullScreen()">TELA CHEIA ⛶</button>
     <button id="btn-config-keys" onclick="openKeyConfig()">⚙️ CONFIGURAR TECLAS (PC)</button>
 
+    <!-- MENU INICIAL DE SELEÇÃO -->
+    <div id="main-menu-screen">
+      <div class="main-menu-box">
+        <h2 style="color:#00ffcc; font-size: 1.2rem;">MENU PRINCIPAL</h2>
+        <button class="btn-main" onclick="openStudyMenu()">1. Treinar p/ Supletivo (Aprenda)</button>
+        <button class="btn-main" style="background:#0088ff; color:#fff;" onclick="startMode('grade')">2. Jogos Educativos (1ª à 5ª Série)</button>
+        <button class="btn-main" style="background:#ff0055; color:#fff;" onclick="startMode('normal')">3. Jogos Nível Normal</button>
+      </div>
+    </div>
+
     <canvas id="gameCanvas" width="800" height="450"></canvas>
+
+    <!-- PAINEL MODO SUPLETIVO (TAMANHO MAIOR) -->
+    <div id="panel-study-mode" class="overlay-panel">
+      <h2>APRENDA PARA O SUPLETIVO 📚</h2>
+      <p>Digite seus dados para adequar as matérias ao seu nível:</p>
+      <input type="text" id="student-name" placeholder="Digite seu Nome" maxlength="20">
+      <select id="student-grade">
+        <option value="">Selecione sua Série/Nível</option>
+        <option value="Fundamental I">Ensino Fundamental I (1º ao 5º Ano)</option>
+        <option value="Fundamental II">Ensino Fundamental II (6º ao 9º Ano)</option>
+        <option value="Ensino Médio">Ensino Médio / Supletivo Final</option>
+      </select>
+      <select id="study-subject">
+        <option value="matematica">Matemática</option>
+        <option value="portugues">Língua Portuguesa</option>
+        <option value="ciencias">Ciências da Natureza</option>
+        <option value="geografia">Geografia e História</option>
+        <option value="geral">Conhecimentos Gerais</option>
+      </select>
+      <button class="btn-main" onclick="startStudySession()">INICIAR ESTUDOS ▶</button>
+      <button class="btn-sub" onclick="closeStudyMenu()">VOLTAR</button>
+    </div>
+
+    <!-- PAINEL TESTE DE FIXAÇÃO DE ESTUDO (CADA 10 MINUTOS) -->
+    <div id="panel-quiz-test" class="overlay-panel">
+      <h2>TESTE DE REVISÃO (10 MIN) ⏱️</h2>
+      <p id="quiz-question-text">Carregando pergunta...</p>
+      <div id="quiz-options-container" class="btn-group"></div>
+    </div>
 
     <!-- PAINEL INICIAR FASE / TRANSIÇÃO -->
     <div id="panel-stage-start" class="overlay-panel">
@@ -116,7 +183,7 @@
       <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
     </div>
 
-    <!-- PAINEL INTERAÇÃO YOUTUBE (TRANSIÇÃO DE FASE) -->
+    <!-- PAINEL INTERAÇÃO YOUTUBE -->
     <div id="panel-youtube-promo" class="overlay-panel">
       <h2>MUITO BEM! FASE CONCLUÍDA! 🎉</h2>
       <p>Você já se inscreveu no canal do <strong>Doutor Chácara</strong> no YouTube?</p>
@@ -125,7 +192,7 @@
         <button class="btn-sub" onclick="handleYtAnswer('nao')">Ainda não 😅</button>
         <button class="btn-main" style="background: #ff0000; color:#fff;" onclick="handleYtAnswer('inscrever')">Quero me inscrever! 🔴</button>
       </div>
-      <div id="yt-feedback-msg" style="margin-top: 10px; font-weight: bold; color: #ffcc00;"></div>
+      <div id="yt-feedback-msg" style="margin-top: 5px; font-weight: bold; color: #ffcc00;"></div>
     </div>
 
     <!-- PAINEL PAUSA YOUTUBE RETORNO -->
@@ -149,7 +216,7 @@
       <button class="btn-main" onclick="closeKeyConfig()">SALVAR E FECHAR</button>
     </div>
 
-    <!-- PAINEL GAME OVER & REGISTRO DE NOME -->
+    <!-- PAINEL GAME OVER (TRANSPARENTE COM VISÃO DO PERSONAGEM) -->
     <div id="panel-game-over" class="overlay-panel">
       <h2 style="color: #ff0055;">GAME OVER</h2>
       <p id="game-over-reason">Você perdeu a fase!</p>
@@ -157,7 +224,7 @@
       <input type="text" id="player-name" placeholder="Digite seu nome" maxlength="12">
       <button class="btn-main" id="btn-save-score">SALVAR RECORD 🔄</button>
       
-      <h3 style="margin-top: 5px; color: #ffcc00; font-size: 0.9rem;">🏆 TOP 10 RECORDES</h3>
+      <h3 style="margin-top: 5px; color: #ffcc00; font-size: 0.85rem;">🏆 TOP 10 RECORDES</h3>
       <div class="leaderboard-list" id="leaderboard-list"></div>
     </div>
 
@@ -177,6 +244,9 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     
+    const mainMenuScreen = document.getElementById("main-menu-screen");
+    const panelStudyMode = document.getElementById("panel-study-mode");
+    const panelQuizTest = document.getElementById("panel-quiz-test");
     const panelStageStart = document.getElementById("panel-stage-start");
     const panelGameOver = document.getElementById("panel-game-over");
     const panelYtPromo = document.getElementById("panel-youtube-promo");
@@ -196,54 +266,7 @@
     const keyBinds = { attack: "KeyA", jump: "KeyS" };
     let listeningKeyAction = null;
 
-    // SINTETIZADOR DE ÁUDIO
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-    function playSound(type) {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      if (type === 'attack') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-      } else if (type === 'hitTarget') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.25);
-        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.25);
-      } else if (type === 'hitWrong') {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
-        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-      } else if (type === 'powerup') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.2);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-      } else if (type === 'ufo') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 1.5);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
-        osc.start(); osc.stop(audioCtx.currentTime + 1.5);
-      }
-    }
-
+    // SINTETIZADOR DE ÁUDIO PARA SINTETIZAR APENAS VOZES NAS TRANSIÇÕES
     function speakText(text) {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -262,7 +285,11 @@
       }
     }
 
-    // VARIÁVEIS DE JOGO
+    // VARIÁVEIS DE JOGO E MODOS
+    let currentGameMode = 'normal';
+    let studentData = { name: '', grade: '', subject: '' };
+    let studyTimerSeconds = 0;
+    
     let currentStage = 1;
     const maxStages = 27;
     let score = 0;
@@ -271,7 +298,6 @@
     let stageMissionText = "";
     let walkCycle = 0;
     let sunAngle = 0;
-    let gameTimerSeconds = 0;
 
     // ANIMAÇÃO DE COLISÃO / GAME OVER
     let collisionAnimationActive = false;
@@ -304,11 +330,83 @@
     const groundY = 370;
     const weapon = { x: 0, y: 0, length: 0, baseMaxLength: 150 };
 
-    // ITENS / POWER-UPS
     let notebookItem = null;
     let greenCoatItem = null;
-
     const aerialSymbols = ['plane', 'helicopter', 'balloon', 'rocket', 'ufo_mini', 'bird', 'dragon', 'blimp'];
+
+    // GERENCIAMENTO DE MENUS E MODOS
+    function openStudyMenu() {
+      mainMenuScreen.style.display = "none";
+      panelStudyMode.style.display = "flex";
+    }
+
+    function closeStudyMenu() {
+      panelStudyMode.style.display = "none";
+      mainMenuScreen.style.display = "flex";
+    }
+
+    function startStudySession() {
+      const name = document.getElementById("student-name").value.trim();
+      const grade = document.getElementById("student-grade").value;
+      const subject = document.getElementById("study-subject").value;
+
+      if (!name || !grade) {
+        alert("Por favor, preencha seu nome e selecione seu nível!");
+        return;
+      }
+
+      studentData = { name, grade, subject };
+      currentGameMode = 'supletivo';
+      panelStudyMode.style.display = "none";
+      
+      speakText(`Olá ${name}! Vamos iniciar seus estudos de ${subject} para o supletivo.`);
+      resetGame();
+    }
+
+    function startMode(mode) {
+      currentGameMode = mode;
+      mainMenuScreen.style.display = "none";
+      resetGame();
+    }
+
+    // BASE DE DADOS DE QUESTÕES PARA O TESTE A CADA 10 MINUTOS
+    const supletivoQuizzes = [
+      { q: "Qual o resultado de 8 x 7?", options: ["54", "56", "62"], correct: 1 },
+      { q: "Qual a classe da palavra 'Rápido' em 'Ele correu rápido'?", options: ["Substantivo", "Advérbio", "Verbo"], correct: 1 },
+      { q: "Qual o gás essencial para a respiração humana?", options: ["Oxigênio", "Gás Carbônico", "Nitrogênio"], correct: 0 },
+      { q: "Qual a capital do Brasil?", options: ["São Paulo", "Rio de Janeiro", "Brasília"], correct: 2 }
+    ];
+
+    function trigger10MinQuiz() {
+      stageStarted = false;
+      const randomQuiz = supletivoQuizzes[Math.floor(Math.random() * supletivoQuizzes.length)];
+      document.getElementById("quiz-question-text").innerText = randomQuiz.q;
+      
+      const container = document.getElementById("quiz-options-container");
+      container.innerHTML = "";
+      
+      randomQuiz.options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "btn-main";
+        btn.innerText = opt;
+        btn.onclick = () => handleQuizAnswer(idx === randomQuiz.correct);
+        container.appendChild(btn);
+      });
+
+      panelQuizTest.style.display = "flex";
+      speakText("Hora do seu teste de revisão de 10 minutos!");
+    }
+
+    function handleQuizAnswer(isCorrect) {
+      panelQuizTest.style.display = "none";
+      if (isCorrect) {
+        score += 1000;
+        speakText("Parabéns! Resposta correta, você ganhou pontos extras!");
+      } else {
+        speakText("Resposta incorreta. Continue praticando e estudando!");
+      }
+      stageStarted = true;
+    }
 
     const stageRules = {
       1: {
@@ -359,7 +457,6 @@
         aerialVehicle = { x: -80, y: 60 + Math.random() * 40, speed: 1.2 + Math.random() * 0.8, type: symbolType };
       }
 
-      // Gera Caderno aleatório na fase
       if (Math.random() > 0.3) {
         notebookItem = { x: 200 + Math.random() * 400, y: groundY - 30, width: 25, height: 25, active: true };
       } else {
@@ -380,13 +477,11 @@
     }
 
     function startStage() {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
       panelStageStart.style.display = "none";
       
       if (currentStage === 1) {
         isIntroPlaying = true;
         ufoState = { x: -100, y: 80, beamOpacity: 0, playerY: 80, step: 0 };
-        playSound('ufo');
         speakText("Doutor Chácara foi trazido pelo Disco Voador. Prepare-se!");
       } else {
         stageStarted = true;
@@ -398,17 +493,18 @@
     btnStartAction.addEventListener("click", startStage);
     btnSaveScore.addEventListener("click", saveScoreAndRestart);
 
-    // CRONÔMETRO DE JOGO (JALECO VERDE A CADA 5 MINUTOS)
+    // CRONÔMETRO DE ESTUDO (PARADA A CADA 10 MINUTOS = 600s NO MODO SUPLETIVO)
     setInterval(() => {
       if (stageStarted && !gameOver && !isIntroPlaying) {
-        gameTimerSeconds++;
-        if (gameTimerSeconds % 300 === 0) { // 300 segundos = 5 minutos
-          greenCoatItem = { x: 300 + Math.random() * 200, y: groundY - 35, width: 30, height: 30, active: true };
+        if (currentGameMode === 'supletivo') {
+          studyTimerSeconds++;
+          if (studyTimerSeconds % 600 === 0) {
+            trigger10MinQuiz();
+          }
         }
       }
     }, 1000);
 
-    // CONFIGURAÇÃO DE TECLAS DO PC
     function openKeyConfig() { panelKeyConfig.style.display = "flex"; }
     function closeKeyConfig() { panelKeyConfig.style.display = "none"; }
     function listenKeyChange(action) {
@@ -427,7 +523,6 @@
       keys[e.code] = true;
     });
 
-    // TRANSIÇÃO DE FASE INTERATIVA (YOUTUBE)
     function openYoutubePromo() {
       document.getElementById("yt-feedback-msg").innerText = "";
       panelYtPromo.style.display = "flex";
@@ -477,14 +572,15 @@
     }
 
     function saveScoreAndRestart() {
-      const name = playerNameInput.value.trim() || "Jogador";
+      const name = playerNameInput.value.trim() || studentData.name || "Jogador";
       const scores = getTopScores();
       scores.push({ name: name, score: score });
       scores.sort((a, b) => b.score - a.score);
       const top10 = scores.slice(0, 10);
       localStorage.setItem("dr_chacara_scores", JSON.stringify(top10));
 
-      resetGame();
+      mainMenuScreen.style.display = "flex";
+      panelGameOver.style.display = "none";
     }
 
     function triggerGameOverSequence(enemyRef, reason) {
@@ -492,16 +588,14 @@
       collisionAnimTimer = 0;
       mockingEnemy = enemyRef;
       
-      // Escolhe frase positiva aleatória para o jogador
       playerSpeechBubble = positiveFrases[Math.floor(Math.random() * positiveFrases.length)];
       enemySpeechBubble = "Você não consegue me vencer! Kkkk";
       
-      playSound('hitWrong');
       speakText(playerSpeechBubble);
 
       let animInterval = setInterval(() => {
         collisionAnimTimer += 0.2;
-        if (mockingEnemy) mockingEnemy.mockOffset = Math.sin(collisionAnimTimer * 5) * 8; // Animação da letra mangando
+        if (mockingEnemy) mockingEnemy.mockOffset = Math.sin(collisionAnimTimer * 5) * 8;
         
         if (collisionAnimTimer >= 3.5) {
           clearInterval(animInterval);
@@ -515,7 +609,6 @@
       }, 50);
     }
 
-    // CONTROLES JOYSTICK
     const joyZone = document.getElementById("joystick-zone");
     const joyStick = document.getElementById("joystick-stick");
     let joyActive = false;
@@ -558,12 +651,11 @@
       e.preventDefault();
       if (!player.attacking && stageStarted && !gameOver) {
         player.attacking = true; player.attackTimer = player.attackMaxTime;
-        playSound('attack');
       }
     });
 
     function resetGame() {
-      gameOver = false; score = 0; currentStage = 1; gameTimerSeconds = 0;
+      gameOver = false; score = 0; currentStage = 1; studyTimerSeconds = 0;
       player.x = 50; player.y = groundY - player.height; player.vx = 0; player.vy = 0;
       player.hasGreenCoat = false; player.shieldPowerUp = false;
       prepareStage();
@@ -633,7 +725,6 @@
 
       if (keys[keyBinds.attack] && !player.attacking) {
         player.attacking = true; player.attackTimer = player.attackMaxTime;
-        playSound('attack');
       }
 
       player.vx *= player.friction; player.x += player.vx;
@@ -645,27 +736,22 @@
 
       if (player.x < 0) player.x = 0;
 
-      // Coleta do Caderno (Power-up Escudo Longo)
       if (notebookItem && notebookItem.active) {
         if (player.x < notebookItem.x + notebookItem.width && player.x + player.width > notebookItem.x &&
             player.y < notebookItem.y + notebookItem.height && player.y + player.height > notebookItem.y) {
           notebookItem.active = false;
           player.shieldPowerUp = true;
-          playSound('powerup');
         }
       }
 
-      // Coleta do Jaleco Verde (Invencibilidade)
       if (greenCoatItem && greenCoatItem.active) {
         if (player.x < greenCoatItem.x + greenCoatItem.width && player.x + player.width > greenCoatItem.x &&
             player.y < greenCoatItem.y + greenCoatItem.height && player.y + player.height > greenCoatItem.y) {
           greenCoatItem.active = false;
           player.hasGreenCoat = true;
-          playSound('powerup');
         }
       }
 
-      // Conclusão da Fase (Gatilho da Tela Interativa do YouTube)
       if (player.x + player.width >= canvas.width) {
         if (currentStage < maxStages) {
           stageStarted = false;
@@ -676,7 +762,6 @@
         }
       }
 
-      // Ataque do Escudo
       if (player.attacking) {
         player.attackTimer--;
         const maxLen = player.shieldPowerUp ? weapon.baseMaxLength * 1.5 : weapon.baseMaxLength;
@@ -696,21 +781,18 @@
         if (player.attackTimer <= 0) player.attacking = false;
       }
 
-      // Inimigos e Colisão
       enemies.forEach(enemy => {
         if (!enemy.alive) return;
 
         enemy.x += enemy.speed * enemy.dir;
         if (enemy.x < -50) enemy.x = canvas.width + 50;
 
-        // Escudo atinge o inimigo
         if (player.attacking) {
           const hit = (enemy.x < weapon.x + 20 && enemy.x + enemy.width > weapon.x - 20 &&
                        enemy.y < weapon.y + 20 && enemy.y + enemy.height > weapon.y - 20);
           if (hit) {
             if (enemy.isTarget) {
               enemy.expression = 'sad';
-              playSound('hitTarget');
               score += 500;
               setTimeout(() => { enemy.alive = false; }, 120);
             } else {
@@ -720,7 +802,6 @@
           }
         }
 
-        // Toque entre Letra e Personagem
         const padding = 5;
         const playerBox = { left: player.x + padding, right: player.x + player.width - padding, top: player.y + padding, bottom: player.y + player.height };
         const enemyBox = { left: enemy.x + padding, right: enemy.x + enemy.width - padding, top: enemy.y + padding, bottom: enemy.y + enemy.height };
@@ -730,10 +811,8 @@
             playerBox.top < enemyBox.bottom && playerBox.bottom > enemyBox.top) {
           
           if (player.hasGreenCoat) {
-            // Proteção do Jaleco Verde absorve o choque
             player.hasGreenCoat = false;
-            enemy.x += 80; // Empurra a letra de volta
-            playSound('powerup');
+            enemy.x += 80;
           } else {
             enemy.expression = 'happy';
             triggerGameOverSequence(enemy, "A letra encostou em você!");
@@ -742,7 +821,6 @@
       });
     }
 
-    // BALÃO DE FALA GRANDE (3X MAIOR)
     function drawSpeechBubble(x, y, text, scaleFactor, isPlayer) {
       ctx.save();
       ctx.translate(x, y);
@@ -760,7 +838,6 @@
       ctx.roundRect(-bw / 2, -bh - 15, bw, bh, 10);
       ctx.fill(); ctx.stroke();
 
-      // Rabicho do Balão
       ctx.beginPath();
       ctx.moveTo(-5, -15); ctx.lineTo(0, 0); ctx.lineTo(5, -15);
       ctx.fill(); ctx.stroke();
@@ -851,7 +928,6 @@
       ctx.restore();
     }
 
-    // PERSONAGEM DR. CHÁCARA COM ANIMAÇÃO DE PERNAS REALISTA
     function drawDrChacaraSide(x, y, facing, crouching) {
       ctx.save();
       ctx.translate(x + player.width / 2, y);
@@ -861,17 +937,14 @@
       const armAngle = Math.sin(walkCycle) * 30;
       const h = crouching ? 45 : 65;
 
-      // Animação Alternada das Pernas
       ctx.strokeStyle = "#1a1a24"; ctx.lineWidth = 6; ctx.lineCap = "round";
       ctx.beginPath(); ctx.moveTo(-3, h - 25); ctx.lineTo(-3 - Math.sin((-legAngle * Math.PI)/180) * 16, h); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(3, h - 25); ctx.lineTo(3 + Math.sin((legAngle * Math.PI)/180) * 16, h); ctx.stroke();
 
-      // Tronco e Jaleco (Muda para verde se tiver o Jaleco Especial)
       ctx.fillStyle = "#0066cc"; ctx.fillRect(-7, crouching ? 15 : 18, 14, 22);
       ctx.fillStyle = player.hasGreenCoat ? "#00ff66" : "#ffffff"; 
       ctx.fillRect(-9, crouching ? 10 : 16, 18, crouching ? 18 : 26);
 
-      // Rosto
       ctx.fillStyle = "#f3c099"; ctx.fillRect(-3, 0, 15, 16);
       ctx.fillStyle = "#111111"; ctx.fillRect(-5, -1, 16, 4);
       ctx.fillStyle = "#5A5A66"; ctx.fillRect(-6, -6, 18, 6);
@@ -879,7 +952,6 @@
       ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.strokeRect(3, 3, 6, 5);
       ctx.beginPath(); ctx.moveTo(-3, 5); ctx.lineTo(3, 5); ctx.stroke();
 
-      // Braços
       ctx.strokeStyle = "#f3c099"; ctx.lineWidth = 4;
       ctx.beginPath(); ctx.moveTo(-3, crouching ? 18 : 22); ctx.lineTo(-3 - Math.sin((armAngle * Math.PI)/180) * 12, (crouching ? 18 : 22) + 12); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(3, crouching ? 18 : 22); ctx.lineTo(3 + Math.sin((armAngle * Math.PI)/180) * 12, (crouching ? 18 : 22) + 12); ctx.stroke();
@@ -925,13 +997,11 @@
       ctx.fillStyle = "#26150d"; ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
       ctx.fillStyle = "#00ffcc"; ctx.fillRect(0, groundY, canvas.width, 3);
 
-      // Desenho do Caderno (Power-up)
       if (notebookItem && notebookItem.active) {
         ctx.fillStyle = "#0088ff"; ctx.fillRect(notebookItem.x, notebookItem.y, notebookItem.width, notebookItem.height);
         ctx.fillStyle = "#fff"; ctx.font = "bold 10px sans-serif"; ctx.fillText("📖", notebookItem.x + 5, notebookItem.y + 16);
       }
 
-      // Desenho do Jaleco Verde (Power-up)
       if (greenCoatItem && greenCoatItem.active) {
         ctx.fillStyle = "#00ff66"; ctx.fillRect(greenCoatItem.x, greenCoatItem.y, greenCoatItem.width, greenCoatItem.height);
         ctx.fillStyle = "#000"; ctx.font = "bold 10px sans-serif"; ctx.fillText("🥼", greenCoatItem.x + 6, greenCoatItem.y + 18);
@@ -962,7 +1032,6 @@
 
       enemies.forEach(enemy => drawLetterEnemy(enemy));
 
-      // DESENHO DOS BALÕES DE FALA (3X MAIORES) EM COLISÃO
       if (collisionAnimationActive) {
         drawSpeechBubble(player.x + player.width / 2, player.y - 20, playerSpeechBubble, 1.8, true);
         if (mockingEnemy) {
@@ -978,7 +1047,6 @@
 
     function loop() { update(); draw(); requestAnimationFrame(loop); }
     
-    prepareStage();
     loop();
   </script>
 </body>
