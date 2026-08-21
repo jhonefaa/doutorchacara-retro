@@ -2,68 +2,59 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Doutor Chácara - Alfabetização Arcade Mobile</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
-    body {
-      background-color: #0d0d11; color: #fff;
+    html, body {
+      width: 100%; height: 100%; background-color: #0d0d11; color: #fff;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      text-align: center; overflow-x: hidden; user-select: none;
+      text-align: center; overflow: hidden; user-select: none;
     }
-    .hero-background {
-      width: 100vw; height: 100vh;
-      background: linear-gradient(to bottom, rgba(13,13,17,0.2), rgba(13,13,17,0.85)), url('capa-doutorchacara.jpg.jfif');
-      background-size: cover; background-position: center;
-      display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 40px;
-    }
-    .btn-jogar {
-      background: #ff0055; color: #fff; font-size: 1.2rem; font-weight: bold;
-      padding: 16px 36px; border-radius: 50px; text-decoration: none;
-      border: 2px solid #fff; box-shadow: 0 0 15px rgba(255,0,85,0.6);
-      transition: 0.3s; margin-bottom: 20px;
-    }
-    #area-arcade { min-height: 100vh; padding: 20px 10px; background: #121218; display: flex; flex-direction: column; align-items: center; }
     
     #game-container {
-      position: relative; width: 100%; max-width: 800px;
+      position: relative; width: 100vw; height: 100vh;
+      display: flex; justify-content: center; align-items: center; background: #000;
     }
     #gameCanvas {
-      background: #000; border: 3px solid #00ffcc; border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0,255,204,0.3); width: 100%; height: auto; display: block;
+      background: #000; width: 100%; height: 100%; object-fit: contain; display: block;
     }
 
-    /* CONTROLES VIRTUAIS (TOUCH) */
+    /* CONTROLES VIRTUAIS TOUCH */
     .touch-controls {
-      display: flex; justify-content: space-between; align-items: center;
-      width: 100%; max-width: 800px; margin-top: 15px; padding: 0 10px;
+      position: absolute; bottom: 20px; left: 0; width: 100%;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      padding: 0 30px; pointer-events: none; z-index: 5;
     }
     
-    /* D-PAD (DIRECIONAIS) */
-    .dpad {
-      display: grid; grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(2, 50px); gap: 5px;
+    /* JOYSTICK ANALÓGICO 360° */
+    #joystick-zone {
+      width: 120px; height: 120px; background: rgba(255, 255, 255, 0.15);
+      border: 2px solid #00ffcc; border-radius: 50%; position: relative;
+      pointer-events: auto; touch-action: none;
     }
-    .btn-touch {
-      background: rgba(255, 255, 255, 0.15); border: 2px solid #00ffcc;
-      border-radius: 12px; color: #fff; font-weight: bold; font-size: 1.2rem;
-      display: flex; justify-content: center; align-items: center;
-      active { background: rgba(0, 255, 204, 0.5); }
+    #joystick-stick {
+      width: 50px; height: 50px; background: #00ffcc; border-radius: 50%;
+      position: absolute; top: 35px; left: 35px;
+      box-shadow: 0 0 10px #00ffcc; pointer-events: none;
     }
-    .btn-left { grid-column: 1; grid-row: 2; }
-    .btn-down { grid-column: 2; grid-row: 2; }
-    .btn-right { grid-column: 3; grid-row: 2; }
-    .btn-up { grid-column: 2; grid-row: 1; }
 
     /* BOTÕES DE AÇÃO */
-    .action-buttons { display: flex; gap: 15px; }
+    .action-buttons { display: flex; gap: 15px; pointer-events: auto; }
     .btn-action {
-      width: 65px; height: 65px; border-radius: 50%; font-size: 1rem;
+      width: 65px; height: 65px; border-radius: 50%; font-size: 0.9rem; font-weight: bold;
       border: 2px solid #fff; box-shadow: 0 0 10px rgba(255,255,255,0.3);
+      display: flex; justify-content: center; align-items: center; color: #fff;
     }
     .btn-jump { background: #0088ff; }
     .btn-attack { background: #ff0055; }
 
-    /* BOTÃO REINICIAR (GAME OVER) */
+    /* BOTÕES DE INTERAÇÃO (TELA CHEIA E REINICIAR) */
+    #btn-fullscreen {
+      position: absolute; top: 15px; right: 15px; background: rgba(0, 255, 204, 0.2);
+      border: 1px solid #00ffcc; color: #00ffcc; padding: 8px 15px; border-radius: 20px;
+      font-size: 0.8rem; font-weight: bold; cursor: pointer; z-index: 10;
+    }
     #btn-restart {
       position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%);
       background: #00ffcc; color: #000; font-size: 1.2rem; font-weight: bold;
@@ -74,39 +65,70 @@
 </head>
 <body>
 
-  <header class="hero-background">
-    <a href="#area-arcade" class="btn-jogar">JOGAR NO CELULAR</a>
-    <p style="letter-spacing: 2px; color: #d1d1e0;">MODO TOUCHSCREEN • ALFABETIZAÇÃO</p>
-  </header>
+  <div id="game-container">
+    <button id="btn-fullscreen" onclick="toggleFullScreen()">TELA CHEIA ⛶</button>
+    <button id="btn-restart" onclick="resetGame()">JOGAR NOVAMENTE 🔄</button>
+    <canvas id="gameCanvas" width="800" height="450"></canvas>
 
-  <main id="area-arcade">
-    <h2>Doutor Chácara Arcade</h2>
-
-    <div id="game-container">
-      <canvas id="gameCanvas" width="800" height="450"></canvas>
-      <button id="btn-restart" onclick="resetGame()">JOGAR NOVAMENTE 🔄</button>
-    </div>
-
-    <!-- CONTROLES PARA TOUCHSCREEN -->
     <div class="touch-controls">
-      <div class="dpad">
-        <div class="btn-touch btn-up" id="touch-up">▲</div>
-        <div class="btn-touch btn-left" id="touch-left">◀</div>
-        <div class="btn-touch btn-down" id="touch-down">▼</div>
-        <div class="btn-touch btn-right" id="touch-right">▶</div>
+      <div id="joystick-zone">
+        <div id="joystick-stick"></div>
       </div>
 
       <div class="action-buttons">
-        <div class="btn-touch btn-action btn-jump" id="touch-jump">PULO</div>
-        <div class="btn-touch btn-action btn-attack" id="touch-attack">ATAQUE</div>
+        <div class="btn-action btn-jump" id="touch-jump">PULO</div>
+        <div class="btn-action btn-attack" id="touch-attack">ATAQUE</div>
       </div>
     </div>
-  </main>
+  </div>
 
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     const btnRestart = document.getElementById("btn-restart");
+
+    // SINTETIZADOR DE ÁUDIO (Web Audio API)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'attack') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+      } else if (type === 'hit') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'win') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+      }
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
 
     let currentStage = 1;
     const maxStages = 27;
@@ -114,23 +136,27 @@
     let gameOver = false;
     let stageMissionText = "";
     let missionTimer = 180;
+    let winMessage = "";
+
+    const praiseMessages = [
+      "PARABÉNS! VOCÊ É SENSACIONAL!",
+      "INCRÍVEL! EXCELENTE TRABALHO!",
+      "MUITO BEM! VOCÊ ESTÁ MANDANDO SUPER BEM!",
+      "FANTÁSTICO! RUMO AO PRÓXIMO DESAFIO!",
+      "SENSACIONAL! SUA MENTE É AFINADA!"
+    ];
 
     const player = {
       x: 50, y: 280, width: 40, height: 70,
       vx: 0, vy: 0, speed: 4.8, friction: 0.82,
       grounded: false, crouching: false, facing: 'right', aimingUp: false,
-      attacking: false, attackTimer: 0, attackMaxTime: 12,
-      animFrame: 0, animTimer: 0
+      attacking: false, attackTimer: 0, attackMaxTime: 12
     };
 
     const gravity = 0.65;
     const groundY = 370;
     const weapon = { x: 0, y: 0, length: 0, maxLength: 150 };
 
-    // ESTADO DOS CONTROLES VIRTUAIS
-    const touchInput = { left: false, right: false, up: false, down: false };
-
-    // REGRAS DAS FASES
     const stageRules = {
       1: {
         title: "FASE 1: LETRAS MINÚSCULAS",
@@ -170,64 +196,86 @@
           x: 450 + i * 150 + Math.random() * 30,
           y: groundY - 40, width: 40, height: 40,
           speed: 1.5 + (currentStage * 0.1), alive: true,
-          symbol: charSymbol, isTarget: currentRule.isValid(charSymbol)
+          symbol: charSymbol, isTarget: currentRule.isValid(charSymbol),
+          dir: -1 // Sempre caminham para a esquerda sem voltar para trás ao pular
         });
       }
     }
     spawnEnemies();
 
-    // EVENTOS TOUCHSCREEN (CELULAR)
-    function setupTouchBtn(id, onPress, onRelease) {
-      const el = document.getElementById(id);
-      el.addEventListener("touchstart", (e) => { e.preventDefault(); onPress(); });
-      el.addEventListener("touchend", (e) => { e.preventDefault(); onRelease(); });
-      el.addEventListener("mousedown", (e) => { e.preventDefault(); onPress(); });
-      el.addEventListener("mouseup", (e) => { e.preventDefault(); onRelease(); });
+    // JOYSTICK ANALÓGICO VIRTUAL 360°
+    const joyZone = document.getElementById("joystick-zone");
+    const joyStick = document.getElementById("joystick-stick");
+    let joyActive = false;
+    let joyVector = { x: 0, y: 0 };
+
+    joyZone.addEventListener("pointerdown", (e) => { joyActive = true; updateJoystick(e); });
+    window.addEventListener("pointermove", (e) => { if (joyActive) updateJoystick(e); });
+    window.addEventListener("pointerup", () => {
+      joyActive = false; joyVector = { x: 0, y: 0 };
+      joyStick.style.top = "35px"; joyStick.style.left = "35px";
+    });
+
+    function updateJoystick(e) {
+      const rect = joyZone.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      let dx = e.clientX - centerX;
+      let dy = e.clientY - centerY;
+      const dist = Math.hypot(dx, dy);
+      const maxDist = 40;
+
+      if (dist > maxDist) {
+        dx = (dx / dist) * maxDist;
+        dy = (dy / dist) * maxDist;
+      }
+
+      joyStick.style.left = `${35 + dx}px`;
+      joyStick.style.top = `${35 + dy}px`;
+
+      joyVector.x = dx / maxDist;
+      joyVector.y = dy / maxDist;
     }
 
-    setupTouchBtn("touch-left", () => touchInput.left = true, () => touchInput.left = false);
-    setupTouchBtn("touch-right", () => touchInput.right = true, () => touchInput.right = false);
-    setupTouchBtn("touch-up", () => touchInput.up = true, () => touchInput.up = false);
-    setupTouchBtn("touch-down", () => touchInput.down = true, () => touchInput.down = false);
-    
-    setupTouchBtn("touch-jump", () => {
+    // BOTÕES DE AÇÃO
+    document.getElementById("touch-jump").addEventListener("pointerdown", (e) => {
+      e.preventDefault();
       if (player.grounded) { player.vy = -12.5; player.grounded = false; }
-    }, () => {});
+    });
 
-    setupTouchBtn("touch-attack", () => {
-      if (!player.attacking) { player.attacking = true; player.attackTimer = player.attackMaxTime; }
-    }, () => {});
+    document.getElementById("touch-attack").addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      if (!player.attacking) {
+        player.attacking = true; player.attackTimer = player.attackMaxTime;
+        playSound('attack');
+      }
+    });
 
-    // REINICIAR O JOGO
     function resetGame() {
-      gameOver = false;
-      score = 0;
-      currentStage = 1;
+      gameOver = false; score = 0; currentStage = 1;
       player.x = 50; player.y = 280; player.vx = 0; player.vy = 0;
       btnRestart.style.display = "none";
       spawnEnemies();
     }
 
-    // CONTROLES DE TECLADO
     const keys = {};
     window.addEventListener("keydown", (e) => { keys[e.code] = true; });
     window.addEventListener("keyup", (e) => { keys[e.code] = false; });
 
     function update() {
-      if (gameOver) {
-        btnRestart.style.display = "block";
-        return;
-      }
+      if (gameOver) { btnRestart.style.display = "block"; return; }
       if (missionTimer > 0) missionTimer--;
 
-      // Mover via teclado ou toque
-      player.aimingUp = keys["ArrowUp"] || touchInput.up;
-      player.crouching = (keys["ArrowDown"] || touchInput.down) && player.grounded;
+      // Leitura Direcional (Joystick 360° + Teclado)
+      const moveX = joyVector.x || (keys["ArrowRight"] ? 1 : keys["ArrowLeft"] ? -1 : 0);
+      const moveY = joyVector.y || (keys["ArrowDown"] ? 1 : keys["ArrowUp"] ? -1 : 0);
 
-      if ((keys["ArrowLeft"] || touchInput.left) && !player.crouching) {
-        player.vx = -player.speed; player.facing = 'left';
-      } else if ((keys["ArrowRight"] || touchInput.right) && !player.crouching) {
-        player.vx = player.speed; player.facing = 'right';
+      player.aimingUp = moveY < -0.4;
+      player.crouching = moveY > 0.4 && player.grounded;
+
+      if (Math.abs(moveX) > 0.2 && !player.crouching) {
+        player.vx = moveX * player.speed;
+        player.facing = moveX > 0 ? 'right' : 'left';
       }
 
       if (keys["Space"] && player.grounded) {
@@ -236,9 +284,9 @@
 
       if ((keys["KeyZ"] || keys["KeyX"]) && !player.attacking) {
         player.attacking = true; player.attackTimer = player.attackMaxTime;
+        playSound('attack');
       }
 
-      // Física
       player.vx *= player.friction; player.x += player.vx;
       player.vy += gravity; player.y += player.vy;
 
@@ -248,12 +296,15 @@
 
       if (player.x < 0) player.x = 0;
 
-      // Avançar de Fase
+      // Mudança de Fase com Efeito de Parabenização
       if (player.x + player.width >= canvas.width) {
         if (currentStage < maxStages) {
-          currentStage++; player.x = 20; spawnEnemies();
+          currentStage++; player.x = 20;
+          winMessage = praiseMessages[Math.floor(Math.random() * praiseMessages.length)];
+          playSound('win');
+          spawnEnemies();
         } else {
-          alert("PARABÉNS! Você concluiu todos os níveis com o Dr. Chácara!");
+          alert("PARABÉNS! VOCÊ COMPLETOU TODAS AS FASES!");
           resetGame();
         }
       }
@@ -277,12 +328,12 @@
         if (player.attackTimer <= 0) player.attacking = false;
       }
 
-      // Inimigos
+      // Inimigos Rota Contínua (Não voltam para trás ao pular)
       enemies.forEach(enemy => {
         if (!enemy.alive) return;
 
-        if (enemy.x > player.x) enemy.x -= enemy.speed;
-        else enemy.x += enemy.speed;
+        enemy.x += enemy.speed * enemy.dir;
+        if (enemy.x < -50) enemy.x = canvas.width + 50; // Reaparece do lado oposto mantendo o fluxo
 
         if (player.attacking) {
           const hit = (enemy.x < weapon.x + 25 && enemy.x + enemy.width > weapon.x - 25 &&
@@ -297,6 +348,7 @@
         if (enemy.alive &&
             player.x < enemy.x + enemy.width && player.x + player.width > enemy.x &&
             player.y < enemy.y + enemy.height && player.y + player.height > enemy.y) {
+          playSound('hit');
           gameOver = true;
         }
       });
@@ -350,13 +402,21 @@
       ctx.fillText(`${currentRule.title}`, 20, 30);
       ctx.fillText(`PONTOS: ${score}`, 650, 30);
 
+      // MENSAGEM DE MISSÃO E PARABENIZAÇÃO
       if (missionTimer > 0) {
-        ctx.fillStyle = "rgba(0,0,0,0.8)"; ctx.fillRect(50, 150, 700, 100);
-        ctx.strokeStyle = "#00ffcc"; ctx.lineWidth = 2; ctx.strokeRect(50, 150, 700, 100);
-        ctx.fillStyle = "#00ffcc"; ctx.font = "bold 20px 'Segoe UI'"; ctx.textAlign = "center";
-        ctx.fillText(currentRule.title, canvas.width / 2, 185);
-        ctx.fillStyle = "#fff"; ctx.font = "16px 'Segoe UI'";
-        ctx.fillText(stageMissionText, canvas.width / 2, 220);
+        ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(50, 130, 700, 120);
+        ctx.strokeStyle = "#00ffcc"; ctx.lineWidth = 2; ctx.strokeRect(50, 130, 700, 120);
+        
+        if (winMessage && missionTimer > 100) {
+          ctx.fillStyle = "#ffcc00"; ctx.font = "bold 22px 'Segoe UI'"; ctx.textAlign = "center";
+          ctx.fillText(winMessage, canvas.width / 2, 170);
+        } else {
+          ctx.fillStyle = "#00ffcc"; ctx.font = "bold 20px 'Segoe UI'"; ctx.textAlign = "center";
+          ctx.fillText(currentRule.title, canvas.width / 2, 170);
+        }
+
+        ctx.fillStyle = "#fff"; ctx.font = "16px 'Segoe UI'"; ctx.textAlign = "center";
+        ctx.fillText(stageMissionText, canvas.width / 2, 210);
       }
 
       if (gameOver) {
