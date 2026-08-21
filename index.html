@@ -49,33 +49,68 @@
     .btn-jump { background: #0088ff; }
     .btn-attack { background: #ff0055; }
 
-    /* BOTÕES DE INTERAÇÃO */
+    /* UI DE MODAIS E BOTÕES */
     #btn-fullscreen {
       position: absolute; top: 15px; right: 15px; background: rgba(0, 255, 204, 0.2);
       border: 1px solid #00ffcc; color: #00ffcc; padding: 8px 15px; border-radius: 20px;
       font-size: 0.8rem; font-weight: bold; cursor: pointer; z-index: 10;
     }
-    #btn-restart {
-      position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%);
-      background: #00ffcc; color: #000; font-size: 1.2rem; font-weight: bold;
-      padding: 15px 30px; border-radius: 30px; border: none; cursor: pointer;
-      box-shadow: 0 0 20px #00ffcc; display: none; z-index: 10;
+    
+    .overlay-panel {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(10, 10, 18, 0.95); border: 2px solid #00ffcc;
+      border-radius: 20px; padding: 25px; box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
+      z-index: 20; display: none; flex-direction: column; align-items: center; gap: 15px;
+      width: 85%; max-width: 450px; color: #fff;
     }
-    #btn-start-stage {
-      position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%);
-      background: #00ffcc; color: #000; font-size: 1.3rem; font-weight: bold;
-      padding: 15px 35px; border-radius: 30px; border: none; cursor: pointer;
-      box-shadow: 0 0 20px #00ffcc; display: block; z-index: 10;
+
+    .overlay-panel h2 { color: #00ffcc; font-size: 1.5rem; }
+    .overlay-panel p { font-size: 1.1rem; }
+    
+    .btn-main {
+      background: #00ffcc; color: #000; font-size: 1.1rem; font-weight: bold;
+      padding: 12px 28px; border-radius: 25px; border: none; cursor: pointer;
+      box-shadow: 0 0 15px #00ffcc; margin-top: 10px;
     }
+
+    input[type="text"] {
+      padding: 10px 15px; border-radius: 10px; border: 2px solid #00ffcc;
+      background: #111; color: #fff; font-size: 1.1rem; text-align: center; width: 80%;
+    }
+
+    .leaderboard-list {
+      width: 100%; max-height: 180px; overflow-y: auto; text-align: left;
+      font-family: monospace; font-size: 0.95rem; background: rgba(255,255,255,0.05);
+      padding: 10px; border-radius: 10px; border: 1px solid #333;
+    }
+    .leaderboard-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #444; }
   </style>
 </head>
 <body>
 
   <div id="game-container">
     <button id="btn-fullscreen" onclick="toggleFullScreen()">TELA CHEIA ⛶</button>
-    <button id="btn-start-stage" onclick="startStage()">INICIAR FASE ▶</button>
-    <button id="btn-restart" onclick="resetGame()">JOGAR NOVAMENTE 🔄</button>
     <canvas id="gameCanvas" width="800" height="450"></canvas>
+
+    <!-- PAINEL INICIAR FASE / TRANSIÇÃO -->
+    <div id="panel-stage-start" class="overlay-panel">
+      <h2 id="stage-title">FASE 1</h2>
+      <p id="stage-instruction">Destrua os alvos solicitados!</p>
+      <div id="stage-score-info"></div>
+      <button class="btn-main" onclick="startStage()">INICIAR FASE ▶</button>
+    </div>
+
+    <!-- PAINEL GAME OVER & REGISTRO DE NOME -->
+    <div id="panel-game-over" class="overlay-panel">
+      <h2 style="color: #ff0055;">GAME OVER</h2>
+      <p id="game-over-reason">Você perdeu a fase!</p>
+      <p>Sua pontuação: <strong id="final-score">0</strong></p>
+      <input type="text" id="player-name" placeholder="Digite seu nome" maxlength="12">
+      <button class="btn-main" onclick="saveScoreAndRestart()">SALVAR RECORD '🔄</button>
+      
+      <h3 style="margin-top: 10px; color: #ffcc00; font-size: 1rem;">🏆 TOP 10 RECORDES</h3>
+      <div class="leaderboard-list" id="leaderboard-list"></div>
+    </div>
 
     <div class="touch-controls">
       <div id="joystick-zone">
@@ -92,10 +127,17 @@
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
-    const btnRestart = document.getElementById("btn-restart");
-    const btnStartStage = document.getElementById("btn-start-stage");
+    
+    const panelStageStart = document.getElementById("panel-stage-start");
+    const panelGameOver = document.getElementById("panel-game-over");
+    const stageTitle = document.getElementById("stage-title");
+    const stageInstruction = document.getElementById("stage-instruction");
+    const stageScoreInfo = document.getElementById("stage-score-info");
+    const finalScoreTxt = document.getElementById("final-score");
+    const playerNameInput = document.getElementById("player-name");
+    const leaderboardList = document.getElementById("leaderboard-list");
 
-    // SINTETIZADOR DE ÁUDIO (Efeitos Sonoros)
+    // SINTETIZADOR DE ÁUDIO (Web Audio API)
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     function playSound(type) {
@@ -112,7 +154,15 @@
         gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
         gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
         osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-      } else if (type === 'hit') {
+      } else if (type === 'hitTarget') {
+        // NOVO SOM: Raio atingiu o alvo correto (Laser / Cristal Impact)
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+      } else if (type === 'hitWrong') {
         osc.type = 'square';
         osc.frequency.setValueAtTime(150, audioCtx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
@@ -130,10 +180,10 @@
       }
     }
 
-    // SINTETIZADOR DE VOZ (Fala em Português)
+    // SINTETIZADOR DE VOZ
     function speakText(text) {
       if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // Para falas anteriores
+        window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'pt-BR';
         utterance.rate = 1.0;
@@ -155,20 +205,11 @@
     let gameOver = false;
     let stageStarted = false;
     let stageMissionText = "";
-    let missionTimer = 180;
     let winMessage = "";
-    let walkCycle = 0; // Para animação dos braços e pernas
-
-    const praiseMessages = [
-      "PARABÉNS! VOCÊ É SENSACIONAL!",
-      "INCRÍVEL! EXCELENTE TRABALHO!",
-      "MUITO BEM! VOCÊ ESTÁ MANDANDO SUPER BEM!",
-      "FANTÁSTICO! RUMO AO PRÓXIMO DESAFIO!",
-      "SENSACIONAL! SUA MENTE É AFINADA!"
-    ];
+    let walkCycle = 0;
 
     const player = {
-      x: 50, y: 280, width: 40, height: 70,
+      x: 50, y: 280, width: 35, height: 70,
       vx: 0, vy: 0, speed: 4.8, friction: 0.82,
       grounded: false, crouching: false, facing: 'right', aimingUp: false,
       attacking: false, attackTimer: 0, attackMaxTime: 12
@@ -207,34 +248,77 @@
     function prepareStage() {
       enemies.length = 0;
       const currentRule = getRuleForStage(currentStage);
-      missionTimer = 180;
       stageMissionText = currentRule.instruction;
       stageStarted = false;
-      btnStartStage.style.display = "block";
+
+      // Configura modal da fase
+      stageTitle.innerText = currentRule.title;
+      stageInstruction.innerText = currentRule.instruction;
+      
+      const topRecord = getTopScores()[0] || { name: 'Ninguém', score: 0 };
+      stageScoreInfo.innerHTML = `Pontuação Atual: <strong>${score}</strong><br>Recorde do Jogo: <strong>${topRecord.score}</strong> (${topRecord.name})`;
+      
+      panelStageStart.style.display = "flex";
+      panelGameOver.style.display = "none";
 
       const count = 4 + Math.floor(currentStage * 0.5);
       for (let i = 0; i < count; i++) {
         const charSymbol = currentRule.generateChar();
         enemies.push({
           x: 450 + i * 150 + Math.random() * 30,
-          y: groundY - 40, width: 40, height: 40,
-          speed: 1.5 + (currentStage * 0.1), alive: true,
+          y: groundY - 45, width: 35, height: 45,
+          speed: 1.4 + (currentStage * 0.1), alive: true,
           symbol: charSymbol, isTarget: currentRule.isValid(charSymbol),
-          dir: -1
+          dir: -1, expression: 'normal', exprTimer: 0 // 'normal', 'happy', 'sad'
         });
       }
     }
 
     function startStage() {
       stageStarted = true;
-      btnStartStage.style.display = "none";
+      panelStageStart.style.display = "none";
       const currentRule = getRuleForStage(currentStage);
       speakText(`${currentRule.title}. ${currentRule.instruction}`);
     }
 
-    prepareStage();
+    // GESTÃO DE HIGHSCORES (LOCALSTORAGE)
+    function getTopScores() {
+      const data = localStorage.getItem("dr_chacara_scores");
+      return data ? JSON.parse(data) : [];
+    }
 
-    // JOYSTICK ANALÓGICO VIRTUAL 360°
+    function renderLeaderboard() {
+      const scores = getTopScores();
+      leaderboardList.innerHTML = scores.map((s, i) => `
+        <div class="leaderboard-item">
+          <span>#${i+1} ${s.name}</span>
+          <span>${s.score} pts</span>
+        </div>
+      `).join('') || '<div>Nenhum recorde ainda!</div>';
+    }
+
+    function saveScoreAndRestart() {
+      const name = playerNameInput.value.trim() || "Jogador";
+      const scores = getTopScores();
+      scores.push({ name: name, score: score });
+      scores.sort((a, b) => b.score - a.score);
+      const top10 = scores.slice(0, 10);
+      localStorage.setItem("dr_chacara_scores", JSON.stringify(top10));
+
+      resetGame();
+    }
+
+    function triggerGameOver(reason) {
+      gameOver = true;
+      playSound('hitWrong');
+      document.getElementById("game-over-reason").innerText = reason;
+      finalScoreTxt.innerText = score;
+      renderLeaderboard();
+      panelGameOver.style.display = "flex";
+      speakText("Game Over. " + reason);
+    }
+
+    // JOYSTICK ANALÓGICO 360°
     const joyZone = document.getElementById("joystick-zone");
     const joyStick = document.getElementById("joystick-stick");
     let joyActive = false;
@@ -268,15 +352,15 @@
       joyVector.y = dy / maxDist;
     }
 
-    // BOTÕES DE AÇÃO
+    // CONTROLES DE BOTÃO
     document.getElementById("touch-jump").addEventListener("pointerdown", (e) => {
       e.preventDefault();
-      if (player.grounded && stageStarted) { player.vy = -12.5; player.grounded = false; }
+      if (player.grounded && stageStarted && !gameOver) { player.vy = -12.5; player.grounded = false; }
     });
 
     document.getElementById("touch-attack").addEventListener("pointerdown", (e) => {
       e.preventDefault();
-      if (!player.attacking && stageStarted) {
+      if (!player.attacking && stageStarted && !gameOver) {
         player.attacking = true; player.attackTimer = player.attackMaxTime;
         playSound('attack');
       }
@@ -285,7 +369,6 @@
     function resetGame() {
       gameOver = false; score = 0; currentStage = 1;
       player.x = 50; player.y = 280; player.vx = 0; player.vy = 0;
-      btnRestart.style.display = "none";
       prepareStage();
     }
 
@@ -294,12 +377,8 @@
     window.addEventListener("keyup", (e) => { keys[e.code] = false; });
 
     function update() {
-      if (gameOver) { btnRestart.style.display = "block"; return; }
-      if (!stageStarted) return; // Não atualiza lógica do jogo antes de pressionar Iniciar
+      if (gameOver || !stageStarted) return;
 
-      if (missionTimer > 0) missionTimer--;
-
-      // Leitura Direcional (Joystick 360° + Teclado)
       const moveX = joyVector.x || (keys["ArrowRight"] ? 1 : keys["ArrowLeft"] ? -1 : 0);
       const moveY = joyVector.y || (keys["ArrowDown"] ? 1 : keys["ArrowUp"] ? -1 : 0);
 
@@ -309,7 +388,7 @@
       if (Math.abs(moveX) > 0.2 && !player.crouching) {
         player.vx = moveX * player.speed;
         player.facing = moveX > 0 ? 'right' : 'left';
-        walkCycle += 0.2; // Avança o ciclo de caminhada para os braços
+        walkCycle += 0.25;
       } else {
         walkCycle = 0;
       }
@@ -332,18 +411,17 @@
 
       if (player.x < 0) player.x = 0;
 
-      // Mudança de Fase com Efeito de Parabenização e Áudio
+      // Mudança de Fase
       if (player.x + player.width >= canvas.width) {
         if (currentStage < maxStages) {
           currentStage++; player.x = 20;
-          winMessage = praiseMessages[Math.floor(Math.random() * praiseMessages.length)];
+          winMessage = "MUITO BEM! RUMO AO PRÓXIMO DESAFIO!";
           playSound('win');
           speakText(winMessage);
           prepareStage();
         } else {
           speakText("Parabéns! Você completou todas as fases!");
-          alert("PARABÉNS! VOCÊ COMPLETOU TODAS AS FASES!");
-          resetGame();
+          triggerGameOver("Parabéns! Você completou o jogo!");
         }
       }
 
@@ -366,75 +444,130 @@
         if (player.attackTimer <= 0) player.attacking = false;
       }
 
-      // Inimigos Rota Contínua e Punição se Destruir Errado
+      // Lógica das Letras Inimigas
       enemies.forEach(enemy => {
         if (!enemy.alive) return;
 
         enemy.x += enemy.speed * enemy.dir;
         if (enemy.x < -50) enemy.x = canvas.width + 50;
 
+        // Ataque Atingindo Letra
         if (player.attacking) {
           const hit = (enemy.x < weapon.x + 25 && enemy.x + enemy.width > weapon.x - 25 &&
                        enemy.y < weapon.y + 25 && enemy.y + enemy.height > weapon.y - 25);
           if (hit) {
-            enemy.alive = false;
             if (enemy.isTarget) {
+              enemy.expression = 'sad';
+              playSound('hitTarget'); // Som de impacto ao atingir alvo correto
               score += 500;
+              setTimeout(() => { enemy.alive = false; }, 150);
             } else {
-              // PERDE A FASE SE DESTRUIR ALGO QUE NÃO FOI SOLICITADO
-              playSound('hit');
-              gameOver = true;
-              speakText("Atenção! Você destruiu o elemento incorreto e perdeu a fase.");
+              enemy.expression = 'sad';
+              triggerGameOver("Você destruiu o elemento incorreto!");
             }
           }
         }
 
+        // Colisão com o Personagem
         if (enemy.alive &&
             player.x < enemy.x + enemy.width && player.x + player.width > enemy.x &&
             player.y < enemy.y + enemy.height && player.y + player.height > enemy.y) {
-          playSound('hit');
-          gameOver = true;
+          enemy.expression = 'happy'; // Sorriso feliz ao tocar no jogador
+          triggerGameOver("A letra encostou em você!");
         }
       });
     }
 
-    function drawDrChacara(x, y, facing, crouching) {
+    // DESENHO DO DOUTOR CHÁCARA EM PERFIL LATERAL
+    function drawDrChacaraSide(x, y, facing, crouching) {
       ctx.save();
       ctx.translate(x + player.width / 2, y);
       if (facing === 'left') ctx.scale(-1, 1);
 
+      const legAngle = Math.sin(walkCycle) * 20;
+      const armAngle = Math.sin(walkCycle) * 25;
       const h = crouching ? 45 : 70;
-      
-      // Pernas
-      ctx.fillStyle = "#1a1a24"; ctx.fillRect(-10, h - 25, 8, 25); ctx.fillRect(2, h - 25, 8, 25);
-      
-      // Tronco
-      ctx.fillStyle = "#0066cc"; ctx.fillRect(-10, crouching ? 15 : 20, 20, 25);
-      ctx.fillStyle = "#ffffff"; ctx.fillRect(-14, crouching ? 10 : 18, 28, crouching ? 25 : 35);
-      
-      // Cabeça
-      ctx.fillStyle = "#f3c099"; ctx.fillRect(-9, 0, 18, 18);
-      ctx.fillStyle = "#111111"; ctx.fillRect(-10, -1, 20, 5);
-      ctx.fillStyle = "#5A5A66"; ctx.fillRect(-11, -7, 22, 7);
-      ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.strokeRect(1, 4, 7, 5);
 
-      // Braços Dinâmicos (Animação ao andar)
-      ctx.fillStyle = "#f3c099";
-      const armAngle = Math.sin(walkCycle) * 12;
+      // Pernas Visão Lateral
+      ctx.strokeStyle = "#1a1a24"; ctx.lineWidth = 6; ctx.lineCap = "round";
       
+      // Perna Traseira
+      ctx.beginPath();
+      ctx.moveTo(-2, h - 30);
+      ctx.lineTo(-2 - Math.sin((-legAngle * Math.PI)/180) * 15, h);
+      ctx.stroke();
+
+      // Perna Dianteira
+      ctx.beginPath();
+      ctx.moveTo(2, h - 30);
+      ctx.lineTo(2 + Math.sin((legAngle * Math.PI)/180) * 15, h);
+      ctx.stroke();
+
+      // Tronco Lateral
+      ctx.fillStyle = "#0066cc"; ctx.fillRect(-8, crouching ? 15 : 20, 16, 25);
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(-10, crouching ? 10 : 18, 20, crouching ? 20 : 30); // Jaleco
+
+      // Cabeça de Perfil Lateral
+      ctx.fillStyle = "#f3c099"; ctx.fillRect(-4, 0, 16, 18); // Rosto
+      ctx.fillStyle = "#111111"; ctx.fillRect(-6, -1, 18, 5);  // Cabelo traseiro
+      ctx.fillStyle = "#5A5A66"; ctx.fillRect(-7, -7, 20, 7);  // Cabelo topo
+      
+      // Óculos Lateral
+      ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.strokeRect(4, 4, 7, 5);
+      ctx.beginPath(); ctx.moveTo(-4, 6); ctx.lineTo(4, 6); ctx.stroke();
+
       // Braço Traseiro
-      ctx.save();
-      ctx.translate(-12, crouching ? 20 : 25);
-      ctx.rotate((-armAngle * Math.PI) / 180);
-      ctx.fillRect(-3, 0, 6, 18);
-      ctx.restore();
+      ctx.strokeStyle = "#f3c099"; ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(-4, crouching ? 20 : 25);
+      ctx.lineTo(-4 - Math.sin((armAngle * Math.PI)/180) * 15, (crouching ? 20 : 25) + 15);
+      ctx.stroke();
 
       // Braço Dianteiro
-      ctx.save();
-      ctx.translate(12, crouching ? 20 : 25);
-      ctx.rotate((armAngle * Math.PI) / 180);
-      ctx.fillRect(-3, 0, 6, 18);
+      ctx.beginPath();
+      ctx.moveTo(4, crouching ? 20 : 25);
+      ctx.lineTo(4 + Math.sin((armAngle * Math.PI)/180) * 15, (crouching ? 20 : 25) + 15);
+      ctx.stroke();
+
       ctx.restore();
+    }
+
+    // DESENHO DAS LETRAS COM PERNAS (SEM QUADRADO)
+    function drawLetterEnemy(enemy) {
+      if (!enemy.alive) return;
+
+      ctx.save();
+      ctx.translate(enemy.x + enemy.width / 2, enemy.y);
+
+      const legCycle = Math.sin(Date.now() * 0.01 + enemy.x) * 12;
+
+      // Perninhas caminhando
+      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.lineCap = "round";
+      
+      // Perna 1
+      ctx.beginPath();
+      ctx.moveTo(-8, enemy.height - 10);
+      ctx.lineTo(-8 + legCycle, enemy.height);
+      ctx.stroke();
+
+      // Perna 2
+      ctx.beginPath();
+      ctx.moveTo(8, enemy.height - 10);
+      ctx.lineTo(8 - legCycle, enemy.height);
+      ctx.stroke();
+
+      // Símbolo da Letra Grandes
+      ctx.fillStyle = enemy.isTarget ? "#00ffcc" : "#ff0055";
+      ctx.font = "bold 34px 'Segoe UI'"; ctx.textAlign = "center";
+      ctx.fillText(enemy.symbol, 0, enemy.height - 12);
+
+      // Expressão / Sorriso
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 12px 'Segoe UI'";
+      if (enemy.expression === 'happy') {
+        ctx.fillText(":D", 14, 15); // Sorriso Feliz ao tocar no jogador
+      } else if (enemy.expression === 'sad') {
+        ctx.fillText(":(", 14, 15); // Sorriso Triste ao ser atingido
+      }
 
       ctx.restore();
     }
@@ -448,7 +581,7 @@
       ctx.fillStyle = "#26150d"; ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
       ctx.fillStyle = "#00ffcc"; ctx.fillRect(0, groundY, canvas.width, 3);
 
-      drawDrChacara(player.x, player.y, player.facing, player.crouching);
+      drawDrChacaraSide(player.x, player.y, player.facing, player.crouching);
 
       if (player.attacking) {
         ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 5; ctx.beginPath();
@@ -456,43 +589,12 @@
         ctx.fillStyle = "#00ffcc"; ctx.beginPath(); ctx.arc(weapon.x, weapon.y, 12, 0, Math.PI * 2); ctx.fill();
       }
 
-      enemies.forEach(enemy => {
-        if (enemy.alive) {
-          ctx.fillStyle = "#1a1a2e"; ctx.strokeStyle = enemy.isTarget ? "#00ffcc" : "#ff0055"; ctx.lineWidth = 3;
-          ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-          ctx.strokeRect(enemy.x, enemy.y, enemy.width, enemy.height);
-          ctx.fillStyle = "#ffffff"; ctx.font = "bold 24px 'Segoe UI'"; ctx.textAlign = "center";
-          ctx.fillText(enemy.symbol, enemy.x + enemy.width / 2, enemy.y + 28);
-        }
-      });
+      enemies.forEach(enemy => drawLetterEnemy(enemy));
 
       const currentRule = getRuleForStage(currentStage);
       ctx.fillStyle = "#ffffff"; ctx.font = "bold 16px 'Segoe UI'"; ctx.textAlign = "left";
       ctx.fillText(`${currentRule.title}`, 20, 30);
       ctx.fillText(`PONTOS: ${score}`, 650, 30);
-
-      // MENSAGEM DE MISSÃO E PARABENIZAÇÃO
-      if (missionTimer > 0 || !stageStarted) {
-        ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(50, 130, 700, 120);
-        ctx.strokeStyle = "#00ffcc"; ctx.lineWidth = 2; ctx.strokeRect(50, 130, 700, 120);
-        
-        if (winMessage && missionTimer > 100) {
-          ctx.fillStyle = "#ffcc00"; ctx.font = "bold 22px 'Segoe UI'"; ctx.textAlign = "center";
-          ctx.fillText(winMessage, canvas.width / 2, 170);
-        } else {
-          ctx.fillStyle = "#00ffcc"; ctx.font = "bold 20px 'Segoe UI'"; ctx.textAlign = "center";
-          ctx.fillText(currentRule.title, canvas.width / 2, 170);
-        }
-
-        ctx.fillStyle = "#fff"; ctx.font = "16px 'Segoe UI'"; ctx.textAlign = "center";
-        ctx.fillText(stageMissionText, canvas.width / 2, 210);
-      }
-
-      if (gameOver) {
-        ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#ff0055"; ctx.font = "bold 36px 'Segoe UI'"; ctx.textAlign = "center";
-        ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 30);
-      }
     }
 
     function loop() { update(); draw(); requestAnimationFrame(loop); }
