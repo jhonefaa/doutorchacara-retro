@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Doutor Chácara - Alfabetização Arcade Mobile</title>
+  <title>Doutor Chácara - Alfabetização & Supletivo Arcade</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
     html, body {
@@ -62,35 +63,35 @@
     .overlay-panel {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: rgba(10, 10, 18, 0.96); border: 2px solid #00ffcc;
-      border-radius: 20px; padding: 25px; box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
-      z-index: 20; display: none; flex-direction: column; align-items: center; gap: 15px;
-      width: 85%; max-width: 480px; color: #fff;
+      border-radius: 20px; padding: 20px; box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
+      z-index: 20; display: none; flex-direction: column; align-items: center; gap: 12px;
+      width: 90%; max-width: 520px; color: #fff; max-height: 90vh; overflow-y: auto;
     }
 
-    .overlay-panel h2 { color: #00ffcc; font-size: 1.4rem; }
-    .overlay-panel p { font-size: 1rem; line-height: 1.4; }
+    .overlay-panel h2 { color: #00ffcc; font-size: 1.3rem; }
+    .overlay-panel p { font-size: 0.95rem; line-height: 1.4; }
     
     .btn-main {
-      background: #00ffcc; color: #000; font-size: 1rem; font-weight: bold;
-      padding: 10px 22px; border-radius: 25px; border: none; cursor: pointer;
+      background: #00ffcc; color: #000; font-size: 0.95rem; font-weight: bold;
+      padding: 10px 20px; border-radius: 25px; border: none; cursor: pointer;
       box-shadow: 0 0 15px #00ffcc; margin: 4px;
     }
 
     .btn-sub {
-      background: #ff0055; color: #fff; font-size: 0.95rem; font-weight: bold;
-      padding: 10px 20px; border-radius: 25px; border: none; cursor: pointer;
+      background: #ff0055; color: #fff; font-size: 0.9rem; font-weight: bold;
+      padding: 10px 18px; border-radius: 25px; border: none; cursor: pointer;
       box-shadow: 0 0 10px #ff0055; margin: 4px;
     }
 
     .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 
-    input[type="text"] {
+    input[type="text"], input[type="number"], select {
       padding: 8px 12px; border-radius: 10px; border: 2px solid #00ffcc;
-      background: #111; color: #fff; font-size: 1rem; text-align: center; width: 80%;
+      background: #111; color: #fff; font-size: 0.95rem; text-align: center; width: 85%;
     }
 
     .leaderboard-list {
-      width: 100%; max-height: 140px; overflow-y: auto; text-align: left;
+      width: 100%; max-height: 120px; overflow-y: auto; text-align: left;
       font-family: monospace; font-size: 0.85rem; background: rgba(255,255,255,0.05);
       padding: 8px; border-radius: 10px; border: 1px solid #333;
     }
@@ -98,6 +99,12 @@
 
     .key-bind-row { display: flex; justify-content: space-between; width: 100%; align-items: center; padding: 5px 0; }
     .key-bind-btn { background: #222; border: 1px solid #00ffcc; color: #00ffcc; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+
+    .quiz-option-btn {
+      width: 100%; background: #1a1a2e; border: 1px solid #00ffcc; color: #fff;
+      padding: 10px; border-radius: 10px; font-size: 0.9rem; text-align: left; cursor: pointer; transition: 0.2s;
+    }
+    .quiz-option-btn:hover { background: #00ffcc; color: #000; }
   </style>
 </head>
 <body>
@@ -108,12 +115,92 @@
 
     <canvas id="gameCanvas" width="800" height="450"></canvas>
 
+    <!-- TELA DE INTRODUÇÃO (HISTÓRIA DO DR. CHÁCARA) -->
+    <div id="panel-intro-story" class="overlay-panel" style="display: flex;">
+      <h2>🌽 O RESGATE DO DR. CHÁCARA 🛸</h2>
+      <p>O Dr. Chácara estava tranquilamente cuidando das suas plantas na sua chácara...</p>
+      <p>Repentinamente, um <strong>Disco Voador misterioso</strong> apareceu no céu e o abduziu para o espaço!</p>
+      <p>Agora ele precisa usar todo o seu conhecimento educacional para vencer os desafios espaciais e voltar para casa!</p>
+      <button class="btn-main" onclick="goToMainMenu()">AVANÇAR PARA O MENU ▶</button>
+    </div>
+
+    <!-- MENU PRINCIPAL: NOME & MODOS -->
+    <div id="panel-main-menu" class="overlay-panel">
+      <h2>🎮 MENU PRINCIPAL</h2>
+      <p>Digite seu nome para começar:</p>
+      <input type="text" id="input-player-name" placeholder="Seu Nome ou Apelido" maxlength="15">
+
+      <p style="margin-top: 10px; font-weight: bold; color: #ffcc00;">Escolha o Modo de Jogo:</p>
+      <div class="btn-group">
+        <button class="btn-main" onclick="openEduSetup()">🎓 JOGO EDUCATIVO (1º ao 5º Ano)</button>
+        <button class="btn-main" style="background: #ff0055; color:#fff;" onclick="openSupletivoSetup()">📖 SUPLETIVO (EJA / 1º e 2º Grau)</button>
+      </div>
+    </div>
+
+    <!-- CONFIGURAÇÃO MODO EDUCATIVO -->
+    <div id="panel-edu-setup" class="overlay-panel">
+      <h2>🎓 JOGO EDUCATIVO</h2>
+      <p>Informe seus dados para adaptarmos o jogo:</p>
+      <input type="number" id="input-edu-age" placeholder="Sua Idade" min="4" max="15">
+      <select id="select-edu-grade">
+        <option value="1">1º Ano do Ensino Fundamental</option>
+        <option value="2">2º Ano do Ensino Fundamental</option>
+        <option value="3">3º Ano do Ensino Fundamental</option>
+        <option value="4">4º Ano do Ensino Fundamental</option>
+        <option value="5">5º Ano do Ensino Fundamental</option>
+      </select>
+      <div class="btn-group">
+        <button class="btn-main" onclick="startEduGame()">INICIAR JOGO ▶</button>
+        <button class="btn-sub" onclick="goToMainMenu()">VOLTAR</button>
+      </div>
+    </div>
+
+    <!-- CONFIGURAÇÃO MODO SUPLETIVO -->
+    <div id="panel-supletivo-setup" class="overlay-panel">
+      <h2>📖 SUPLETIVO & EJA</h2>
+      <p>Em qual série/ano você parou?</p>
+      <select id="select-supletivo-grade">
+        <option value="antiga_1_4">Antiga 1ª a 4ª Série (Fundamental I)</option>
+        <option value="antiga_5_8">Antiga 5ª a 8ª Série (Fundamental II)</option>
+        <option value="medio_1">1º Ano do Ensino Médio</option>
+        <option value="medio_2">2º Ano do Ensino Médio</option>
+      </select>
+
+      <p>Qual matéria você deseja estudar agora?</p>
+      <select id="select-supletivo-subject">
+        <option value="portugues">Português (Gramática & Leitura)</option>
+        <option value="matematica">Matemática (Cálculos & Raciocínio)</option>
+        <option value="ciencias">Ciências / História Básica</option>
+      </select>
+
+      <div class="btn-group">
+        <button class="btn-main" onclick="startSupletivoTraining()">INICIAR TREINAMENTO ▶</button>
+        <button class="btn-sub" onclick="goToMainMenu()">VOLTAR</button>
+      </div>
+    </div>
+
+    <!-- FASE DE TREINAMENTO SUPLETIVO (10 MINUTOS / RESUMO) -->
+    <div id="panel-supletivo-training" class="overlay-panel">
+      <h2 id="training-title">📖 FASE DE TREINAMENTO</h2>
+      <p id="training-timer-text" style="color: #ffcc00; font-weight: bold;">Tempo Restante: 10:00</p>
+      <div id="training-content" style="text-align: left; font-size: 0.9rem; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; max-height: 180px; overflow-y: auto;">
+      </div>
+      <button class="btn-main" onclick="startSupletivoQuiz()">CONCLUIR TREINO E IR AO QUESTIONÁRIO ▶</button>
+    </div>
+
+    <!-- QUESTIONÁRIO DO SUPLETIVO -->
+    <div id="panel-supletivo-quiz" class="overlay-panel">
+      <h2>📝 QUESTIONÁRIO DE AVALIAÇÃO</h2>
+      <p id="quiz-question-text">Pergunta...</p>
+      <div id="quiz-options-container" style="display: flex; flex-direction: column; gap: 8px; width: 100%;"></div>
+    </div>
+
     <!-- PAINEL INICIAR FASE / TRANSIÇÃO -->
     <div id="panel-stage-start" class="overlay-panel">
       <h2 id="stage-title">FASE 1</h2>
       <p id="stage-instruction">Destrua os alvos solicitados!</p>
       <div id="stage-score-info"></div>
-      <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
+      <button class="btn-main" id="btn-start-action">INICIAR FASE DE DIVERTIMENTO ▶</button>
     </div>
 
     <!-- PAINEL INTERAÇÃO YOUTUBE (TRANSIÇÃO DE FASE) -->
@@ -149,15 +236,20 @@
       <button class="btn-main" onclick="closeKeyConfig()">SALVAR E FECHAR</button>
     </div>
 
-    <!-- PAINEL GAME OVER & REGISTRO DE NOME -->
+    <!-- PAINEL GAME OVER / FIM DE JOGO & SALVAR RECORDES -->
     <div id="panel-game-over" class="overlay-panel">
-      <h2 style="color: #ff0055;">GAME OVER</h2>
-      <p id="game-over-reason">Você perdeu a fase!</p>
-      <p>Sua pontuação: <strong id="final-score">0</strong></p>
-      <input type="text" id="player-name" placeholder="Digite seu nome" maxlength="12">
-      <button class="btn-main" id="btn-save-score">SALVAR RECORD 🔄</button>
+      <h2 style="color: #ff0055;">FIM DE JOGO</h2>
+      <p id="game-over-reason">Você encerrou a partida!</p>
+      <p>Jogador: <strong id="display-player-name">---</strong></p>
+      <p>Sua pontuação final: <strong id="final-score">0</strong></p>
       
-      <h3 style="margin-top: 5px; color: #ffcc00; font-size: 0.9rem;">🏆 TOP 10 RECORDES</h3>
+      <p style="color: #ffcc00; margin-top: 5px;">Deseja salvar sua pontuação nos Recordes?</p>
+      <div class="btn-group">
+        <button class="btn-main" id="btn-save-score" onclick="confirmSaveScore(true)">SIM, SALVAR RECORD 💾</button>
+        <button class="btn-sub" onclick="confirmSaveScore(false)">NÃO SALVAR ❌</button>
+      </div>
+      
+      <h3 style="margin-top: 10px; color: #00ffcc; font-size: 0.9rem;">🏆 TOP 10 RECORDES</h3>
       <div class="leaderboard-list" id="leaderboard-list"></div>
     </div>
 
@@ -177,6 +269,14 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     
+    // PANÉIS DA INTERFACE
+    const panelIntroStory = document.getElementById("panel-intro-story");
+    const panelMainMenu = document.getElementById("panel-main-menu");
+    const panelEduSetup = document.getElementById("panel-edu-setup");
+    const panelSupletivoSetup = document.getElementById("panel-supletivo-setup");
+    const panelSupletivoTraining = document.getElementById("panel-supletivo-training");
+    const panelSupletivoQuiz = document.getElementById("panel-supletivo-quiz");
+
     const panelStageStart = document.getElementById("panel-stage-start");
     const panelGameOver = document.getElementById("panel-game-over");
     const panelYtPromo = document.getElementById("panel-youtube-promo");
@@ -187,12 +287,23 @@
     const stageInstruction = document.getElementById("stage-instruction");
     const stageScoreInfo = document.getElementById("stage-score-info");
     const finalScoreTxt = document.getElementById("final-score");
-    const playerNameInput = document.getElementById("player-name");
+    const displayPlayerName = document.getElementById("display-player-name");
     const leaderboardList = document.getElementById("leaderboard-list");
     const btnStartAction = document.getElementById("btn-start-action");
-    const btnSaveScore = document.getElementById("btn-save-score");
 
-    // CONFIGURAÇÃO DE CONTROLES DO TECLADO
+    // DADOS DO JOGADOR
+    let currentMode = "edu"; // "edu" ou "supletivo"
+    let playerName = "Jogador";
+    let playerAge = 8;
+    let eduGrade = 1;
+    let supletivoGrade = "antiga_1_4";
+    let supletivoSubject = "portugues";
+
+    // CRONÔMETRO TREINAMENTO SUPLETIVO
+    let trainingTimerInterval = null;
+    let trainingTimeSeconds = 600; // 10 Minutos
+
+    // CONFIGURAÇÃO DE TECLAS DO TECLADO
     const keyBinds = { attack: "KeyA", jump: "KeyS" };
     let listeningKeyAction = null;
 
@@ -273,6 +384,11 @@
     let sunAngle = 0;
     let gameTimerSeconds = 0;
 
+    // ANIMAÇÃO CUTSCENE / DISCO VOADOR NA CHÁCARA
+    let isCutsceneActive = true;
+    let cutsceneStep = 0;
+    let ufoCutscene = { x: -100, y: 60, beam: 0 };
+
     // ANIMAÇÃO DE COLISÃO / GAME OVER
     let collisionAnimationActive = false;
     let collisionAnimTimer = 0;
@@ -288,10 +404,6 @@
       "A prática leva à perfeição!"
     ];
 
-    // INTRO ANIMAÇÃO DISCO VOADOR
-    let isIntroPlaying = false;
-    let ufoState = { x: -100, y: 50, beamOpacity: 0, playerY: -100, step: 0 };
-
     const player = {
       x: 50, y: 280, width: 30, height: 65,
       vx: 0, vy: 0, speed: 4.8, friction: 0.82,
@@ -304,40 +416,207 @@
     const groundY = 370;
     const weapon = { x: 0, y: 0, length: 0, baseMaxLength: 150 };
 
-    // ITENS / POWER-UPS
     let notebookItem = null;
     let greenCoatItem = null;
 
     const aerialSymbols = ['plane', 'helicopter', 'balloon', 'rocket', 'ufo_mini', 'bird', 'dragon', 'blimp'];
 
-    const stageRules = {
-      1: {
-        title: "FASE 1: LETRAS MINÚSCULAS",
-        instruction: "ATENÇÃO: Destrua APENAS as letras MINÚSCULAS (a-f)!",
-        isValid: (char) => char === char.toLowerCase() && isNaN(char),
-        generateChar: () => ['A','B','C','D','E','F','a','b','c','d','e','f'][Math.floor(Math.random() * 12)]
-      },
-      2: {
-        title: "FASE 2: NÚMEROS PARES",
-        instruction: "ATENÇÃO: Destrua APENAS os NÚMEROS PARES!",
-        isValid: (char) => !isNaN(char) && parseInt(char) % 2 === 0,
-        generateChar: () => ['1','2','3','4','5','6','7','8','9'][Math.floor(Math.random() * 9)]
-      }
-    };
-
+    // REGRAS ADAPTATIVAS DAS FASES DIVERTIMENTO
     function getRuleForStage(stage) {
-      if (stageRules[stage]) return stageRules[stage];
-      return {
-        title: `FASE ${stage}: DESAFIO DE VOGAIS`,
-        instruction: "ATENÇÃO: Destrua APENAS as VOGAIS!",
-        isValid: (char) => ['A','E','I','O','U'].includes(char.toUpperCase()),
-        generateChar: () => ['A','B','E','F','I','K','O','P','U'][Math.floor(Math.random() * 9)]
-      };
+      if (currentMode === "edu") {
+        if (eduGrade == 1) {
+          return {
+            title: `FASE ${stage}: VOGAIS (1º ANO)`,
+            instruction: "ATENÇÃO: Destrua APENAS as VOGAIS!",
+            isValid: (char) => ['A','E','I','O','U'].includes(char.toUpperCase()),
+            generateChar: () => ['A','B','E','F','I','K','O','P','U','M'][Math.floor(Math.random() * 10)]
+          };
+        } else if (eduGrade == 2) {
+          return {
+            title: `FASE ${stage}: NÚMEROS PARES (2º ANO)`,
+            instruction: "ATENÇÃO: Destrua APENAS NÚMEROS PARES!",
+            isValid: (char) => !isNaN(char) && parseInt(char) % 2 === 0,
+            generateChar: () => ['1','2','3','4','5','6','7','8','9'][Math.floor(Math.random() * 9)]
+          };
+        } else if (eduGrade == 3) {
+          return {
+            title: `FASE ${stage}: SÍLABAS COM 'B' (3º ANO)`,
+            instruction: "ATENÇÃO: Destrua as SÍLABAS iniciadas com 'B'!",
+            isValid: (char) => char.startsWith('B') || char.startsWith('b'),
+            generateChar: () => ['BA','CA','BE','DA','BO','FA','BU','LA'][Math.floor(Math.random() * 8)]
+          };
+        } else {
+          return {
+            title: `FASE ${stage}: NÚMEROS MÚLTIPLOS DE 3`,
+            instruction: "ATENÇÃO: Destrua apenas MÚLTIPLOS de 3!",
+            isValid: (char) => !isNaN(char) && parseInt(char) % 3 === 0,
+            generateChar: () => ['3','4','6','7','9','10','12','14','15'][Math.floor(Math.random() * 9)]
+          };
+        }
+      } else {
+        // Modo Supletivo
+        if (supletivoSubject === 'matematica') {
+          return {
+            title: `FASE ${stage}: NÚMEROS PRIMOS / PARES`,
+            instruction: "ATENÇÃO: Destrua APENAS os NÚMEROS PARES!",
+            isValid: (char) => !isNaN(char) && parseInt(char) % 2 === 0,
+            generateChar: () => ['2','3','5','7','8','11','12','13','14'][Math.floor(Math.random() * 9)]
+          };
+        } else {
+          return {
+            title: `FASE ${stage}: SUBSTANTIVOS / VOGAIS`,
+            instruction: "ATENÇÃO: Destrua APENAS as MAIÚSCULAS!",
+            isValid: (char) => char === char.toUpperCase() && isNaN(char),
+            generateChar: () => ['A','b','C','d','E','f','G','h'][Math.floor(Math.random() * 8)]
+          };
+        }
+      }
     }
 
     const enemies = [];
     let aerialVehicle = { x: -100, y: 80, speed: 1.5, type: 'plane' };
 
+    // --- NAVEGAÇÃO DE MENUS E ESTADOS ---
+    function goToMainMenu() {
+      panelIntroStory.style.display = "none";
+      panelEduSetup.style.display = "none";
+      panelSupletivoSetup.style.display = "none";
+      panelMainMenu.style.display = "flex";
+      isCutsceneActive = false;
+    }
+
+    function openEduSetup() {
+      const nameInput = document.getElementById("input-player-name").value.trim();
+      if (nameInput) playerName = nameInput;
+      panelMainMenu.style.display = "none";
+      panelEduSetup.style.display = "flex";
+    }
+
+    function openSupletivoSetup() {
+      const nameInput = document.getElementById("input-player-name").value.trim();
+      if (nameInput) playerName = nameInput;
+      panelMainMenu.style.display = "none";
+      panelSupletivoSetup.style.display = "flex";
+    }
+
+    function startEduGame() {
+      currentMode = "edu";
+      playerAge = parseInt(document.getElementById("input-edu-age").value) || 8;
+      eduGrade = parseInt(document.getElementById("select-edu-grade").value) || 1;
+      panelEduSetup.style.display = "none";
+      prepareStage();
+    }
+
+    // --- MODO SUPLETIVO: TREINAMENTO & QUESTIONÁRIO ---
+    function startSupletivoTraining() {
+      currentMode = "supletivo";
+      supletivoGrade = document.getElementById("select-supletivo-grade").value;
+      supletivoSubject = document.getElementById("select-supletivo-subject").value;
+      panelSupletivoSetup.style.display = "none";
+      
+      const titleElem = document.getElementById("training-title");
+      const contentElem = document.getElementById("training-content");
+
+      titleElem.innerText = `📖 TREINAMENTO: ${supletivoSubject.toUpperCase()}`;
+      
+      let resumoHtml = "";
+      if (supletivoSubject === "portugues") {
+        resumoHtml = `
+          <p><strong>Acentuação e Ortografia Básica:</strong></p>
+          <ul>
+            <li><strong>Oxítonas:</strong> Palavras com a última sílaba forte (Ex: Café, Cipó).</li>
+            <li><strong>Paroxítonas:</strong> Palavras com a penúltima sílaba forte (Ex: Fácil, Lápis).</li>
+            <li><strong>Proparoxítonas:</strong> TODAS são acentuadas (Ex: Lâmpada, Médico).</li>
+          </ul>
+        `;
+      } else if (supletivoSubject === "matematica") {
+        resumoHtml = `
+          <p><strong>Regra de Três e Porcentagem:</strong></p>
+          <ul>
+            <li><strong>Porcentagem (%):</strong> Representa uma fração de base 100. (Ex: 20% de 50 = 0.20 x 50 = 10).</li>
+            <li><strong>Equações Básicas:</strong> Isolamos a incógnita (x) trocando o sinal ao mudar de lado. Ex: x + 5 = 12 ➔ x = 7.</li>
+          </ul>
+        `;
+      } else {
+        resumoHtml = `
+          <p><strong>Ciências e História Básica:</strong></p>
+          <ul>
+            <li><strong>Fotossíntese:</strong> Processo pelo qual as plantas usam a luz do Sol para produzir energia.</li>
+            <li><strong>Ciclo da Água:</strong> Evaporação, Condensação (nuvens) e Precipitação (chuva).</li>
+          </ul>
+        `;
+      }
+
+      contentElem.innerHTML = resumoHtml;
+      panelSupletivoTraining.style.display = "flex";
+
+      // Cronômetro de 10 minutos
+      trainingTimeSeconds = 600;
+      if (trainingTimerInterval) clearInterval(trainingTimerInterval);
+      trainingTimerInterval = setInterval(() => {
+        trainingTimeSeconds--;
+        const m = Math.floor(trainingTimeSeconds / 60);
+        const s = trainingTimeSeconds % 60;
+        document.getElementById("training-timer-text").innerText = `Tempo Restante de Treino: ${m}:${s < 10 ? '0' : ''}${s}`;
+        if (trainingTimeSeconds <= 0) {
+          clearInterval(trainingTimerInterval);
+          startSupletivoQuiz();
+        }
+      }, 1000);
+    }
+
+    function startSupletivoQuiz() {
+      if (trainingTimerInterval) clearInterval(trainingTimerInterval);
+      panelSupletivoTraining.style.display = "none";
+      panelSupletivoQuiz.style.display = "flex";
+
+      const qText = document.getElementById("quiz-question-text");
+      const optionsBox = document.getElementById("quiz-options-container");
+      optionsBox.innerHTML = "";
+
+      let questionData = {};
+
+      if (supletivoSubject === "portugues") {
+        questionData = {
+          q: "Qual das seguintes palavras é uma Proparoxítona e deve receber acento?",
+          opts: ["A) Medico", "B) Cafe", "C) Papel", "D) Parede"],
+          correct: 0
+        };
+      } else if (supletivoSubject === "matematica") {
+        questionData = {
+          q: "Quanto é 20% de 100?",
+          opts: ["A) 10", "B) 20", "C) 50", "D) 5"],
+          correct: 1
+        };
+      } else {
+        questionData = {
+          q: "Qual é o processo em que as plantas transformam luz solar em energia?",
+          opts: ["A) Respiração", "B) Evaporação", "C) Fotossíntese", "D) Digestão"],
+          correct: 2
+        };
+      }
+
+      qText.innerText = questionData.q;
+      questionData.opts.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "quiz-option-btn";
+        btn.innerText = opt;
+        btn.onclick = () => {
+          if (idx === questionData.correct) {
+            alert("Parabéns! Resposta Correta! Vamos para a Fase de Divertimento!");
+            panelSupletivoQuiz.style.display = "none";
+            prepareStage();
+          } else {
+            alert("Resposta incorreta! Tente novamente o treinamento!");
+            panelSupletivoQuiz.style.display = "none";
+            startSupletivoTraining();
+          }
+        };
+        optionsBox.appendChild(btn);
+      });
+    }
+
+    // --- PREPARAÇÃO E EXECUÇÃO DO JOGO ARCADE ---
     function prepareStage() {
       enemies.length = 0;
       const currentRule = getRuleForStage(currentStage);
@@ -348,7 +627,7 @@
       stageInstruction.innerText = currentRule.instruction;
       
       const topRecord = getTopScores()[0] || { name: 'Ninguém', score: 0 };
-      stageScoreInfo.innerHTML = `Pontuação Atual: <strong>${score}</strong><br>Recorde do Jogo: <strong>${topRecord.score}</strong> (${topRecord.name})`;
+      stageScoreInfo.innerHTML = `Jogador: <strong>${playerName}</strong><br>Pontuação Atual: <strong>${score}</strong><br>Recorde do Jogo: <strong>${topRecord.score}</strong> (${topRecord.name})`;
       
       panelStageStart.style.display = "flex";
       panelGameOver.style.display = "none";
@@ -359,7 +638,6 @@
         aerialVehicle = { x: -80, y: 60 + Math.random() * 40, speed: 1.2 + Math.random() * 0.8, type: symbolType };
       }
 
-      // Gera Caderno aleatório na fase
       if (Math.random() > 0.3) {
         notebookItem = { x: 200 + Math.random() * 400, y: groundY - 30, width: 25, height: 25, active: true };
       } else {
@@ -382,27 +660,18 @@
     function startStage() {
       if (audioCtx.state === 'suspended') audioCtx.resume();
       panelStageStart.style.display = "none";
-      
-      if (currentStage === 1) {
-        isIntroPlaying = true;
-        ufoState = { x: -100, y: 80, beamOpacity: 0, playerY: 80, step: 0 };
-        playSound('ufo');
-        speakText("Doutor Chácara foi trazido pelo Disco Voador. Prepare-se!");
-      } else {
-        stageStarted = true;
-        const currentRule = getRuleForStage(currentStage);
-        speakText(`${currentRule.title}. ${currentRule.instruction}`);
-      }
+      stageStarted = true;
+      const currentRule = getRuleForStage(currentStage);
+      speakText(`${currentRule.title}. ${currentRule.instruction}`);
     }
 
     btnStartAction.addEventListener("click", startStage);
-    btnSaveScore.addEventListener("click", saveScoreAndRestart);
 
-    // CRONÔMETRO DE JOGO (JALECO VERDE A CADA 5 MINUTOS)
+    // CRONÔMETRO DE JOGO (JALECO VERDE)
     setInterval(() => {
-      if (stageStarted && !gameOver && !isIntroPlaying) {
+      if (stageStarted && !gameOver && !isCutsceneActive) {
         gameTimerSeconds++;
-        if (gameTimerSeconds % 300 === 0) { // 300 segundos = 5 minutos
+        if (gameTimerSeconds % 300 === 0) { // 5 minutos
           greenCoatItem = { x: 300 + Math.random() * 200, y: groundY - 35, width: 30, height: 30, active: true };
         }
       }
@@ -427,7 +696,7 @@
       keys[e.code] = true;
     });
 
-    // TRANSIÇÃO DE FASE INTERATIVA (YOUTUBE)
+    // INTERAÇÃO YOUTUBE
     function openYoutubePromo() {
       document.getElementById("yt-feedback-msg").innerText = "";
       panelYtPromo.style.display = "flex";
@@ -476,14 +745,15 @@
       `).join('') || '<div>Nenhum recorde ainda!</div>';
     }
 
-    function saveScoreAndRestart() {
-      const name = playerNameInput.value.trim() || "Jogador";
-      const scores = getTopScores();
-      scores.push({ name: name, score: score });
-      scores.sort((a, b) => b.score - a.score);
-      const top10 = scores.slice(0, 10);
-      localStorage.setItem("dr_chacara_scores", JSON.stringify(top10));
-
+    function confirmSaveScore(shouldSave) {
+      if (shouldSave) {
+        const scores = getTopScores();
+        scores.push({ name: playerName || "Jogador", score: score });
+        scores.sort((a, b) => b.score - a.score);
+        const top10 = scores.slice(0, 10);
+        localStorage.setItem("dr_chacara_scores", JSON.stringify(top10));
+        alert("Pontuação salva com sucesso no Top 10!");
+      }
       resetGame();
     }
 
@@ -492,7 +762,6 @@
       collisionAnimTimer = 0;
       mockingEnemy = enemyRef;
       
-      // Escolhe frase positiva aleatória para o jogador
       playerSpeechBubble = positiveFrases[Math.floor(Math.random() * positiveFrases.length)];
       enemySpeechBubble = "Você não consegue me vencer! Kkkk";
       
@@ -501,13 +770,14 @@
 
       let animInterval = setInterval(() => {
         collisionAnimTimer += 0.2;
-        if (mockingEnemy) mockingEnemy.mockOffset = Math.sin(collisionAnimTimer * 5) * 8; // Animação da letra mangando
+        if (mockingEnemy) mockingEnemy.mockOffset = Math.sin(collisionAnimTimer * 5) * 8;
         
         if (collisionAnimTimer >= 3.5) {
           clearInterval(animInterval);
           collisionAnimationActive = false;
           gameOver = true;
           document.getElementById("game-over-reason").innerText = reason;
+          displayPlayerName.innerText = playerName;
           finalScoreTxt.innerText = score;
           renderLeaderboard();
           panelGameOver.style.display = "flex";
@@ -566,37 +836,27 @@
       gameOver = false; score = 0; currentStage = 1; gameTimerSeconds = 0;
       player.x = 50; player.y = groundY - player.height; player.vx = 0; player.vy = 0;
       player.hasGreenCoat = false; player.shieldPowerUp = false;
-      prepareStage();
+      goToMainMenu();
     }
 
     const keys = {};
     window.addEventListener("keyup", (e) => { keys[e.code] = false; });
 
-    function updateIntro() {
-      if (!isIntroPlaying) return;
-
-      if (ufoState.step === 0) {
-        ufoState.x += 3;
-        if (ufoState.x >= 100) ufoState.step = 1;
-      } else if (ufoState.step === 1) {
-        ufoState.beamOpacity += 0.05;
-        if (ufoState.beamOpacity >= 1) ufoState.step = 2;
-      } else if (ufoState.step === 2) {
-        ufoState.playerY += 2.5;
-        if (ufoState.playerY >= groundY - player.height) {
-          ufoState.playerY = groundY - player.height;
-          ufoState.step = 3;
-        }
-      } else if (ufoState.step === 3) {
-        ufoState.beamOpacity -= 0.05;
-        if (ufoState.beamOpacity <= 0) {
-          ufoState.x += 4;
-          if (ufoState.x > canvas.width + 100) {
-            isIntroPlaying = false;
-            stageStarted = true;
-            player.x = 100; player.y = groundY - player.height;
-            const currentRule = getRuleForStage(currentStage);
-            speakText(`${currentRule.title}. ${currentRule.instruction}`);
+    // ANIMAÇÃO CUTSCENE (CHÁCARA & DISCO VOADOR)
+    function updateCutscene() {
+      if (!isCutsceneActive) return;
+      if (cutsceneStep === 0) {
+        ufoCutscene.x += 2.5;
+        if (ufoCutscene.x >= 380) cutsceneStep = 1;
+      } else if (cutsceneStep === 1) {
+        ufoCutscene.beam += 0.05;
+        if (ufoCutscene.beam >= 1) cutsceneStep = 2;
+      } else if (cutsceneStep === 2) {
+        ufoCutscene.beam -= 0.05;
+        if (ufoCutscene.beam <= 0) {
+          ufoCutscene.x += 4;
+          if (ufoCutscene.x > canvas.width + 100) {
+            cutsceneStep = 3;
           }
         }
       }
@@ -605,12 +865,13 @@
     function update() {
       sunAngle += 0.01;
 
+      if (isCutsceneActive) { updateCutscene(); return; }
+
       if (currentStage > 1) {
         aerialVehicle.x += aerialVehicle.speed;
         if (aerialVehicle.x > canvas.width + 100) aerialVehicle.x = -100;
       }
 
-      if (isIntroPlaying) { updateIntro(); return; }
       if (gameOver || !stageStarted || collisionAnimationActive) return;
 
       const moveX = joyVector.x || (keys["ArrowRight"] ? 1 : keys["ArrowLeft"] ? -1 : 0);
@@ -645,7 +906,6 @@
 
       if (player.x < 0) player.x = 0;
 
-      // Coleta do Caderno (Power-up Escudo Longo)
       if (notebookItem && notebookItem.active) {
         if (player.x < notebookItem.x + notebookItem.width && player.x + player.width > notebookItem.x &&
             player.y < notebookItem.y + notebookItem.height && player.y + player.height > notebookItem.y) {
@@ -655,7 +915,6 @@
         }
       }
 
-      // Coleta do Jaleco Verde (Invencibilidade)
       if (greenCoatItem && greenCoatItem.active) {
         if (player.x < greenCoatItem.x + greenCoatItem.width && player.x + player.width > greenCoatItem.x &&
             player.y < greenCoatItem.y + greenCoatItem.height && player.y + player.height > greenCoatItem.y) {
@@ -665,7 +924,6 @@
         }
       }
 
-      // Conclusão da Fase (Gatilho da Tela Interativa do YouTube)
       if (player.x + player.width >= canvas.width) {
         if (currentStage < maxStages) {
           stageStarted = false;
@@ -676,7 +934,6 @@
         }
       }
 
-      // Ataque do Escudo
       if (player.attacking) {
         player.attackTimer--;
         const maxLen = player.shieldPowerUp ? weapon.baseMaxLength * 1.5 : weapon.baseMaxLength;
@@ -696,14 +953,12 @@
         if (player.attackTimer <= 0) player.attacking = false;
       }
 
-      // Inimigos e Colisão
       enemies.forEach(enemy => {
         if (!enemy.alive) return;
 
         enemy.x += enemy.speed * enemy.dir;
         if (enemy.x < -50) enemy.x = canvas.width + 50;
 
-        // Escudo atinge o inimigo
         if (player.attacking) {
           const hit = (enemy.x < weapon.x + 20 && enemy.x + enemy.width > weapon.x - 20 &&
                        enemy.y < weapon.y + 20 && enemy.y + enemy.height > weapon.y - 20);
@@ -720,7 +975,6 @@
           }
         }
 
-        // Toque entre Letra e Personagem
         const padding = 5;
         const playerBox = { left: player.x + padding, right: player.x + player.width - padding, top: player.y + padding, bottom: player.y + player.height };
         const enemyBox = { left: enemy.x + padding, right: enemy.x + enemy.width - padding, top: enemy.y + padding, bottom: enemy.y + enemy.height };
@@ -730,9 +984,8 @@
             playerBox.top < enemyBox.bottom && playerBox.bottom > enemyBox.top) {
           
           if (player.hasGreenCoat) {
-            // Proteção do Jaleco Verde absorve o choque
             player.hasGreenCoat = false;
-            enemy.x += 80; // Empurra a letra de volta
+            enemy.x += 80;
             playSound('powerup');
           } else {
             enemy.expression = 'happy';
@@ -742,7 +995,6 @@
       });
     }
 
-    // BALÃO DE FALA GRANDE (3X MAIOR)
     function drawSpeechBubble(x, y, text, scaleFactor, isPlayer) {
       ctx.save();
       ctx.translate(x, y);
@@ -752,15 +1004,12 @@
       const bw = Math.max(textWidth + 20, 100) * scaleFactor;
       const bh = 45 * scaleFactor;
 
-      ctx.fillStyle = "#ffffff";
-      ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 2;
+      ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#000000"; ctx.lineWidth = 2;
 
       ctx.beginPath();
       ctx.roundRect(-bw / 2, -bh - 15, bw, bh, 10);
       ctx.fill(); ctx.stroke();
 
-      // Rabicho do Balão
       ctx.beginPath();
       ctx.moveTo(-5, -15); ctx.lineTo(0, 0); ctx.lineTo(5, -15);
       ctx.fill(); ctx.stroke();
@@ -829,21 +1078,16 @@
       const w = player.shieldPowerUp ? 45 : 35;
       const h = player.shieldPowerUp ? 52 : 42;
       ctx.fillStyle = player.shieldPowerUp ? "#ffcc00" : "#00ffcc";
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
 
       ctx.beginPath();
-      ctx.moveTo(-w/2, -h/2);
-      ctx.lineTo(w/2, -h/2);
-      ctx.lineTo(w/2, 0);
+      ctx.moveTo(-w/2, -h/2); ctx.lineTo(w/2, -h/2); ctx.lineTo(w/2, 0);
       ctx.quadraticCurveTo(w/2, h/2, 0, h/2 + 5);
       ctx.quadraticCurveTo(-w/2, h/2, -w/2, 0);
       ctx.closePath();
       ctx.fill(); ctx.stroke();
 
-      ctx.fillStyle = "#000000";
-      ctx.font = "bold 10px 'Segoe UI'";
-      ctx.textAlign = "center";
+      ctx.fillStyle = "#000000"; ctx.font = "bold 10px 'Segoe UI'"; ctx.textAlign = "center";
       ctx.fillText("Dr.", 0, -5);
       ctx.font = "bold 8px 'Segoe UI'";
       ctx.fillText("Chácara", 0, 8);
@@ -851,7 +1095,6 @@
       ctx.restore();
     }
 
-    // PERSONAGEM DR. CHÁCARA COM ANIMAÇÃO DE PERNAS REALISTA
     function drawDrChacaraSide(x, y, facing, crouching) {
       ctx.save();
       ctx.translate(x + player.width / 2, y);
@@ -861,17 +1104,14 @@
       const armAngle = Math.sin(walkCycle) * 30;
       const h = crouching ? 45 : 65;
 
-      // Animação Alternada das Pernas
       ctx.strokeStyle = "#1a1a24"; ctx.lineWidth = 6; ctx.lineCap = "round";
       ctx.beginPath(); ctx.moveTo(-3, h - 25); ctx.lineTo(-3 - Math.sin((-legAngle * Math.PI)/180) * 16, h); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(3, h - 25); ctx.lineTo(3 + Math.sin((legAngle * Math.PI)/180) * 16, h); ctx.stroke();
 
-      // Tronco e Jaleco (Muda para verde se tiver o Jaleco Especial)
       ctx.fillStyle = "#0066cc"; ctx.fillRect(-7, crouching ? 15 : 18, 14, 22);
       ctx.fillStyle = player.hasGreenCoat ? "#00ff66" : "#ffffff"; 
       ctx.fillRect(-9, crouching ? 10 : 16, 18, crouching ? 18 : 26);
 
-      // Rosto
       ctx.fillStyle = "#f3c099"; ctx.fillRect(-3, 0, 15, 16);
       ctx.fillStyle = "#111111"; ctx.fillRect(-5, -1, 16, 4);
       ctx.fillStyle = "#5A5A66"; ctx.fillRect(-6, -6, 18, 6);
@@ -879,7 +1119,6 @@
       ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.strokeRect(3, 3, 6, 5);
       ctx.beginPath(); ctx.moveTo(-3, 5); ctx.lineTo(3, 5); ctx.stroke();
 
-      // Braços
       ctx.strokeStyle = "#f3c099"; ctx.lineWidth = 4;
       ctx.beginPath(); ctx.moveTo(-3, crouching ? 18 : 22); ctx.lineTo(-3 - Math.sin((armAngle * Math.PI)/180) * 12, (crouching ? 18 : 22) + 12); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(3, crouching ? 18 : 22); ctx.lineTo(3 + Math.sin((armAngle * Math.PI)/180) * 12, (crouching ? 18 : 22) + 12); ctx.stroke();
@@ -920,41 +1159,50 @@
 
       drawAnimatedSun(680, 120, 42);
 
+      // DESENHO DA CUTSCENE INICIAL (CHÁCARA & DISCO VOADOR)
+      if (isCutsceneActive) {
+        // Terreno da Chácara com plantinhas
+        ctx.fillStyle = "#2d5a27"; ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+        ctx.fillStyle = "#ffcc00"; ctx.font = "20px sans-serif";
+        for (let p = 50; p < canvas.width; p += 80) {
+          ctx.fillText("🌱", p, groundY - 5);
+        }
+
+        // Dr. Chácara Cuidando da Chácara
+        drawDrChacaraSide(380, groundY - player.height, 'right', false);
+
+        // Disco Voador
+        if (ufoCutscene.beam > 0) {
+          ctx.fillStyle = `rgba(0, 255, 204, ${ufoCutscene.beam * 0.5})`;
+          ctx.beginPath();
+          ctx.moveTo(ufoCutscene.x - 15, ufoCutscene.y); ctx.lineTo(ufoCutscene.x + 15, ufoCutscene.y);
+          ctx.lineTo(ufoCutscene.x + 50, groundY); ctx.lineTo(ufoCutscene.x - 50, groundY);
+          ctx.closePath(); ctx.fill();
+        }
+
+        ctx.fillStyle = "#00ffcc"; ctx.beginPath(); ctx.ellipse(ufoCutscene.x, ufoCutscene.y, 35, 12, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(ufoCutscene.x, ufoCutscene.y - 6, 15, 0, Math.PI, true); ctx.fill();
+        return;
+      }
+
       if (currentStage > 1) drawAerialVehicle(aerialVehicle);
 
       ctx.fillStyle = "#26150d"; ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
       ctx.fillStyle = "#00ffcc"; ctx.fillRect(0, groundY, canvas.width, 3);
 
-      // Desenho do Caderno (Power-up)
       if (notebookItem && notebookItem.active) {
         ctx.fillStyle = "#0088ff"; ctx.fillRect(notebookItem.x, notebookItem.y, notebookItem.width, notebookItem.height);
         ctx.fillStyle = "#fff"; ctx.font = "bold 10px sans-serif"; ctx.fillText("📖", notebookItem.x + 5, notebookItem.y + 16);
       }
 
-      // Desenho do Jaleco Verde (Power-up)
       if (greenCoatItem && greenCoatItem.active) {
         ctx.fillStyle = "#00ff66"; ctx.fillRect(greenCoatItem.x, greenCoatItem.y, greenCoatItem.width, greenCoatItem.height);
         ctx.fillStyle = "#000"; ctx.font = "bold 10px sans-serif"; ctx.fillText("🥼", greenCoatItem.x + 6, greenCoatItem.y + 18);
       }
 
-      if (isIntroPlaying) {
-        if (ufoState.beamOpacity > 0) {
-          ctx.fillStyle = `rgba(0, 255, 204, ${ufoState.beamOpacity * 0.4})`;
-          ctx.beginPath();
-          ctx.moveTo(ufoState.x - 15, ufoState.y); ctx.lineTo(ufoState.x + 15, ufoState.y);
-          ctx.lineTo(ufoState.x + 45, groundY); ctx.lineTo(ufoState.x - 45, groundY);
-          ctx.closePath(); ctx.fill();
-        }
+      drawDrChacaraSide(player.x, player.y, player.facing, player.crouching);
 
-        ctx.fillStyle = "#00ffcc"; ctx.beginPath(); ctx.ellipse(ufoState.x, ufoState.y, 35, 12, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(ufoState.x, ufoState.y - 6, 15, 0, Math.PI, true); ctx.fill();
-
-        drawDrChacaraSide(ufoState.x - player.width / 2, ufoState.playerY, 'right', false);
-      } else {
-        drawDrChacaraSide(player.x, player.y, player.facing, player.crouching);
-      }
-
-      if (player.attacking && !isIntroPlaying) {
+      if (player.attacking) {
         ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 4; ctx.beginPath();
         ctx.moveTo(player.x + player.width / 2, player.y + 25); ctx.lineTo(weapon.x, weapon.y); ctx.stroke();
         drawShieldWeapon(weapon.x, weapon.y);
@@ -962,7 +1210,6 @@
 
       enemies.forEach(enemy => drawLetterEnemy(enemy));
 
-      // DESENHO DOS BALÕES DE FALA (3X MAIORES) EM COLISÃO
       if (collisionAnimationActive) {
         drawSpeechBubble(player.x + player.width / 2, player.y - 20, playerSpeechBubble, 1.8, true);
         if (mockingEnemy) {
@@ -973,12 +1220,11 @@
       const currentRule = getRuleForStage(currentStage);
       ctx.fillStyle = "#ffffff"; ctx.font = "bold 16px 'Segoe UI'"; ctx.textAlign = "left";
       ctx.fillText(`${currentRule.title}`, 20, 30);
+      ctx.fillText(`JOGADOR: ${playerName}`, 350, 30);
       ctx.fillText(`PONTOS: ${score}`, 650, 30);
     }
 
     function loop() { update(); draw(); requestAnimationFrame(loop); }
-    
-    prepareStage();
     loop();
   </script>
 </body>
