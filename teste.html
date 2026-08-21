@@ -1,45 +1,80 @@
 ```html
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Teste Final Fight</title>
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Teste Doutor Chácara Retro</title>
 
 <style>
-html, body {
+
+html,
+body {
+
     margin: 0;
     padding: 0;
+
     width: 100%;
     height: 100%;
+
     background: #000;
+
     overflow: hidden;
+
 }
 
 #game {
+
     width: 100%;
     height: 100%;
+
 }
+
 </style>
+
 </head>
 
 <body>
 
 <div id="game"></div>
 
+
 <script>
-EJS_player = "#game";
-EJS_core = "mame";
-EJS_gameUrl = "./FFIGHT.zip";
-EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
-EJS_startOnLoaded = true;
-EJS_defaultControls = true;
-EJS_gamepadType = "standard";
+
+window.EJS_player = "#game";
+
+window.EJS_core = "mame";
+
+window.EJS_gameUrl =
+    "https://jhonefaa.github.io/doutorchacara-retro/FFIGHT.zip";
+
+window.EJS_pathtodata =
+    "https://cdn.emulatorjs.org/stable/data/";
+
+window.EJS_startOnLoaded = true;
+
+window.EJS_defaultControls = true;
+
+window.EJS_gamepadType = "standard";
+
+window.EJS_language = "pt-BR";
+
 </script>
 
-<script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+
+<script
+    src="https://cdn.emulatorjs.org/stable/data/loader.js">
+</script>
+
 
 </body>
+
 </html>
 ```
