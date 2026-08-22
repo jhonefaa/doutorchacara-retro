@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Doutor Chácara - Alfabetização Arcade Mobile v1.12</title>
+  <title>Doutor Chácara - Alfabetização Arcade Mobile v1.13</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
     html, body {
@@ -86,12 +86,12 @@
     /* PAINÉIS OVERLAY SOBREPOSIÇÃO SUPER TRANSPARENTES */
     .overlay-panel {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: rgba(10, 10, 18, 0.45); 
+      background: rgba(10, 10, 18, 0.85); 
       backdrop-filter: blur(12px);
       border: 1px solid rgba(0, 255, 204, 0.4);
       border-radius: 20px; padding: 20px; box-shadow: 0 0 25px rgba(0, 255, 204, 0.2);
       z-index: 2000; display: none; flex-direction: column; align-items: center; gap: 12px;
-      width: 90%; max-width: 460px; color: #fff;
+      width: 90%; max-width: 480px; color: #fff;
     }
 
     .overlay-panel h2 { color: #00ffcc; font-size: 1.3rem; text-shadow: 0 0 6px #000; }
@@ -101,22 +101,29 @@
       background: rgba(0, 255, 204, 0.65); color: #000; font-size: 0.95rem; font-weight: bold;
       padding: 8px 20px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.4); cursor: pointer;
       box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); margin: 3px;
-      width: 100%; max-width: 300px; backdrop-filter: blur(4px);
+      width: 100%; max-width: 320px; backdrop-filter: blur(4px);
     }
 
     .btn-sub {
       background: rgba(255, 0, 85, 0.65); color: #fff; font-size: 0.9rem; font-weight: bold;
       padding: 8px 18px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.4); cursor: pointer;
       box-shadow: 0 0 8px rgba(255, 0, 85, 0.3); margin: 3px;
-      width: 100%; max-width: 300px; backdrop-filter: blur(4px);
+      width: 100%; max-width: 320px; backdrop-filter: blur(4px);
     }
 
     .btn-back {
       background: rgba(255, 204, 0, 0.7); color: #000; font-size: 0.9rem; font-weight: bold;
       padding: 8px 18px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.4); cursor: pointer;
-      box-shadow: 0 0 10px rgba(255, 204, 0, 0.4); margin-top: 8px; width: 100%; max-width: 300px;
+      box-shadow: 0 0 10px rgba(255, 204, 0, 0.4); margin-top: 8px; width: 100%; max-width: 320px;
       backdrop-filter: blur(4px);
     }
+
+    .btn-option {
+      background: rgba(0, 150, 255, 0.6); color: #fff; font-size: 0.85rem; font-weight: bold;
+      padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(0, 255, 204, 0.5); cursor: pointer;
+      width: 100%; max-width: 380px; text-align: left; transition: background 0.2s;
+    }
+    .btn-option:hover { background: rgba(0, 255, 204, 0.8); color: #000; }
 
     .btn-group { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
 
@@ -209,6 +216,14 @@
       <p id="stage-instruction">Destrua os alvos solicitados!</p>
       <div id="stage-score-info"></div>
       <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
+    </div>
+
+    <!-- PAINEL QUIZ SEMI-MESTRE (DIÁLOGO) -->
+    <div id="panel-boss-quiz" class="overlay-panel">
+      <h2 id="quiz-boss-name" style="color: #ff0055;">SEMI-MESTRE LETRA A</h2>
+      <p id="quiz-progress-text" style="color: #ffcc00; font-weight: bold;">Pergunta 1 de 5</p>
+      <p id="quiz-question-text" style="font-size: 1rem; font-weight: bold; margin: 5px 0;"></p>
+      <div class="btn-group" id="quiz-options-container"></div>
     </div>
 
     <!-- PAINEL INTERAÇÃO YOUTUBE (TRANSIÇÃO DE FASE) -->
@@ -321,6 +336,7 @@
     const panelKeyConfig = document.getElementById("panel-key-config");
     const panelPixOverlay = document.getElementById("panel-pix-overlay");
     const panelCommentsOverlay = document.getElementById("panel-comments-overlay");
+    const panelBossQuiz = document.getElementById("panel-boss-quiz");
     
     const stageTitle = document.getElementById("stage-title");
     const stageInstruction = document.getElementById("stage-instruction");
@@ -338,6 +354,27 @@
     let isMusicEnabled = true;
     let isVoiceEnabled = true;
 
+    // VARIÁVEIS DO SEMI-MESTRE
+    let bossActive = false;
+    let bossState = "none"; // 'quiz', 'walking', 'defeated'
+    let currentBossChar = "A";
+    let bossQuizIndex = 0;
+    let bossQuizQuestions = [];
+    let bossEnemy = null;
+
+    const portugueseQuestionsBank = [
+      { q: "Qual das palavras abaixo possui um DÍGRAFO?", options: ["Chuva", "Prato", "Escola", "Pedra"], correct: 0 },
+      { q: "Assinale a alternativa que contém apenas VOGAIS:", options: ["A, E, I, O, U", "A, B, C, D, E", "B, C, D, F, G", "A, E, I, F, U"], correct: 0 },
+      { q: "Qual palavra é uma PROPAROXÍTONA?", options: ["Lâmpada", "Café", "Mesa", "Computador"], correct: 0 },
+      { q: "Qual das palavras contém um ENCONTRO VOCÁLICO?", options: ["Peixe", "Gato", "Cachorro", "Livro"], correct: 0 },
+      { q: "Em 'O menino correu rápido', qual palavra é um ADJETIVO?", options: ["Rápido", "Menino", "Correu", "O"], correct: 0 },
+      { q: "A sílaba tônica da palavra 'CAFÉ' fica na última sílaba. Ela é:", options: ["Oxítona", "Paroxítona", "Proparoxítona", "Monossílaba"], correct: 0 },
+      { q: "Qual é o PLURAL correto da palavra 'Cão'?", options: ["Cães", "Cãos", "Cãoses", "Cãis"], correct: 0 },
+      { q: "Qual palavra está grafada CORRETAMENTE?", options: ["Exceção", "Eseção", "Exseção", "Exceçào"], correct: 0 },
+      { q: "Quantas sílabas tem a palavra 'ALFABETIZAÇÃO'?", options: ["6 sílabas", "5 sílabas", "4 sílabas", "7 sílabas"], correct: 0 },
+      { q: "Qual das palavras abaixo é um SUBSTANTIVO PROPRIO?", options: ["Brasil", "cidade", "menino", "país"], correct: 0 }
+    ];
+
     function closeAllPanels() {
       panelStageStart.style.display = "none";
       panelGameOver.style.display = "none";
@@ -347,6 +384,7 @@
       panelKeyConfig.style.display = "none";
       panelPixOverlay.style.display = "none";
       panelCommentsOverlay.style.display = "none";
+      panelBossQuiz.style.display = "none";
     }
 
     function openYoutubeChannel() {
@@ -538,7 +576,15 @@
       osc.connect(gain);
       gain.connect(audioCtx.destination);
 
-      if (type === 'attack') {
+      if (type === 'jump') {
+        // SOM CARACTERÍSTICO "FUUUL" DO PULO
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(750, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'attack') {
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(600, audioCtx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
@@ -655,6 +701,14 @@
       bigShieldActive: false
     };
 
+    function triggerPlayerJump() {
+      if (player.grounded && stageStarted && !gameOver) {
+        player.vy = -12;
+        player.grounded = false;
+        playSound('jump');
+      }
+    }
+
     const gravity = 0.65;
     const weapon = { x: 0, y: 0, length: 0, baseMaxLength: 140 };
 
@@ -706,6 +760,40 @@
       enemies.length = 0;
       darts.length = 0;
       closeAllPanels();
+      bossActive = false;
+      bossState = "none";
+      bossEnemy = null;
+
+      const groundY = getGroundY();
+
+      // VERIFICA SE É FASE DE SEMI-MESTRE (A CADA 5 FASES)
+      if (currentStage % 5 === 0) {
+        bossActive = true;
+        const bossCharIndex = (currentStage / 5) - 1;
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        currentBossChar = alphabet[bossCharIndex % alphabet.length];
+
+        stageTitle.innerText = `FASE ${currentStage}: BATALHA DO SEMI-MESTRE LETRA ${currentBossChar}`;
+        stageInstruction.innerText = `Derrote o Semi-Mestre ${currentBossChar} respondendo 5 perguntas e usando seu ESCUDO!`;
+        
+        const topRecord = getTopScores()[0] || { name: 'Ninguém', score: 0 };
+        stageScoreInfo.innerHTML = `Pontuação Atual: <strong>${score}</strong><br>Recorde do Jogo: <strong>${topRecord.score}</strong> (${topRecord.name})`;
+        panelStageStart.style.display = "flex";
+
+        // CRIA O SEMI-MESTRE DUPOMENTE MAIOR (66px x 143px)
+        bossEnemy = {
+          x: canvas.width - 160,
+          y: groundY - 143,
+          width: 66,
+          height: 143,
+          symbol: currentBossChar,
+          speed: 2.2,
+          alive: true,
+          expression: 'normal'
+        };
+        return;
+      }
+
       const currentRule = getRuleForStage(currentStage);
       stageMissionText = currentRule.instruction;
       stageStarted = false;
@@ -754,8 +842,6 @@
         aerialVehicle = { x: -80, y: 60 + Math.random() * 40, speed: 1.2 + Math.random() * 0.8, type: symbolType };
       }
 
-      const groundY = getGroundY();
-
       if (Math.random() > 0.3) {
         notebookItem = { x: 200 + Math.random() * 400, y: groundY - 25, width: 20, height: 20, active: true };
       } else {
@@ -785,10 +871,70 @@
       }
     }
 
+    function startBossQuiz() {
+      bossState = "quiz";
+      bossQuizIndex = 0;
+      
+      // SELECIONA 5 PERGUNTAS ALEATÓRIAS DO BANCO
+      const shuffled = [...portugueseQuestionsBank].sort(() => 0.5 - Math.random());
+      bossQuizQuestions = shuffled.slice(0, 5);
+      
+      renderBossQuizQuestion();
+    }
+
+    function renderBossQuizQuestion() {
+      if (bossQuizIndex >= 5) {
+        // VENCEU AS 5 PERGUNTAS - INICIA COMBATE
+        closeAllPanels();
+        bossState = "walking";
+        stageStarted = true;
+        startBackgroundMusic();
+        speakText(`Muito bem! Agora use seu escudo para rebater o Semi Mestre Letra ${currentBossChar}!`);
+        return;
+      }
+
+      closeAllPanels();
+      const q = bossQuizQuestions[bossQuizIndex];
+      document.getElementById("quiz-boss-name").innerText = `SEMI-MESTRE LETRA ${currentBossChar}`;
+      document.getElementById("quiz-progress-text").innerText = `Pergunta ${bossQuizIndex + 1} de 5`;
+      document.getElementById("quiz-question-text").innerText = q.q;
+
+      const optsContainer = document.getElementById("quiz-options-container");
+      optsContainer.innerHTML = "";
+
+      q.options.forEach((optText, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "btn-option";
+        btn.innerText = `${String.fromCharCode(65 + idx)}) ${optText}`;
+        btn.onclick = () => handleQuizAnswer(idx === q.correct);
+        optsContainer.appendChild(btn);
+      });
+
+      panelBossQuiz.style.display = "flex";
+      speakText(`Pergunta ${bossQuizIndex + 1}: ${q.q}`);
+    }
+
+    function handleQuizAnswer(isCorrect) {
+      if (isCorrect) {
+        playSound('powerup');
+        score += 200;
+        bossQuizIndex++;
+        renderBossQuizQuestion();
+      } else {
+        closeAllPanels();
+        triggerGameOverSequence(bossEnemy, `Você errou a pergunta do Semi-Mestre Letra ${currentBossChar}!`);
+      }
+    }
+
     function startStage() {
       if (audioCtx.state === 'suspended') audioCtx.resume();
       closeAllPanels();
       
+      if (bossActive) {
+        startBossQuiz();
+        return;
+      }
+
       const groundY = getGroundY();
 
       if (currentStage === 1) {
@@ -811,7 +957,7 @@
       if (stageStarted && !gameOver && !isIntroPlaying) {
         gameTimerSeconds++;
         const groundY = getGroundY();
-        if (gameTimerSeconds % 300 === 0) {
+        if (gameTimerSeconds % 300 === 0 && !bossActive) {
           greenCoatItem = { x: 300 + Math.random() * 200, y: groundY - 25, width: 22, height: 22, active: true };
         }
       }
@@ -982,7 +1128,7 @@
 
     document.getElementById("touch-jump").addEventListener("pointerdown", (e) => {
       e.preventDefault();
-      if (player.grounded && stageStarted && !gameOver) { player.vy = -12; player.grounded = false; }
+      triggerPlayerJump();
     });
 
     document.getElementById("touch-attack").addEventListener("pointerdown", (e) => {
@@ -1078,7 +1224,7 @@
       }
 
       if (keys[keyBinds.jump] && player.grounded) {
-        player.vy = -12; player.grounded = false;
+        triggerPlayerJump();
       }
 
       if (keys[keyBinds.attack] && !player.attacking) {
@@ -1105,6 +1251,38 @@
       }
 
       if (player.x < 0) player.x = 0;
+
+      // ATUALIZAÇÃO DO SEMI-MESTRE EM COMBATE
+      if (bossActive && bossState === "walking" && bossEnemy && bossEnemy.alive) {
+        bossEnemy.x -= bossEnemy.speed;
+
+        const bossBox = { left: bossEnemy.x, right: bossEnemy.x + bossEnemy.width, top: bossEnemy.y, bottom: bossEnemy.y + bossEnemy.height };
+        const pBox = { left: player.x, right: player.x + player.width, top: player.y, bottom: player.y + player.height };
+
+        if (pBox.left < bossBox.right && pBox.right > bossBox.left &&
+            pBox.top < bossBox.bottom && pBox.bottom > bossBox.top) {
+          
+          if (player.bigShieldActive) {
+            bossEnemy.alive = false;
+            bossState = "defeated";
+            playSound('powerup');
+            score += 2000;
+
+            const victoryMsg = "Você venceu, parabéns! Mas tem meu mestre à frente e ele não é fácil, boa sorte!";
+            speakText(victoryMsg);
+
+            setTimeout(() => {
+              stageStarted = false;
+              stopBackgroundMusic();
+              openYoutubePromo();
+            }, 3500);
+
+          } else {
+            triggerGameOverSequence(bossEnemy, `O Semi-Mestre Letra ${currentBossChar} pegou você! Use o ESCUDO!`);
+          }
+        }
+        return;
+      }
 
       if (notebookItem && notebookItem.active) {
         if (player.x < notebookItem.x + notebookItem.width && player.x + player.width > notebookItem.x &&
@@ -1278,12 +1456,10 @@
       ctx.restore();
     }
 
-    // SOL COM RELÓGIO ANALÓGICO TRANSPARENTE
     function drawAnimatedSunWithClock(x, y, radius) {
       ctx.save();
       ctx.translate(x, y);
 
-      // BRILHO E RAIO DO SOL
       ctx.strokeStyle = "rgba(255, 204, 0, 0.4)";
       ctx.lineWidth = 2;
       const numRays = 12;
@@ -1301,7 +1477,6 @@
       ctx.arc(0, 0, radius + pulse, 0, Math.PI * 2);
       ctx.fill();
 
-      // RELÓGIO ANALÓGICO TRANSPARENTE DENTRO DO NÚCLEO DO SOL
       const clockRadius = radius * 0.82;
       ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
       ctx.lineWidth = 1.5;
@@ -1309,7 +1484,6 @@
       ctx.arc(0, 0, clockRadius, 0, Math.PI * 2);
       ctx.stroke();
 
-      // MARCADORES DO RELÓGIO (12 HORAS)
       for (let h = 0; h < 12; h++) {
         const hAngle = (h * Math.PI) / 6;
         const x1 = Math.sin(hAngle) * (clockRadius - 3);
@@ -1322,13 +1496,11 @@
         ctx.stroke();
       }
 
-      // HORA ATUAL DO COMPUTADOR/SISTEMA
       const now = new Date();
       const hrs = now.getHours() % 12;
       const mins = now.getMinutes();
       const secs = now.getSeconds();
 
-      // PONTEIRO DAS HORAS
       const hourAngle = ((hrs + mins / 60) * Math.PI) / 6;
       ctx.strokeStyle = "rgba(20, 20, 20, 0.8)";
       ctx.lineWidth = 2.5;
@@ -1337,7 +1509,6 @@
       ctx.lineTo(Math.sin(hourAngle) * (clockRadius * 0.45), -Math.cos(hourAngle) * (clockRadius * 0.45));
       ctx.stroke();
 
-      // PONTEIRO DOS MINUTOS
       const minAngle = ((mins + secs / 60) * Math.PI) / 30;
       ctx.strokeStyle = "rgba(30, 30, 30, 0.75)";
       ctx.lineWidth = 1.8;
@@ -1346,7 +1517,6 @@
       ctx.lineTo(Math.sin(minAngle) * (clockRadius * 0.68), -Math.cos(minAngle) * (clockRadius * 0.68));
       ctx.stroke();
 
-      // PONTEIRO DOS SEGUNDOS
       const secAngle = (secs * Math.PI) / 30;
       ctx.strokeStyle = "rgba(255, 0, 85, 0.85)";
       ctx.lineWidth = 1;
@@ -1355,7 +1525,6 @@
       ctx.lineTo(Math.sin(secAngle) * (clockRadius * 0.82), -Math.cos(secAngle) * (clockRadius * 0.82));
       ctx.stroke();
 
-      // PONTO CENTRAL DO RELÓGIO
       ctx.fillStyle = "#000";
       ctx.beginPath();
       ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
@@ -1418,7 +1587,6 @@
       ctx.restore();
     }
 
-    // ESCUDO LARANJA TECLA D
     function drawBigShield(centerX, centerY) {
       ctx.save();
       ctx.translate(centerX, centerY);
@@ -1446,7 +1614,6 @@
       ctx.restore();
     }
 
-    // PERSONAGEM REDUZIDO EM 45% (33px x 71.5px) COM ANIMAÇÃO REALISTA E SAPATOS
     function drawDrChacaraSide(x, y, facing, crouching) {
       ctx.save();
       ctx.translate(x + player.width / 2, y);
@@ -1459,7 +1626,6 @@
 
       const h = crouching ? 50 : 71.5;
 
-      // PERNA TRASEIRA + SAPATO TRASEIRO
       ctx.save();
       ctx.translate(-3, h - 28);
       ctx.rotate(leg2Angle);
@@ -1471,12 +1637,10 @@
       ctx.rotate(knee2Angle);
       ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(2, 12); ctx.stroke();
       
-      // SAPATO TRASEIRO
       ctx.fillStyle = "#1a1a1a";
       ctx.fillRect(-1, 10, 9, 4);
       ctx.restore();
 
-      // BRAÇO TRASEIRO
       ctx.save();
       ctx.translate(-2, crouching ? 20 : 24);
       ctx.rotate(arm2Angle);
@@ -1484,14 +1648,12 @@
       ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-2, 14); ctx.stroke();
       ctx.restore();
 
-      // TRONCO / JALECO / ROUPA
       ctx.fillStyle = "#0066cc";
       ctx.fillRect(-8, crouching ? 18 : 22, 16, 24);
 
       ctx.fillStyle = player.hasGreenCoat ? "#00ff66" : "#ffffff";
       ctx.fillRect(-10, crouching ? 12 : 18, 20, crouching ? 20 : 28);
 
-      // CABEÇA / ÓCULOS / CABELO
       ctx.fillStyle = "#f3c099"; ctx.fillRect(-3, 0, 16, 18);
       ctx.fillStyle = "#111111"; ctx.fillRect(-5, -1, 18, 4);
       ctx.fillStyle = "#5A5A66"; ctx.fillRect(-6, -7, 20, 7);
@@ -1499,7 +1661,6 @@
       ctx.strokeStyle = "#000"; ctx.lineWidth = 1.8; ctx.strokeRect(3, 3, 7, 6);
       ctx.beginPath(); ctx.moveTo(-3, 5); ctx.lineTo(3, 5); ctx.stroke();
 
-      // PERNA DIANTEIRA + SAPATO DIANTEIRO
       ctx.save();
       ctx.translate(3, h - 28);
       ctx.rotate(leg1Angle);
@@ -1511,12 +1672,10 @@
       ctx.rotate(knee1Angle);
       ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(2, 12); ctx.stroke();
       
-      // SAPATO DIANTEIRO
       ctx.fillStyle = "#0a0a0a";
       ctx.fillRect(-1, 10, 10, 4.5);
       ctx.restore();
 
-      // BRAÇO DIANTEIRO
       ctx.save();
       ctx.translate(3, crouching ? 20 : 24);
       ctx.rotate(arm1Angle);
@@ -1527,7 +1686,6 @@
       ctx.restore();
     }
 
-    // INIMIGOS LETRAS
     function drawLetterEnemy(enemy) {
       if (!enemy.alive) return;
 
@@ -1557,6 +1715,38 @@
       } else if (enemy.expression === 'sad') {
         ctx.fillText(":(", 14, 14);
       }
+
+      ctx.restore();
+    }
+
+    // DESENHO DO SEMI-MESTRE (LETRA DUPOLAMENTE MAIOR)
+    function drawBossEnemy(boss) {
+      if (!boss || !boss.alive) return;
+
+      ctx.save();
+      ctx.translate(boss.x + boss.width / 2, boss.y);
+
+      const legCycle = Math.sin(Date.now() * 0.015) * 14;
+
+      // PERNAS GIGANTES
+      ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 7; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(-15, boss.height - 20); ctx.lineTo(-15 + legCycle, boss.height); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(15, boss.height - 20); ctx.lineTo(15 - legCycle, boss.height); ctx.stroke();
+
+      // LETRA GIGANTE COM GLOW
+      ctx.fillStyle = "#ff0055";
+      ctx.shadowColor = "#ff3300";
+      ctx.shadowBlur = 15;
+
+      ctx.font = "bold 110px 'Segoe UI'";
+      ctx.textAlign = "center";
+      ctx.fillText(boss.symbol, 0, boss.height - 20);
+
+      // OLHOS E COROA DO SEMI-MESTRE
+      ctx.fillStyle = "#ffcc00";
+      ctx.beginPath();
+      ctx.moveTo(-20, -10); ctx.lineTo(-10, -25); ctx.lineTo(0, -10); ctx.lineTo(10, -25); ctx.lineTo(20, -10);
+      ctx.closePath(); ctx.fill();
 
       ctx.restore();
     }
@@ -1679,6 +1869,10 @@
       enemies.forEach(enemy => drawLetterEnemy(enemy));
       drawDarts();
 
+      if (bossActive && bossEnemy) {
+        drawBossEnemy(bossEnemy);
+      }
+
       if (collisionAnimationActive) {
         drawSpeechBubble(player.x + player.width / 2, player.y - 20, playerSpeechBubble, 1.5);
         if (mockingEnemy) {
@@ -1691,11 +1885,11 @@
       ctx.fillText(`${currentRule.title}`, 20, 32);
       ctx.fillText(`PONTOS: ${score}`, canvas.width - 150, 32);
 
-      // INDICAÇÃO DA VERSÃO 1.12
+      // INDICAÇÃO DA VERSÃO 1.13
       ctx.fillStyle = "rgba(0, 255, 204, 0.7)";
       ctx.font = "bold 11px monospace";
       ctx.textAlign = "left";
-      ctx.fillText("Versão 1.12", 12, canvas.height - 12);
+      ctx.fillText("Versão 1.13", 12, canvas.height - 12);
     }
 
     function loop() { update(); draw(); requestAnimationFrame(loop); }
