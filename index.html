@@ -7,7 +7,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
     html, body {
-      width: 100%; height: 100%; background-color: #0d0d11; color: #fff;
+      width: 100vw; height: 100vh; background-color: #000; color: #fff;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       text-align: center; overflow: hidden; user-select: none;
     }
@@ -17,7 +17,7 @@
       display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000;
     }
     #gameCanvas {
-      background: #000; width: 100%; height: 100%; object-fit: contain; display: block;
+      background: #000; width: 100vw; height: 100vh; object-fit: fill; display: block;
     }
 
     /* CONTROLES VIRTUAIS TOUCH */
@@ -80,7 +80,7 @@
 
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-    /* PAINÉIS OVERLAY SOBREPOSIÇÃO SUPREMA (Z-INDEX 2000) */
+    /* PAINÉIS OVERLAY SOBREPOSIÇÃO SUPREMA */
     .overlay-panel {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: rgba(10, 10, 18, 0.95); 
@@ -150,6 +150,8 @@
       padding: 10px; border-radius: 10px; word-break: break-all; font-weight: bold;
       color: #00ffcc; margin: 5px 0; width: 100%; font-size: 0.85rem;
     }
+
+    video { width: 100%; border-radius: 12px; border: 2px solid #00ffcc; margin-top: 5px; }
   </style>
 </head>
 <body>
@@ -158,7 +160,7 @@
     <button id="btn-fullscreen" onclick="toggleFullScreen()">TELA CHEIA ⛶</button>
     <button id="btn-config-keys" onclick="openKeyConfig()">⚙️ TECLAS (PC)</button>
 
-    <canvas id="gameCanvas" width="800" height="450"></canvas>
+    <canvas id="gameCanvas"></canvas>
 
     <!-- MENU DE COMENTÁRIOS INSTANTÂNEOS NO CANTO DA TELA -->
     <div class="instant-comments-box">
@@ -237,6 +239,19 @@
       <button class="btn-main" onclick="closeKeyConfig()">SALVAR E FECHAR</button>
     </div>
 
+    <!-- PAINEL VITÓRIA FINAL & VÍDEO DO DOUTOR CHÁCARA NA FASE 27 -->
+    <div id="panel-victory" class="overlay-panel">
+      <h2 style="color: #00ffcc;">PARABÉNS! VOCÊ ZEROU A FASE 27! 🏆</h2>
+      <p>Mensagem especial do Doutor Chácara:</p>
+      <video id="victory-video" controls autoplay>
+        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+        Seu navegador não suporta vídeos HTML5.
+      </video>
+      <p>Digite seu nome para gravar seu recorde no placar para sempre:</p>
+      <input type="text" id="winner-name" placeholder="Seu Nome de Campeão" maxlength="15">
+      <button class="btn-main" onclick="saveVictoryScore()">GRAVAR NO PLACAR PARA SEMPRE 🏆</button>
+    </div>
+
     <!-- PAINEL GAME OVER & REGISTRO DE NOME -->
     <div id="panel-game-over" class="overlay-panel">
       <h2 style="color: #ff0055;">GAME OVER</h2>
@@ -245,7 +260,7 @@
       <input type="text" id="player-name" placeholder="Digite seu nome" maxlength="12">
       <button class="btn-main" id="btn-save-score">SALVAR RECORD 🔄</button>
       
-      <h3 style="margin-top: 5px; color: #ffcc00; font-size: 0.9rem;">🏆 TOP 10 RECORDES</h3>
+      <h3 style="margin-top: 5px; color: #ffcc00; font-size: 0.9rem;">🏆 PLACAR PERMANENTE DE RECORDES</h3>
       <div class="leaderboard-list" id="leaderboard-list"></div>
     </div>
 
@@ -264,13 +279,37 @@
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
+
+    // AJUSTE DINÂMICO PARA EVITAR A BARRA PRETA NO CANTO INFERIOR DIREITO
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
     
-    // CARREGAMENTO DA IMAGEM DE FUNDO 2D
-    const bgImage = new Image();
-    bgImage.src = "fundo.jpg.jpg";
+    // IMAGENS DE FUNDO
+    const bgImageDefault = new Image();
+    bgImageDefault.src = "fundo.jpg.jpg";
+
+    const bgImageTiger = new Image();
+    // Foto especial do Doutor Chácara em cima do tigre
+    bgImageTiger.src = "https://images.unsplash.com/photo-1561731216-c3a4d99437d5?auto=format&fit=crop&w=1200&q=80";
+
+    let bgImageCurrent = bgImageDefault;
+
+    // IMAGENS SEM DIREITOS AUTORAIS PARA FASES ÍMPARES
+    const gamingBackgrounds = [
+      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80"
+    ];
 
     const panelStageStart = document.getElementById("panel-stage-start");
     const panelGameOver = document.getElementById("panel-game-over");
+    const panelVictory = document.getElementById("panel-victory");
     const panelYtPromo = document.getElementById("panel-youtube-promo");
     const panelYtReturn = document.getElementById("panel-yt-return");
     const panelKeyConfig = document.getElementById("panel-key-config");
@@ -287,7 +326,6 @@
     const btnSaveScore = document.getElementById("btn-save-score");
     const instantCommentsList = document.getElementById("instant-comments-list");
 
-    // RECURSOS DA BARRA INFERIOR E SISTEMAS
     let mediaRecorder = null;
     let recordedChunks = [];
     let isRecording = false;
@@ -297,6 +335,7 @@
     function closeAllPanels() {
       panelStageStart.style.display = "none";
       panelGameOver.style.display = "none";
+      panelVictory.style.display = "none";
       panelYtPromo.style.display = "none";
       panelYtReturn.style.display = "none";
       panelKeyConfig.style.display = "none";
@@ -323,7 +362,6 @@
       panelCommentsOverlay.style.display = "flex";
     }
 
-    // FEED DE COMENTÁRIOS INSTANTÂNEOS NO JOGO
     function loadAndRenderComments() {
       const stored = localStorage.getItem("dr_chacara_comments") || "[]";
       const comments = JSON.parse(stored);
@@ -562,7 +600,7 @@
     let sunAngle = 0;
     let gameTimerSeconds = 0;
 
-    // VARIÁVEIS DA ESTRADA DE TERRA E BURACO
+    // ESTRADA DE TERRA E BURACO
     let roadColors = { main: "#8B4513", accent: "#5C2E0B", edge: "#2e7d32" };
     let pitHole = { x: 0, width: 0, active: false };
 
@@ -583,6 +621,10 @@
     let isIntroPlaying = false;
     let ufoState = { x: -100, y: 50, beamOpacity: 0, playerY: -100, step: 0 };
 
+    function getGroundY() {
+      return canvas.height - 80;
+    }
+
     const player = {
       x: 50, y: 280, width: 30, height: 65,
       vx: 0, vy: 0, speed: 4.8, friction: 0.82,
@@ -592,7 +634,6 @@
     };
 
     const gravity = 0.65;
-    const groundY = 370;
     const weapon = { x: 0, y: 0, length: 0, baseMaxLength: 150 };
 
     let notebookItem = null;
@@ -617,6 +658,14 @@
 
     function getRuleForStage(stage) {
       if (stageRules[stage]) return stageRules[stage];
+      if (stage === maxStages) {
+        return {
+          title: "FASE 27: O DESAFIO FINAL DO TIGRE",
+          instruction: "ATENÇÃO: Destrua APENAS as VOGAIS para VENCER O JOGO!",
+          isValid: (char) => ['A','E','I','O','U'].includes(char.toUpperCase()),
+          generateChar: () => ['A','B','E','F','I','K','O','P','U'][Math.floor(Math.random() * 9)]
+        };
+      }
       return {
         title: `FASE ${stage}: DESAFIO DE VOGAIS`,
         instruction: "ATENÇÃO: Destrua APENAS as VOGAIS!",
@@ -635,7 +684,18 @@
       stageMissionText = currentRule.instruction;
       stageStarted = false;
 
-      // CONFIGURAÇÃO DA ESTRADA DE TERRA E SUAS CORES/FORMATOS
+      // CONFIGURAÇÃO DOS FUNDOS (INVERTIDOS)
+      if (currentStage === maxStages) {
+        bgImageCurrent = bgImageTiger; // Foto do Tigre com o personagem na Fase 27
+      } else if (currentStage % 2 === 0) {
+        bgImageCurrent = bgImageDefault; // Fundo Padrão nas Fases Pares
+      } else {
+        // Imagens sem direitos autorais nas Fases Ímpares
+        const randomImgUrl = gamingBackgrounds[((currentStage - 1) / 2) % gamingBackgrounds.length];
+        bgImageCurrent = new Image();
+        bgImageCurrent.src = randomImgUrl;
+      }
+
       const mainEarthColors = ["#8B4513", "#A0522D", "#6B4226", "#B8860B", "#795548", "#5D4037"];
       const accentEarthColors = ["#5C2E0B", "#5C3A21", "#4A2E1B", "#8B6508", "#4E342E", "#3E2723"];
       const edgeGrassColors = ["#2e7d32", "#388e3c", "#1b5e20", "#43a047", "#2e7d32", "#1b5e20"];
@@ -647,7 +707,6 @@
         edge: edgeGrassColors[colorIdx]
       };
 
-      // BURACO NAS FASES ÍMPARES
       if (currentStage % 2 !== 0) {
         pitHole = {
           x: 320 + Math.random() * 160,
@@ -671,6 +730,8 @@
         aerialVehicle = { x: -80, y: 60 + Math.random() * 40, speed: 1.2 + Math.random() * 0.8, type: symbolType };
       }
 
+      const groundY = getGroundY();
+
       if (Math.random() > 0.3) {
         notebookItem = { x: 200 + Math.random() * 400, y: groundY - 30, width: 25, height: 25, active: true };
       } else {
@@ -681,7 +742,6 @@
       for (let i = 0; i < count; i++) {
         const charSymbol = currentRule.generateChar();
         let spawnX = 450 + i * 150 + Math.random() * 30;
-        // Evita gerar inimigo exatamente sobre o buraco
         if (pitHole.active && spawnX > pitHole.x - 30 && spawnX < pitHole.x + pitHole.width + 30) {
           spawnX += pitHole.width + 40;
         }
@@ -700,6 +760,8 @@
       if (audioCtx.state === 'suspended') audioCtx.resume();
       closeAllPanels();
       
+      const groundY = getGroundY();
+
       if (currentStage === 1) {
         isIntroPlaying = true;
         ufoState = { x: -100, y: 80, beamOpacity: 0, playerY: 80, step: 0 };
@@ -719,6 +781,7 @@
     setInterval(() => {
       if (stageStarted && !gameOver && !isIntroPlaying) {
         gameTimerSeconds++;
+        const groundY = getGroundY();
         if (gameTimerSeconds % 300 === 0) {
           greenCoatItem = { x: 300 + Math.random() * 200, y: groundY - 35, width: 30, height: 30, active: true };
         }
@@ -779,6 +842,28 @@
       prepareStage();
     }
 
+    function showVictoryOverlay() {
+      stopBackgroundMusic();
+      stageStarted = false;
+      closeAllPanels();
+      
+      speakText("Parabéns! Você zerou a Fase 27! O Doutor Chácara agradece e te parabeniza por esta grande vitória!");
+      panelVictory.style.display = "flex";
+    }
+
+    function saveVictoryScore() {
+      const winnerNameInput = document.getElementById("winner-name");
+      const name = winnerNameInput.value.trim() || "Campeão Absoluto";
+      
+      const scores = getTopScores();
+      scores.push({ name: `🏆 ${name}`, score: score + 10000 });
+      scores.sort((a, b) => b.score - a.score);
+      localStorage.setItem("dr_chacara_scores", JSON.stringify(scores));
+
+      alert("Recorde imortalizado no placar para sempre!");
+      resetGame();
+    }
+
     function getTopScores() {
       const data = localStorage.getItem("dr_chacara_scores");
       return data ? JSON.parse(data) : [];
@@ -799,8 +884,7 @@
       const scores = getTopScores();
       scores.push({ name: name, score: score });
       scores.sort((a, b) => b.score - a.score);
-      const top10 = scores.slice(0, 10);
-      localStorage.setItem("dr_chacara_scores", JSON.stringify(top10));
+      localStorage.setItem("dr_chacara_scores", JSON.stringify(scores));
 
       resetGame();
     }
@@ -882,7 +966,7 @@
 
     function resetGame() {
       gameOver = false; score = 0; currentStage = 1; gameTimerSeconds = 0;
-      player.x = 50; player.y = groundY - player.height; player.vx = 0; player.vy = 0;
+      player.x = 50; player.y = getGroundY() - player.height; player.vx = 0; player.vy = 0;
       player.hasGreenCoat = false; player.shieldPowerUp = false;
       prepareStage();
     }
@@ -892,6 +976,7 @@
 
     function updateIntro() {
       if (!isIntroPlaying) return;
+      const groundY = getGroundY();
 
       if (ufoState.step === 0) {
         ufoState.x += 3;
@@ -923,6 +1008,7 @@
 
     function update() {
       sunAngle += 0.01;
+      const groundY = getGroundY();
 
       if (currentStage > 1) {
         aerialVehicle.x += aerialVehicle.speed;
@@ -958,7 +1044,7 @@
       player.vx *= player.friction; player.x += player.vx;
       player.vy += gravity; player.y += player.vy;
 
-      // COLISÃO COM O CHÃO E BURACO (FASE ÍMPAR)
+      // COLISÃO COM O CHÃO E BURACO
       const pCenterX = player.x + player.width / 2;
       const isOverPit = pitHole.active && (pCenterX > pitHole.x && pCenterX < pitHole.x + pitHole.width);
 
@@ -976,7 +1062,6 @@
 
       if (player.x < 0) player.x = 0;
 
-      // Coleta do Caderno
       if (notebookItem && notebookItem.active) {
         if (player.x < notebookItem.x + notebookItem.width && player.x + player.width > notebookItem.x &&
             player.y < notebookItem.y + notebookItem.height && player.y + player.height > notebookItem.y) {
@@ -986,7 +1071,6 @@
         }
       }
 
-      // Coleta do Jaleco Verde
       if (greenCoatItem && greenCoatItem.active) {
         if (player.x < greenCoatItem.x + greenCoatItem.width && player.x + player.width > greenCoatItem.x &&
             player.y < greenCoatItem.y + greenCoatItem.height && player.y + player.height > greenCoatItem.y) {
@@ -996,19 +1080,17 @@
         }
       }
 
-      // Conclusão da Fase
+      // Conclusão da Fase ou Vitória Final
       if (player.x + player.width >= canvas.width) {
         if (currentStage < maxStages) {
           stageStarted = false;
           stopBackgroundMusic();
           openYoutubePromo();
         } else {
-          speakText("Parabéns! Você completou todas as fases!");
-          triggerGameOverSequence(null, "Parabéns! Você completou o jogo!");
+          showVictoryOverlay();
         }
       }
 
-      // Ataque do Escudo
       if (player.attacking) {
         player.attackTimer--;
         const maxLen = player.shieldPowerUp ? weapon.baseMaxLength * 1.5 : weapon.baseMaxLength;
@@ -1028,7 +1110,6 @@
         if (player.attackTimer <= 0) player.attacking = false;
       }
 
-      // Inimigos e Colisão
       enemies.forEach(enemy => {
         if (!enemy.alive) return;
 
@@ -1235,18 +1316,16 @@
       ctx.restore();
     }
 
-    // DESENHO DA ESTRADA DE TERRA COM VARIAÇÕES E BURACOS
     function drawDirtRoad() {
-      // Grama/Borda da Estrada
+      const groundY = getGroundY();
+
       ctx.fillStyle = roadColors.edge;
       ctx.fillRect(0, groundY - 6, canvas.width, 10);
 
       if (!pitHole.active) {
-        // Pista contínua
         ctx.fillStyle = roadColors.main;
         ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
 
-        // Pedras/Texturas de Terra
         ctx.fillStyle = roadColors.accent;
         for (let x = 10; x < canvas.width; x += 30) {
           const waveHeight = ((x * currentStage) % 7) + 2;
@@ -1254,15 +1333,11 @@
           ctx.fillRect(x + 10, groundY + 25, 8, 3);
         }
       } else {
-        // Pista com Buraco
-        // Lado Esquerdo
         ctx.fillStyle = roadColors.main;
         ctx.fillRect(0, groundY, pitHole.x, canvas.height - groundY);
 
-        // Lado Direito
         ctx.fillRect(pitHole.x + pitHole.width, groundY, canvas.width - (pitHole.x + pitHole.width), canvas.height - groundY);
 
-        // Detalhes em cada lado
         ctx.fillStyle = roadColors.accent;
         for (let x = 10; x < pitHole.x - 10; x += 30) {
           ctx.fillRect(x, groundY + 4, 14, 4);
@@ -1271,7 +1346,6 @@
           ctx.fillRect(x, groundY + 4, 14, 4);
         }
 
-        // Buraco (Escuridão e bordas)
         ctx.fillStyle = "#080503";
         ctx.fillRect(pitHole.x, groundY, pitHole.width, canvas.height - groundY);
 
@@ -1282,24 +1356,23 @@
     }
 
     function draw() {
-      // 1. DESENHO DO FUNDO 2D (IMAGEM DO DOUTOR CHÁCARA RETRO)
-      if (bgImage.complete && bgImage.naturalWidth !== 0) {
-        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
-        // Overlay translúcido suave para melhor visibilidade do jogo
+      const groundY = getGroundY();
+
+      // DESENHO DO FUNDO PREENCHENDO O CANVAS INTEIRO
+      if (bgImageCurrent.complete && bgImageCurrent.naturalWidth !== 0) {
+        ctx.drawImage(bgImageCurrent, 0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "rgba(10, 10, 18, 0.45)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       } else {
-        // Fallback caso a imagem falhe ao carregar
         const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
         grad.addColorStop(0, "#120826"); grad.addColorStop(0.6, "#7a223b"); grad.addColorStop(1, "#2e1200");
         ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
 
-      drawAnimatedSun(680, 120, 42);
+      drawAnimatedSun(canvas.width - 120, 120, 42);
 
       if (currentStage > 1) drawAerialVehicle(aerialVehicle);
 
-      // DESENHAR ESTRADA DE TERRA COM VARIAÇÕES
       drawDirtRoad();
 
       if (notebookItem && notebookItem.active) {
@@ -1347,7 +1420,7 @@
       const currentRule = getRuleForStage(currentStage);
       ctx.fillStyle = "#ffffff"; ctx.font = "bold 16px 'Segoe UI'"; ctx.textAlign = "left";
       ctx.fillText(`${currentRule.title}`, 20, 35);
-      ctx.fillText(`PONTOS: ${score}`, 650, 35);
+      ctx.fillText(`PONTOS: ${score}`, canvas.width - 160, 35);
     }
 
     function loop() { update(); draw(); requestAnimationFrame(loop); }
