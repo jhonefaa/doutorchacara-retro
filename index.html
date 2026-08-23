@@ -67,38 +67,6 @@
     }
     .btn-top-bar:hover { background: rgba(0, 255, 204, 0.2); border-color: #00ffcc; }
 
-    /* ESTILOS PARA O NOVO TOOLBAR DE CONTROLE E MODAL DIALOG */
-    .controls-toolbar {
-      display: inline-block;
-    }
-    
-    dialog#modal-controle {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: rgba(10, 10, 18, 0.92); 
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(0, 255, 204, 0.5);
-      border-radius: 20px; padding: 20px; box-shadow: 0 0 25px rgba(0, 255, 204, 0.3);
-      z-index: 2000; width: 90%; max-width: 400px; color: #fff;
-    }
-    dialog#modal-controle::backdrop {
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-    }
-    dialog#modal-controle h3 { color: #00ffcc; margin-bottom: 15px; }
-    .config-row {
-      display: flex; justify-content: space-between; align-items: center;
-      margin: 10px 0; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px;
-    }
-    .key-bind {
-      background: rgba(0, 0, 0, 0.6); border: 1px solid #00ffcc; color: #00ffcc;
-      padding: 4px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; min-width: 60px;
-    }
-    dialog#modal-controle button[onclick="fecharModalControle()"] {
-      background: rgba(0, 255, 204, 0.65); color: #000; font-size: 0.9rem; font-weight: bold;
-      padding: 8px 20px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.4); cursor: pointer;
-      box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); margin-top: 15px; width: 100%;
-    }
-
     /* BARRA DE FERRAMENTAS INFERIOR SUPER TRANSPARENTE */
     .bottom-bar {
       position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
@@ -207,42 +175,12 @@
   <div id="game-container">
     <div id="top-left-controls">
       <button class="btn-top-bar" onclick="openKeyConfig()">⚙️ CONTROLES (PC)</button>
-      
-      <!-- Substituto no HTML -->
-      <div class="controls-toolbar">
-        <button id="btn-config-controle" class="btn-top-bar" onclick="abrirModalControle()">
-          🎮 Configurar Controle
-        </button>
-      </div>
-
       <button class="btn-top-bar" style="border-color: #ffcc00; color: #ffcc00;" onclick="skipIntro()">⏭️ PULAR INTRO</button>
     </div>
 
     <button id="btn-fullscreen" onclick="toggleFullScreen()">TELA CHEIA ⛶</button>
 
     <canvas id="gameCanvas"></canvas>
-
-    <!-- Modal para Mapeamento de Teclas -->
-    <dialog id="modal-controle">
-      <h3>Configurar Controles do Jogo</h3>
-      <div class="config-row">
-        <label>Mover para Cima:</label>
-        <button class="key-bind" data-action="up" onclick="mapearTecla(this)">W</button>
-      </div>
-      <div class="config-row">
-        <label>Mover para Esquerda:</label>
-        <button class="key-bind" data-action="left" onclick="mapearTecla(this)">A</button>
-      </div>
-      <div class="config-row">
-        <label>Mover para Baixo:</label>
-        <button class="key-bind" data-action="down" onclick="mapearTecla(this)">S</button>
-      </div>
-      <div class="config-row">
-        <label>Mover para Direita:</label>
-        <button class="key-bind" data-action="right" onclick="mapearTecla(this)">D</button>
-      </div>
-      <button onclick="fecharModalControle()">Salvar e Fechar</button>
-    </dialog>
 
     <!-- MENU DE COMENTÁRIOS INSTANTÂNEOS NO CANTO DA TELA -->
     <div class="instant-comments-box">
@@ -430,7 +368,6 @@
     const panelPixOverlay = document.getElementById("panel-pix-overlay");
     const panelCommentsOverlay = document.getElementById("panel-comments-overlay");
     const panelBossQuiz = document.getElementById("panel-boss-quiz");
-    const modalControle = document.getElementById("modal-controle");
     
     const stageTitle = document.getElementById("stage-title");
     const stageInstruction = document.getElementById("stage-instruction");
@@ -441,22 +378,6 @@
     const btnStartAction = document.getElementById("btn-start-action");
     const btnSaveScore = document.getElementById("btn-save-score");
     const instantCommentsList = document.getElementById("instant-comments-list");
-
-    // FUNÇÕES DO MODAL DIALOG DE CONTROLES
-    function abrirModalControle() {
-      closeAllPanels();
-      modalControle.showModal();
-    }
-
-    function fecharModalControle() {
-      modalControle.close();
-    }
-
-    function mapearTecla(btnElement) {
-      const action = btnElement.getAttribute("data-action");
-      btnElement.innerText = "...";
-      listenKeyChange(action);
-    }
 
     let mediaRecorder = null;
     let recordedChunks = [];
@@ -498,10 +419,12 @@
     ];
 
     function addScore(amount) {
+      // NÃO GANHA PONTOS DESTRUINDO LETRAS QUANDO ESTÁ USANDO VEÍCULO ESPECIAL
       if (isUsingVehicle) return;
 
       score += amount;
       
+      // VERIFICA VIDA EXTRA A CADA 10.000 PONTOS
       while (score >= nextExtraLifeScore) {
         playerLives++;
         nextExtraLifeScore += 10000;
@@ -509,6 +432,7 @@
         speakText("Vida extra!");
       }
 
+      // GERA VEÍCULO ESPECIAL A CADA 10.000 PONTOS
       if (score >= nextVehicleScore && !specialVehicle && !isUsingVehicle) {
         spawnSpecialVehicle();
         nextVehicleScore += 10000;
@@ -541,7 +465,6 @@
       panelPixOverlay.style.display = "none";
       panelCommentsOverlay.style.display = "none";
       panelBossQuiz.style.display = "none";
-      if (modalControle.open) modalControle.close();
     }
 
     function openYoutubeChannel() {
@@ -695,11 +618,6 @@
       for (let act in keyBinds) {
         const btn = document.getElementById(`bind-${act}-btn`);
         if (btn) btn.innerText = keyBinds[act];
-
-        const btnModal = document.querySelector(`.key-bind[data-action="${act}"]`);
-        if (btnModal) {
-          btnModal.innerText = keyBinds[act].replace("Key", "");
-        }
       }
     }
 
@@ -965,6 +883,7 @@
 
       const groundY = getGroundY();
 
+      // FASES DE 1 A 20 GERAM ITENS ESCOLARES (LIVROS, LÁPIS, BORRACHAS, CADERNOS)
       if (currentStage <= 20) {
         const itemIcons = ['📖', '✏️', '📝', '🧹'];
         for (let k = 0; k < 4; k++) {
@@ -979,6 +898,7 @@
         }
       }
 
+      // VERIFICA SE É FASE DE SEMI-MESTRE (A CADA 5 FASES)
       if (currentStage % 5 === 0) {
         bossActive = true;
         const bossCharIndex = (currentStage / 5) - 1;
@@ -1170,18 +1090,13 @@
     function listenKeyChange(action) {
       listeningKeyAction = action;
       const btn = document.getElementById(`bind-${action}-btn`);
-      if (btn) btn.innerText = "Pressione...";
+      btn.innerText = "Pressione uma tecla...";
     }
 
     window.addEventListener("keydown", (e) => {
       if (listeningKeyAction) {
         keyBinds[listeningKeyAction] = e.code;
-        const btn = document.getElementById(`bind-${listeningKeyAction}-btn`);
-        if (btn) btn.innerText = e.code;
-        
-        const btnModal = document.querySelector(`.key-bind[data-action="${listeningKeyAction}"]`);
-        if (btnModal) btnModal.innerText = e.code.replace("Key", "");
-
+        document.getElementById(`bind-${listeningKeyAction}-btn`).innerText = e.code;
         listeningKeyAction = null;
         return;
       }
@@ -1432,8 +1347,10 @@
       if (isIntroPlaying) { updateIntro(); return; }
       if (gameOver || !stageStarted || collisionAnimationActive) return;
 
+      // ATIVAÇÃO DO ESCUDO ESPECIAL DEDICADO NA TECLA 'I'
       player.bigShieldActive = !!keys[keyBinds.shield];
 
+      // MOVIMENTAÇÃO DO TECLADO DE ACORDO COM AS CONFIGURAÇÕES
       const moveLeft = keys[keyBinds.left];
       const moveRight = keys[keyBinds.right];
       const moveUp = keys[keyBinds.up];
@@ -1453,6 +1370,7 @@
         walkCycle = 0;
       }
 
+      // SE ESTIVER EM VEÍCULO (EX: AVIÃO) PODE VOAR LIVREMENTE CONTROLANDO O PERSONAGEM
       if (isUsingVehicle) {
         if (moveUp) player.y -= 4;
         if (moveDown) player.y += 4;
@@ -1492,6 +1410,7 @@
 
       if (player.x < 0) player.x = 0;
 
+      // ATUALIZAÇÃO DO SEMI-MESTRE EM COMBATE
       if (bossActive && bossState === "walking" && bossEnemy && bossEnemy.alive) {
         bossEnemy.x -= bossEnemy.speed;
 
@@ -1522,6 +1441,7 @@
         return;
       }
 
+      // COLETA DE ITENS ESCOLARES NAS FASES 1 A 20
       schoolItems.forEach(item => {
         if (item.active &&
             player.x < item.x + item.width && player.x + player.width > item.x &&
@@ -1538,6 +1458,7 @@
         }
       });
 
+      // COLETA DO VEÍCULO ESPECIAL (AVIÃO / CARRO / MOTO)
       if (specialVehicle && specialVehicle.active) {
         if (player.x < specialVehicle.x + specialVehicle.width && player.x + player.width > specialVehicle.x &&
             player.y < specialVehicle.y + specialVehicle.height && player.y + player.height > specialVehicle.y) {
@@ -1549,6 +1470,7 @@
         }
       }
 
+      // FINALIZAÇÃO DE FASE
       if (player.x + player.width >= canvas.width) {
         if (currentStage < maxStages) {
           stageStarted = false;
@@ -1606,6 +1528,7 @@
             if (enemy.isTarget) {
               enemy.expression = 'sad';
               playSound('hitTarget');
+              // REGRA: NÃO GANHA PONTOS QUANDO UTILIZA VEÍCULO ESPECIAL
               addScore(500);
               setTimeout(() => { enemy.alive = false; }, 120);
             } else {
@@ -1627,6 +1550,7 @@
             enemy.x += 100;
             playSound('block');
           } else if (player.hasImmunityColor) {
+            // PERDE A COR DE IMUNIDADE E VOLTA À COR ANTERIOR
             player.hasImmunityColor = false;
             schoolItemsCollected = 0;
             enemy.x += 80;
@@ -1707,6 +1631,7 @@
       ctx.restore();
     }
 
+    // SOL LIMPO SEM O RELÓGIO ANALÓGICO
     function drawAnimatedSun(x, y, radius) {
       ctx.save();
       ctx.translate(x, y);
@@ -1785,6 +1710,7 @@
       ctx.restore();
     }
 
+    // ESCUDO ESPECIAL COM RELÓGIO DIGITAL DENTRO (TECLA I)
     function drawBigShieldWithDigitalClock(centerX, centerY) {
       ctx.save();
       ctx.translate(centerX, centerY);
@@ -1807,6 +1733,7 @@
       ctx.textAlign = "center";
       ctx.fillText("ESCUDO ESPECIAL", 0, -20);
 
+      // DESENHA O RELÓGIO DIGITAL COM A HORA ATUAL EM TEMPO REAL
       const now = new Date();
       const timeStr = now.toTimeString().split(' ')[0];
 
@@ -1860,6 +1787,7 @@
       ctx.fillStyle = "#0066cc";
       ctx.fillRect(-8, crouching ? 18 : 22, 16, 24);
 
+      // MUDANÇA DE COR AO PEGAR 3 ITENS ESCOLARES (VERDE IMUNE)
       ctx.fillStyle = player.hasImmunityColor ? "#00ffcc" : "#ffffff";
       ctx.fillRect(-10, crouching ? 12 : 18, 20, crouching ? 20 : 28);
 
@@ -1892,6 +1820,7 @@
       ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(3, 14); ctx.stroke();
       ctx.restore();
 
+      // DESENHA VEÍCULO SE ESTIVER USANDO UM PODER ESPECIAL (EX: AVIÃO)
       if (isUsingVehicle) {
         ctx.fillStyle = "#ffcc00";
         ctx.font = "24px sans-serif";
@@ -2040,6 +1969,7 @@
 
       drawDirtRoad();
 
+      // DESENHA ITENS ESCOLARES (FASES 1 A 20)
       schoolItems.forEach(item => {
         if (item.active) {
           ctx.font = "20px sans-serif";
@@ -2047,6 +1977,7 @@
         }
       });
 
+      // DESENHA VEÍCULO ESPECIAL NO CHÃO SE ESTIVER ATIVO
       if (specialVehicle && specialVehicle.active) {
         ctx.font = "28px sans-serif";
         const vIcon = specialVehicle.type === 'aviao' ? '✈️' : specialVehicle.type === 'carro' ? '🚗' : '🏍️';
@@ -2099,6 +2030,7 @@
       ctx.fillText(`${currentRule.title}`, 20, 32);
       ctx.fillText(`PONTOS: ${score}  |  VIDAS: ❤️ x${playerLives}  |  ESCOLARES: 📚 x${schoolItemsCollected}/3`, canvas.width - 400, 32);
 
+      // INDICAÇÃO DA VERSÃO a2.0
       ctx.fillStyle = "rgba(0, 255, 204, 0.85)";
       ctx.font = "bold 12px monospace";
       ctx.textAlign = "left";
