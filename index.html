@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Doutor Chácara - Alfabetização Arcade Mobile v1.15</title>
+  <title>Doutor Chácara - Alfabetização Arcade Mobile v1.14</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
     html, body {
@@ -164,26 +164,6 @@
     }
 
     video { width: 100%; border-radius: 12px; border: 1px solid #00ffcc; margin-top: 5px; }
-
-    /* PAINEL SECRETO DO CRIADOR */
-    #panel-creator-menu {
-      border: 2px solid #ffd700;
-      box-shadow: 0 0 30px rgba(255, 215, 0, 0.35);
-      background: rgba(8, 8, 12, 0.96);
-    }
-    #panel-creator-menu h2 { color: #ffd700; }
-    .creator-badge {
-      font-size: 0.72rem; color: #00ffcc; letter-spacing: 1px;
-      padding: 4px 10px; border: 1px solid rgba(0,255,204,.35);
-      border-radius: 20px;
-    }
-    #creator-stage-input { font-size: 1.1rem; font-weight: bold; }
-    .creator-footer {
-      position: absolute; right: 14px; bottom: 10px; z-index: 16;
-      color: #fff; font-size: 0.78rem; font-weight: bold;
-      text-shadow: 0 2px 4px #000, 0 0 8px rgba(0,0,0,.9);
-      pointer-events: none; letter-spacing: .3px;
-    }
   </style>
 </head>
 <body>
@@ -284,19 +264,6 @@
       <button class="btn-main" onclick="closeKeyConfig()">SALVAR E FECHAR</button>
     </div>
 
-    <!-- MENU SECRETO DO CRIADOR: código jhonny -->
-    <div id="panel-creator-menu" class="overlay-panel">
-      <div class="creator-badge">🔐 MODO CRIADOR</div>
-      <h2>MENU DO CRIADOR</h2>
-      <p>Jogo pausado. Escolha uma ação:</p>
-      <input type="text" id="creator-stage-input" inputmode="numeric" maxlength="2" placeholder="Digite a fase (1 a 27)">
-      <button class="btn-main" onclick="creatorGoToStage()">🚀 IR PARA A FASE</button>
-      <button class="btn-main" style="background:rgba(0,153,255,.75);color:#fff;" onclick="creatorContinueGame()">▶ CONTINUAR JOGO</button>
-      <button class="btn-back" onclick="closeCreatorMenu()">✖ FECHAR</button>
-    </div>
-
-    <div class="creator-footer">Criado por Doutor Chácara</div>
-
     <!-- PAINEL VITÓRIA FINAL & VÍDEO DO DOUTOR CHÁCARA NA FASE 27 -->
     <div id="panel-victory" class="overlay-panel">
       <h2 style="color: #00ffcc;">PARABÉNS! VOCÊ ZEROU A FASE 27! 🏆</h2>
@@ -371,7 +338,6 @@
     const panelPixOverlay = document.getElementById("panel-pix-overlay");
     const panelCommentsOverlay = document.getElementById("panel-comments-overlay");
     const panelBossQuiz = document.getElementById("panel-boss-quiz");
-    const panelCreatorMenu = document.getElementById("panel-creator-menu");
     
     const stageTitle = document.getElementById("stage-title");
     const stageInstruction = document.getElementById("stage-instruction");
@@ -399,7 +365,7 @@
 
     // SISTEMA DE VIDAS E PONTUAÇÃO DE VIDAS EXTRAS
     let playerLives = 3;
-    let nextExtraLifeScore = 15000;
+    let nextExtraLifeScore = 10000;
 
     const portugueseQuestionsBank = [
       { q: "Qual das palavras abaixo possui um DÍGRAFO?", options: ["Chuva", "Prato", "Escola", "Pedra"], correct: 0 },
@@ -416,10 +382,10 @@
 
     function addScore(amount) {
       score += amount;
-      // VERIFICA VIDA EXTRA A CADA 15.000 PONTOS
+      // VERIFICA VIDA EXTRA A CADA 10.000 PONTOS
       while (score >= nextExtraLifeScore) {
         playerLives++;
-        nextExtraLifeScore += 15000;
+        nextExtraLifeScore += 10000;
         playSound('powerup');
         speakText("Vida extra!");
       }
@@ -435,7 +401,6 @@
       panelPixOverlay.style.display = "none";
       panelCommentsOverlay.style.display = "none";
       panelBossQuiz.style.display = "none";
-      panelCreatorMenu.style.display = "none";
     }
 
     function openYoutubeChannel() {
@@ -1037,23 +1002,6 @@
         listeningKeyAction = null;
         return;
       }
-
-      // COMANDO SECRETO DO CRIADOR: jhonny
-      if (!creatorMenuActive && e.key && /^[a-zA-Z]$/.test(e.key)) {
-        creatorCodeBuffer = (creatorCodeBuffer + e.key.toLowerCase()).slice(-6);
-        if (creatorCodeBuffer === "jhonny") {
-          creatorCodeBuffer = "";
-          e.preventDefault();
-          openCreatorMenu();
-          return;
-        }
-      }
-
-      if (creatorMenuActive) {
-        if (e.key === "Escape") closeCreatorMenu();
-        return;
-      }
-
       keys[e.code] = true;
     });
 
@@ -1150,25 +1098,12 @@
       playerLives--;
 
       if (playerLives > 0) {
-        // VIDA DISPONÍVEL: VOLTA PARA A MESMA FASE EM QUE MORREU.
+        // PERDEU UMA VIDA, MAS RESSUSCITA NA FASE ATUAL
         playSound('hitWrong');
-        speakText(`Você perdeu uma vida! Restam ${playerLives} vidas. Voltando para a Fase ${currentStage}.`);
-
-        collisionAnimationActive = false;
-        mockingEnemy = null;
-        gameOver = false;
-        stageStarted = false;
-        isIntroPlaying = false;
-
+        speakText(`Você perdeu uma vida! Restam ${playerLives} vidas.`);
         player.x = 50;
         player.y = getGroundY() - player.height;
-        player.vx = 0;
-        player.vy = 0;
-        player.attacking = false;
-        player.attackTimer = 0;
-
-        // Recria somente a fase atual; a fase não é perdida.
-        prepareStage();
+        player.vx = 0; player.vy = 0;
         return;
       }
 
@@ -1176,22 +1111,21 @@
       collisionAnimationActive = true;
       collisionAnimTimer = 0;
       mockingEnemy = enemyRef;
-
+      
       playerSpeechBubble = positiveFrases[Math.floor(Math.random() * positiveFrases.length)];
       enemySpeechBubble = enemyRef ? "Você não consegue me vencer! Kkkk" : "Cuidado com o perigo!";
-
+      
       playSound('hitWrong');
       speakText(playerSpeechBubble);
 
       let animInterval = setInterval(() => {
         collisionAnimTimer += 0.2;
         if (mockingEnemy) mockingEnemy.mockOffset = Math.sin(collisionAnimTimer * 5) * 8;
-
+        
         if (collisionAnimTimer >= 3.5) {
           clearInterval(animInterval);
           collisionAnimationActive = false;
           gameOver = true;
-          stageStarted = false;
           stopBackgroundMusic();
           closeAllPanels();
           document.getElementById("game-over-reason").innerText = reason;
@@ -1264,69 +1198,13 @@
 
     function resetGame() {
       gameOver = false; score = 0; currentStage = 1; gameTimerSeconds = 0;
-      playerLives = 3; nextExtraLifeScore = 15000;
+      playerLives = 3; nextExtraLifeScore = 10000;
       player.x = 50; player.y = getGroundY() - player.height; player.vx = 0; player.vy = 0;
       player.hasGreenCoat = false; player.shieldPowerUp = false; player.bigShieldActive = false;
       prepareStage();
     }
 
     const keys = {};
-    let creatorMenuActive = false;
-    let creatorWasRunning = false;
-    let creatorCodeBuffer = "";
-
-    function openCreatorMenu() {
-      if (creatorMenuActive) return;
-      creatorWasRunning = stageStarted && !gameOver && !isIntroPlaying && !collisionAnimationActive;
-      creatorMenuActive = true;
-      keys[keyBinds.attack] = false;
-      keys[keyBinds.jump] = false;
-      keys[keyBinds.shield] = false;
-      closeAllPanels();
-      panelCreatorMenu.style.display = "flex";
-      document.getElementById("creator-stage-input").value = "";
-      speakText("Menu do criador aberto.");
-    }
-
-    function closeCreatorMenu() {
-      panelCreatorMenu.style.display = "none";
-      creatorMenuActive = false;
-    }
-
-    function creatorContinueGame() {
-      const wasRunning = creatorWasRunning;
-      closeCreatorMenu();
-      if (wasRunning) {
-        stageStarted = true;
-        startBackgroundMusic();
-      } else if (!gameOver && !stageStarted) {
-        prepareStage();
-      }
-    }
-
-    function creatorGoToStage() {
-      const input = document.getElementById("creator-stage-input");
-      const requestedStage = parseInt(input.value, 10);
-      if (!Number.isInteger(requestedStage) || requestedStage < 1 || requestedStage > maxStages) {
-        alert("Digite uma fase entre 1 e 27.");
-        input.focus();
-        return;
-      }
-
-      currentStage = requestedStage;
-      gameOver = false;
-      stageStarted = false;
-      isIntroPlaying = false;
-      collisionAnimationActive = false;
-      closeCreatorMenu();
-      player.x = 50;
-      player.y = getGroundY() - player.height;
-      player.vx = 0;
-      player.vy = 0;
-      prepareStage();
-      speakText(`Fase ${currentStage}.`);
-    }
-
     window.addEventListener("keyup", (e) => { keys[e.code] = false; });
 
     function updateIntro() {
@@ -1362,8 +1240,6 @@
     }
 
     function update() {
-      if (creatorMenuActive) return;
-
       sunAngle += 0.01;
       const groundY = getGroundY();
 
@@ -1630,58 +1506,39 @@
       ctx.save();
       ctx.translate(x, y);
 
-      // Halo externo forte para o relógio ficar visível em qualquer fundo.
-      const halo = ctx.createRadialGradient(0, 0, radius * 0.5, 0, 0, radius * 1.8);
-      halo.addColorStop(0, "rgba(255, 215, 0, 0.30)");
-      halo.addColorStop(0.55, "rgba(255, 180, 0, 0.12)");
-      halo.addColorStop(1, "rgba(255, 180, 0, 0)");
-      ctx.fillStyle = halo;
-      ctx.beginPath();
-      ctx.arc(0, 0, radius * 1.8, 0, Math.PI * 2);
-      ctx.fill();
-
-      const pulse = Math.sin(sunAngle * 2) * 2;
-
-      // Sol bem destacado.
-      ctx.fillStyle = "#ffd43b";
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(0, 0, radius + pulse, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // Raios grossos e luminosos.
-      ctx.strokeStyle = "#ffea70";
-      ctx.lineWidth = 3;
-      for (let i = 0; i < 12; i++) {
-        const angle = sunAngle + (i * Math.PI * 2) / 12;
+      ctx.strokeStyle = "rgba(255, 204, 0, 0.4)";
+      ctx.lineWidth = 2;
+      const numRays = 12;
+      for (let i = 0; i < numRays; i++) {
+        const angle = sunAngle + (i * Math.PI * 2) / numRays;
         ctx.beginPath();
-        ctx.moveTo(Math.cos(angle) * (radius + 7), Math.sin(angle) * (radius + 7));
-        ctx.lineTo(Math.cos(angle) * (radius + 18), Math.sin(angle) * (radius + 18));
+        ctx.moveTo(Math.cos(angle) * (radius + 4), Math.sin(angle) * (radius + 4));
+        ctx.lineTo(Math.cos(angle) * (radius + 16), Math.sin(angle) * (radius + 16));
         ctx.stroke();
       }
 
-      // Mostrador branco para alto contraste.
-      const clockRadius = radius * 0.76;
-      ctx.fillStyle = "rgba(255,255,255,0.96)";
-      ctx.strokeStyle = "#3a2a00";
-      ctx.lineWidth = 3;
+      const pulse = Math.sin(sunAngle * 3) * 2;
+      ctx.fillStyle = "rgba(255, 204, 0, 0.75)";
+      ctx.beginPath();
+      ctx.arc(0, 0, radius + pulse, 0, Math.PI * 2);
+      ctx.fill();
+
+      const clockRadius = radius * 0.82;
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.arc(0, 0, clockRadius, 0, Math.PI * 2);
-      ctx.fill();
       ctx.stroke();
 
-      // Marcações das horas.
-      ctx.strokeStyle = "#222";
-      ctx.lineWidth = 2;
       for (let h = 0; h < 12; h++) {
-        const a = (h * Math.PI) / 6;
-        const outer = clockRadius - 3;
-        const inner = h % 3 === 0 ? clockRadius - 10 : clockRadius - 7;
+        const hAngle = (h * Math.PI) / 6;
+        const x1 = Math.sin(hAngle) * (clockRadius - 3);
+        const y1 = -Math.cos(hAngle) * (clockRadius - 3);
+        const x2 = Math.sin(hAngle) * (clockRadius - 7);
+        const y2 = -Math.cos(hAngle) * (clockRadius - 7);
         ctx.beginPath();
-        ctx.moveTo(Math.sin(a) * inner, -Math.cos(a) * inner);
-        ctx.lineTo(Math.sin(a) * outer, -Math.cos(a) * outer);
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
         ctx.stroke();
       }
 
@@ -1690,43 +1547,270 @@
       const mins = now.getMinutes();
       const secs = now.getSeconds();
 
-      // Ponteiros grandes e fáceis de enxergar.
       const hourAngle = ((hrs + mins / 60) * Math.PI) / 6;
-      ctx.strokeStyle = "#111";
-      ctx.lineWidth = 5;
-      ctx.lineCap = "round";
+      ctx.strokeStyle = "rgba(20, 20, 20, 0.8)";
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.lineTo(Math.sin(hourAngle) * (clockRadius * 0.45), -Math.cos(hourAngle) * (clockRadius * 0.45));
       ctx.stroke();
 
       const minAngle = ((mins + secs / 60) * Math.PI) / 30;
-      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = "rgba(30, 30, 30, 0.75)";
+      ctx.lineWidth = 1.8;
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.lineTo(Math.sin(minAngle) * (clockRadius * 0.68), -Math.cos(minAngle) * (clockRadius * 0.68));
       ctx.stroke();
 
       const secAngle = (secs * Math.PI) / 30;
-      ctx.strokeStyle = "#e6003c";
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(255, 0, 85, 0.85)";
+      ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.lineTo(Math.sin(secAngle) * (clockRadius * 0.82), -Math.cos(secAngle) * (clockRadius * 0.82));
       ctx.stroke();
 
-      ctx.fillStyle = "#111";
+      ctx.fillStyle = "#000";
       ctx.beginPath();
-      ctx.arc(0, 0, 4, 0, Math.PI * 2);
+      ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // Identificação do relógio.
-      ctx.fillStyle = "#111";
-      ctx.font = "bold 10px 'Segoe UI'";
-      ctx.textAlign = "center";
-      ctx.fillText("HORA", 0, clockRadius * 0.45);
+      ctx.restore();
+    }
+
+    function drawAerialVehicle(vehicle) {
+      ctx.save();
+      ctx.translate(vehicle.x, vehicle.y);
+      ctx.fillStyle = "#ffffff";
+      ctx.strokeStyle = "#00ffcc";
+      ctx.lineWidth = 1.5;
+
+      if (vehicle.type === 'plane') {
+        ctx.beginPath(); ctx.ellipse(0, 0, 20, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillRect(-4, -14, 6, 28); ctx.fillRect(-18, -8, 5, 10);
+      } else if (vehicle.type === 'helicopter') {
+        ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillRect(-16, -2, 14, 3);
+        const prop = Math.sin(Date.now() * 0.05) * 16; ctx.strokeRect(-prop, -13, prop * 2, 2);
+      } else if (vehicle.type === 'balloon') {
+        ctx.beginPath(); ctx.arc(0, -8, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#ff0055"; ctx.fillRect(-3, 8, 6, 6);
+      } else if (vehicle.type === 'rocket') {
+        ctx.beginPath(); ctx.ellipse(0, 0, 16, 5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#ffcc00"; ctx.fillRect(-20, -2, 6, 4);
+      }
 
       ctx.restore();
+    }
+
+    function drawShieldWeapon(x, y) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      const w = player.shieldPowerUp ? 42 : 32;
+      const h = player.shieldPowerUp ? 50 : 38;
+      ctx.fillStyle = player.shieldPowerUp ? "#ffcc00" : "#00ffcc";
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(-w/2, -h/2);
+      ctx.lineTo(w/2, -h/2);
+      ctx.lineTo(w/2, 0);
+      ctx.quadraticCurveTo(w/2, h/2, 0, h/2 + 5);
+      ctx.quadraticCurveTo(-w/2, h/2, -w/2, 0);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = "#000000";
+      ctx.font = "bold 9px 'Segoe UI'";
+      ctx.textAlign = "center";
+      ctx.fillText("Dr.", 0, -5);
+      ctx.font = "bold 8px 'Segoe UI'";
+      ctx.fillText("Chácara", 0, 6);
+
+      ctx.restore();
+    }
+
+    function drawBigShield(centerX, centerY) {
+      ctx.save();
+      ctx.translate(centerX, centerY);
+
+      const radius = 55;
+      
+      ctx.fillStyle = "rgba(255, 140, 0, 0.25)";
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(255, 140, 0, 0.8)";
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = "#ff8c00";
+      ctx.shadowColor = "#ff4500";
+      ctx.shadowBlur = 8;
+      ctx.font = "bold 15px 'Segoe UI'";
+      ctx.textAlign = "center";
+      ctx.fillText("Dr. Chácara", 0, 5);
+
+      ctx.restore();
+    }
+
+    function drawDrChacaraSide(x, y, facing, crouching) {
+      ctx.save();
+      ctx.translate(x + player.width / 2, y);
+      if (facing === 'left') ctx.scale(-1, 1);
+
+      const leg1Angle = Math.sin(walkCycle) * 0.6;
+      const leg2Angle = Math.sin(walkCycle + Math.PI) * 0.6;
+      const arm1Angle = Math.sin(walkCycle + Math.PI) * 0.5;
+      const arm2Angle = Math.sin(walkCycle) * 0.5;
+
+      const h = crouching ? 50 : 71.5;
+
+      ctx.save();
+      ctx.translate(-3, h - 28);
+      ctx.rotate(leg2Angle);
+      ctx.strokeStyle = "#12121a"; ctx.lineWidth = 5.5; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 14); ctx.stroke();
+      
+      ctx.translate(0, 14);
+      const knee2Angle = Math.max(0, -leg2Angle * 0.8);
+      ctx.rotate(knee2Angle);
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(2, 12); ctx.stroke();
+      
+      ctx.fillStyle = "#1a1a1a";
+      ctx.fillRect(-1, 10, 9, 4);
+      ctx.restore();
+
+      ctx.save();
+      ctx.translate(-2, crouching ? 20 : 24);
+      ctx.rotate(arm2Angle);
+      ctx.strokeStyle = "#f3c099"; ctx.lineWidth = 4.5;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-2, 14); ctx.stroke();
+      ctx.restore();
+
+      ctx.fillStyle = "#0066cc";
+      ctx.fillRect(-8, crouching ? 18 : 22, 16, 24);
+
+      ctx.fillStyle = player.hasGreenCoat ? "#00ff66" : "#ffffff";
+      ctx.fillRect(-10, crouching ? 12 : 18, 20, crouching ? 20 : 28);
+
+      ctx.fillStyle = "#f3c099"; ctx.fillRect(-3, 0, 16, 18);
+      ctx.fillStyle = "#111111"; ctx.fillRect(-5, -1, 18, 4);
+      ctx.fillStyle = "#5A5A66"; ctx.fillRect(-6, -7, 20, 7);
+      
+      ctx.strokeStyle = "#000"; ctx.lineWidth = 1.8; ctx.strokeRect(3, 3, 7, 6);
+      ctx.beginPath(); ctx.moveTo(-3, 5); ctx.lineTo(3, 5); ctx.stroke();
+
+      ctx.save();
+      ctx.translate(3, h - 28);
+      ctx.rotate(leg1Angle);
+      ctx.strokeStyle = "#1a1a24"; ctx.lineWidth = 6; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 14); ctx.stroke();
+      
+      ctx.translate(0, 14);
+      const knee1Angle = Math.max(0, -leg1Angle * 0.8);
+      ctx.rotate(knee1Angle);
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(2, 12); ctx.stroke();
+      
+      ctx.fillStyle = "#0a0a0a";
+      ctx.fillRect(-1, 10, 10, 4.5);
+      ctx.restore();
+
+      ctx.save();
+      ctx.translate(3, crouching ? 20 : 24);
+      ctx.rotate(arm1Angle);
+      ctx.strokeStyle = "#f3c099"; ctx.lineWidth = 5; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(3, 14); ctx.stroke();
+      ctx.restore();
+
+      ctx.restore();
+    }
+
+    function drawLetterEnemy(enemy) {
+      if (!enemy.alive) return;
+
+      ctx.save();
+      ctx.translate(enemy.x + enemy.width / 2, enemy.y + (enemy.mockOffset || 0));
+
+      const legCycle = Math.sin(Date.now() * 0.01 + enemy.x) * 8;
+
+      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(-6, enemy.height - 8); ctx.lineTo(-6 + legCycle, enemy.height); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(6, enemy.height - 8); ctx.lineTo(6 - legCycle, enemy.height); ctx.stroke();
+
+      if (enemy.isPurple) {
+        ctx.fillStyle = "#a020f0";
+        ctx.shadowColor = "#9370db";
+        ctx.shadowBlur = 8;
+      } else {
+        ctx.fillStyle = enemy.isTarget ? "#00ffcc" : "#ff0055";
+      }
+
+      ctx.font = "bold 40px 'Segoe UI'"; ctx.textAlign = "center";
+      ctx.fillText(enemy.symbol, 0, enemy.height - 10);
+
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 12px 'Segoe UI'";
+      if (enemy.expression === 'happy') {
+        ctx.fillText(":D", 14, 14);
+      } else if (enemy.expression === 'sad') {
+        ctx.fillText(":(", 14, 14);
+      }
+
+      ctx.restore();
+    }
+
+    function drawBossEnemy(boss) {
+      if (!boss || !boss.alive) return;
+
+      ctx.save();
+      ctx.translate(boss.x + boss.width / 2, boss.y);
+
+      const legCycle = Math.sin(Date.now() * 0.015) * 14;
+
+      ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 7; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(-15, boss.height - 20); ctx.lineTo(-15 + legCycle, boss.height); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(15, boss.height - 20); ctx.lineTo(15 - legCycle, boss.height); ctx.stroke();
+
+      ctx.fillStyle = "#ff0055";
+      ctx.shadowColor = "#ff3300";
+      ctx.shadowBlur = 15;
+
+      ctx.font = "bold 110px 'Segoe UI'";
+      ctx.textAlign = "center";
+      ctx.fillText(boss.symbol, 0, boss.height - 20);
+
+      ctx.fillStyle = "#ffcc00";
+      ctx.beginPath();
+      ctx.moveTo(-20, -10); ctx.lineTo(-10, -25); ctx.lineTo(0, -10); ctx.lineTo(10, -25); ctx.lineTo(20, -10);
+      ctx.closePath(); ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawDarts() {
+      darts.forEach(dart => {
+        if (!dart.active) return;
+        ctx.save();
+        ctx.translate(dart.x, dart.y);
+        ctx.fillStyle = "#a020f0";
+        ctx.strokeStyle = "#ff00ff";
+        ctx.lineWidth = 1.5;
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(dart.vx > 0 ? 14 : -14, -3);
+        ctx.lineTo(dart.vx > 0 ? 14 : -14, 3);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+
+        ctx.restore();
+      });
     }
 
     function drawDirtRoad() {
@@ -1781,7 +1865,7 @@
         ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
 
-      drawAnimatedSunWithClock(Math.min(canvas.width - 75, Math.max(75, canvas.width * 0.50)), 78, Math.min(50, Math.max(38, canvas.width * 0.07)));
+      drawAnimatedSunWithClock(canvas.width - 110, 110, 36);
 
       if (currentStage > 1) drawAerialVehicle(aerialVehicle);
 
@@ -1843,19 +1927,11 @@
       ctx.fillText(`${currentRule.title}`, 20, 32);
       ctx.fillText(`PONTOS: ${score}  |  VIDAS: ❤️ x${playerLives}`, canvas.width - 270, 32);
 
-      // INDICAÇÃO DA VERSÃO 1.15
+      // INDICAÇÃO DA VERSÃO 1.14
       ctx.fillStyle = "rgba(0, 255, 204, 0.7)";
       ctx.font = "bold 11px monospace";
       ctx.textAlign = "left";
-      ctx.fillText("Versão 1.15", 12, canvas.height - 12);
-
-      ctx.textAlign = "right";
-      ctx.fillStyle = "rgba(255,255,255,0.95)";
-      ctx.font = "bold 12px 'Segoe UI'";
-      ctx.shadowColor = "rgba(0,0,0,0.9)";
-      ctx.shadowBlur = 5;
-      ctx.fillText("Criado por Doutor Chácara", canvas.width - 14, canvas.height - 12);
-      ctx.shadowBlur = 0;
+      ctx.fillText("Versão 1.14", 12, canvas.height - 12);
     }
 
     function loop() { update(); draw(); requestAnimationFrame(loop); }
