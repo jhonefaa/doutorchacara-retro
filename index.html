@@ -381,6 +381,9 @@
     let bossEnemy = null;
     let playerInputAnswer = "";
     let hqAnimTimer = 0;
+    let bossWalkCycle = 0;
+    let bossTargetX = 0;
+    let bossOptionBoxes = [];
 
     // SISTEMA DE VIDAS E PONTUAÇÃO DE VIDAS EXTRAS
     let playerLives = 3;
@@ -397,9 +400,9 @@
     const portugueseQuestionsBank = [
       { q: "Qual palavra tem DÍGRAFO?", options: ["CHUVA", "PRATO", "ESCOLA", "PEDRA"], correctText: "CHUVA" },
       { q: "Qual palavra tem apenas VOGAIS?", options: ["AEIOU", "BCDEF", "FGHIJ", "LMNOP"], correctText: "AEIOU" },
-      { q: "Qual palavra e PROPAROXITONA?", options: ["LAMPADA", "CAFE", "MESA", "COMPUTADOR"], correctText: "LAMPADA" },
-      { q: "Qual palavra tem ENCONTRO VOCALICO?", options: ["PEIXE", "GATO", "CACHORRO", "LIVRO"], correctText: "PEIXE" },
-      { q: "Qual e o PLURAL de CAO?", options: ["CAES", "CAOS", "CAOSES", "CAIS"], correctText: "CAES" }
+      { q: "Qual palavra é PROPAROXÍTONA?", options: ["LÂMPADA", "CAFÉ", "MESA", "COMPUTADOR"], correctText: "LÂMPADA" },
+      { q: "Qual palavra tem ENCONTRO VOCÁLICO?", options: ["PEIXE", "GATO", "CACHORRO", "LIVRO"], correctText: "PEIXE" },
+      { q: "Qual é o PLURAL de CÃO?", options: ["CÃES", "CÃOS", "CÃOSES", "CÃIS"], correctText: "CÃES" }
     ];
 
     function addScore(amount) {
@@ -843,6 +846,8 @@
       bossActive = false;
       bossState = "none";
       bossEnemy = null;
+      bossTargetX = 0;
+      bossOptionBoxes = [];
       isUsingVehicle = false;
       specialVehicle = null;
       player.isKnockedDown = false;
@@ -867,7 +872,7 @@
         currentBossChar = alphabet[bossCharIndex % alphabet.length];
 
         stageTitle.innerText = `FASE ${currentStage}: BATALHA HQ DO SEMI-MESTRE ${currentBossChar}`;
-        stageInstruction.innerText = `Responda 5 perguntas via teclado para vencer o Semi-Mestre ${currentBossChar}!`;
+        stageInstruction.innerText = `Clique na opção correta sobre a cabeça do Semi-Mestre ${currentBossChar}!`;
         
         const topRecord = getTopScores()[0] || { name: 'Ninguém', score: 0 };
         stageScoreInfo.innerHTML = `Pontuação Atual: <strong>${score}</strong> | Vidas: <strong>❤️ x${playerLives}</strong><br>Recorde do Jogo: <strong>${topRecord.score}</strong> (${topRecord.name})`;
@@ -887,6 +892,7 @@
           isKnockedDown: false,
           speechText: ""
         };
+        bossTargetX = bossEnemy.x;
         return;
       }
 
@@ -976,20 +982,20 @@
         return;
       }
       const q = bossQuizQuestions[bossQuizIndex];
-      bossEnemy.speechText = `P${bossQuizIndex + 1}: ${q.q} (${q.options.join(', ')})`;
-      speakText(bossEnemy.speechText);
+      bossEnemy.speechText = `P${bossQuizIndex + 1}: ${q.q}`;
+      speakText(`${q.q}`);
     }
 
-    function checkPlayerAnswerHQ() {
+    function processOptionClick(selectedOption) {
       if (bossState !== "quiz_hq") return;
       const q = bossQuizQuestions[bossQuizIndex];
-      const cleanAnswer = playerInputAnswer.trim().toUpperCase();
       
-      if (cleanAnswer === q.correctText) {
+      if (selectedOption.trim().toUpperCase() === q.correctText.trim().toUpperCase()) {
         playSound('powerup');
         addScore(200);
         bossQuizIndex++;
-        playerInputAnswer = "";
+        // Avança o semi-mestre 3 passos (aproximadamente 45px à esquerda)
+        bossTargetX = Math.max(player.x + 80, bossEnemy.x - 45);
         speakCurrentBossQuestion();
       } else {
         // JOGADOR ERROU A PERGUNTA
@@ -1000,6 +1006,26 @@
         speakText(msg);
       }
     }
+
+    function checkPlayerAnswerHQ() {
+      if (bossState !== "quiz_hq") return;
+      processOptionClick(playerInputAnswer);
+      playerInputAnswer = "";
+    }
+
+    canvas.addEventListener("click", (e) => {
+      if (!bossActive || bossState !== "quiz_hq") return;
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      bossOptionBoxes.forEach(box => {
+        if (clickX >= box.x && clickX <= box.x + box.w &&
+            clickY >= box.y && clickY <= box.y + box.h) {
+          processOptionClick(box.text);
+        }
+      });
+    });
 
     function startStage() {
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -1386,9 +1412,16 @@
 
       // EXECUÇÃO DAS ANIMAÇÕES TEATRAIS DO SEMI-MESTRE
       if (bossActive && bossEnemy) {
+        // Interpolação suave do movimento de avanço do semi-mestre (3 passos ao acertar)
+        if (Math.abs(bossEnemy.x - bossTargetX) > 0.5) {
+          bossEnemy.x += (bossTargetX - bossEnemy.x) * 0.1;
+          bossWalkCycle += 0.25;
+        }
+
         if (bossState === "boss_walking_defeat") {
           hqAnimTimer += 0.015;
           bossEnemy.x -= bossEnemy.speed;
+          bossWalkCycle += 0.22;
           
           if (bossEnemy.x <= player.x + 20) {
             player.isKnockedDown = true;
@@ -1536,7 +1569,7 @@
         if (player.attackTimer <= 0) player.attacking = false;
       }
 
-      // COLISÕES COM INIMIGOS (Escudo Especial NÃO protege contra contato direto de inimigos)
+      // COLISÕES COM INIMIGOS
       enemies.forEach(enemy => {
         if (!enemy.alive) return;
 
@@ -1595,7 +1628,7 @@
         }
       });
 
-      // DARDO / PROJÉTIL (Escudo Especial protege SOMENTE contra projéteis)
+      // DARDO / PROJÉTIL
       darts.forEach(dart => {
         if (!dart.active) return;
         dart.x += dart.vx;
@@ -1635,40 +1668,80 @@
       });
     }
 
-    // BALÕES EM FORMATO DE QUADRINHOS (HQ)
-    function drawHQComicBubble(x, y, text, isPlayerBubble = false) {
+    // BALÕES EM FORMATO DE QUADRINHOS (HQ) COM QUEBRA DE LINHA E INTERAÇÃO DIRETA
+    function drawHQBossQuiz(bossX, bossY, questionText, options) {
       ctx.save();
-      ctx.translate(x, y);
+      bossOptionBoxes = [];
 
-      ctx.font = "bold 12px 'Segoe UI'";
-      const textWidth = ctx.measureText(text).width;
-      const bw = Math.max(textWidth + 30, 120);
-      const bh = 55;
+      // 1. DESENHO DA PERGUNTA (Balão Centralizado e Responsivo com WordWrap)
+      ctx.font = "bold 16px 'Segoe UI'";
+      const maxQuestWidth = Math.min(canvas.width - 40, 480);
+      const words = questionText.split(" ");
+      let lines = [];
+      let currentLine = words[0] || "";
+
+      for (let i = 1; i < words.length; i++) {
+        const testLine = currentLine + " " + words[i];
+        if (ctx.measureText(testLine).width < maxQuestWidth - 30) {
+          currentLine = testLine;
+        } else {
+          lines.push(currentLine);
+          currentLine = words[i];
+        }
+      }
+      lines.push(currentLine);
+
+      const lineHeight = 22;
+      const qBubbleH = lines.length * lineHeight + 20;
+      const qBubbleW = maxQuestWidth;
+      const qBubbleX = (canvas.width - qBubbleW) / 2;
+      const qBubbleY = 60;
 
       ctx.fillStyle = "#ffffff";
-      ctx.strokeStyle = "#000000";
+      ctx.strokeStyle = "#00ffcc";
       ctx.lineWidth = 3;
-
-      // Balão oval HQ
       ctx.beginPath();
-      ctx.ellipse(0, -bh/2, bw/2, bh/2, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // Rabinho do balão
-      ctx.beginPath();
-      if (isPlayerBubble) {
-        ctx.moveTo(10, -5); ctx.lineTo(25, 15); ctx.lineTo(-5, -5);
-      } else {
-        ctx.moveTo(-10, -5); ctx.lineTo(-25, 15); ctx.lineTo(5, -5);
-      }
+      ctx.roundRect(qBubbleX, qBubbleY, qBubbleW, qBubbleH, 15);
       ctx.fill();
       ctx.stroke();
 
       ctx.fillStyle = "#000000";
-      ctx.font = "bold 11px 'Segoe UI'";
       ctx.textAlign = "center";
-      ctx.fillText(text, 0, -bh/2 + 4);
+      ctx.textBaseline = "middle";
+      lines.forEach((line, index) => {
+        ctx.fillText(line, canvas.width / 2, qBubbleY + 15 + index * lineHeight);
+      });
+
+      // 2. OPÇÕES INTERATIVAS SOBRE A CABEÇA DO SEMI-MESTRE
+      if (options && options.length > 0) {
+        ctx.font = "bold 14px 'Segoe UI'";
+        const optMargin = 8;
+        let startY = bossY - 35 - (options.length * (34 + optMargin));
+
+        options.forEach((optText, i) => {
+          const textWidth = ctx.measureText(optText).width;
+          const boxW = Math.max(textWidth + 24, 110);
+          const boxH = 34;
+          const boxX = bossX + (bossEnemy.width / 2) - (boxW / 2);
+          const boxY = startY + i * (boxH + optMargin);
+
+          // Salva para detecção de clique
+          bossOptionBoxes.push({ x: boxX, y: boxY, w: boxW, h: boxH, text: optText });
+
+          ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+          ctx.strokeStyle = "#00ffcc";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(boxX, boxY, boxW, boxH, 10);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = "#00ffcc";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(optText, boxX + boxW / 2, boxY + boxH / 2);
+        });
+      }
 
       ctx.restore();
     }
@@ -1933,6 +2006,7 @@
       ctx.restore();
     }
 
+    // ANIMAÇÃO REALISTA DO SEMI-MESTRE COM OSCILAÇÃO DE PASSOS
     function drawBossEnemy(boss) {
       if (!boss || !boss.alive) return;
 
@@ -1943,7 +2017,11 @@
         ctx.rotate(-Math.PI / 2);
       }
 
-      const legCycle = Math.sin(Date.now() * 0.015) * 14;
+      const legCycle = Math.sin(bossWalkCycle) * 16;
+      const bodyBob = Math.abs(Math.cos(bossWalkCycle)) * 6; // Oscilação vertical ao caminhar
+
+      ctx.save();
+      ctx.translate(0, -bodyBob);
 
       ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 7; ctx.lineCap = "round";
       ctx.beginPath(); ctx.moveTo(-15, boss.height - 20); ctx.lineTo(-15 + legCycle, boss.height); ctx.stroke();
@@ -1962,6 +2040,7 @@
       ctx.moveTo(-20, -10); ctx.lineTo(-10, -25); ctx.lineTo(0, -10); ctx.lineTo(10, -25); ctx.lineTo(20, -10);
       ctx.closePath(); ctx.fill();
 
+      ctx.restore();
       ctx.restore();
     }
 
@@ -2089,12 +2168,14 @@
       if (bossActive && bossEnemy) {
         drawBossEnemy(bossEnemy);
 
-        // BALÕES DE QUADRINHOS (HQ) NO COMBATE DO SEMI-MESTRE
+        // INTEGRAÇÃO DAS MELHORIAS DE PERGUNTA E INTERAÇÃO
         if (bossState === "quiz_hq") {
-          drawHQComicBubble(bossEnemy.x - 30, bossEnemy.y - 20, bossEnemy.speechText, false);
-          drawHQComicBubble(player.x + 30, player.y - 30, `Resp: ${playerInputAnswer}_ (ENTER)`, true);
+          const q = bossQuizQuestions[bossQuizIndex];
+          if (q) {
+            drawHQBossQuiz(bossEnemy.x, bossEnemy.y, `Pergunta ${bossQuizIndex + 1}/5: ${q.q}`, q.options);
+          }
         } else if (bossState === "boss_walking_defeat") {
-          drawHQComicBubble(bossEnemy.x - 30, bossEnemy.y - 20, bossEnemy.speechText, false);
+          drawHQBossQuiz(bossEnemy.x, bossEnemy.y, bossEnemy.speechText, []);
         }
       }
 
