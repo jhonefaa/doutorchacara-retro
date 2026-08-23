@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Doutor Chácara - Alfabetização Arcade Mobile v1.15</title>
+  <title>Doutor Chácara - Alfabetização Arcade Mobile v1.16</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
     html, body {
@@ -20,7 +20,6 @@
       background: #000; width: 100vw; height: 100vh; object-fit: fill; display: block;
     }
 
-    /* CONTROLES VIRTUAIS TOUCH TRANSPARENTES */
     .touch-controls {
       position: absolute; bottom: 65px; left: 0; width: 100%;
       display: flex; justify-content: space-between; align-items: flex-end;
@@ -63,7 +62,6 @@
       backdrop-filter: blur(4px);
     }
 
-    /* BARRA DE FERRAMENTAS INFERIOR SUPER TRANSPARENTE */
     .bottom-bar {
       position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
       display: flex; gap: 8px; background: rgba(10, 10, 18, 0.25);
@@ -83,7 +81,6 @@
 
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-    /* PAINÉIS OVERLAY SOBREPOSIÇÃO SUPER TRANSPARENTES */
     .overlay-panel {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: rgba(10, 10, 18, 0.85); 
@@ -135,7 +132,6 @@
 
     textarea { text-align: left; resize: none; height: 55px; }
 
-    /* MENU LATERAL DE COMENTÁRIOS AO VIVO (SUPER TRANSPARENTE) */
     .instant-comments-box {
       position: absolute; top: 55px; right: 15px; width: 210px; max-height: 170px;
       background: rgba(0, 0, 0, 0.12); backdrop-filter: blur(4px);
@@ -165,7 +161,6 @@
 
     video { width: 100%; border-radius: 12px; border: 1px solid #00ffcc; margin-top: 5px; }
 
-    /* PAINEL SECRETO DO CRIADOR */
     #panel-creator-menu {
       border: 2px solid #ffd700;
       box-shadow: 0 0 30px rgba(255, 215, 0, 0.35);
@@ -194,13 +189,11 @@
 
     <canvas id="gameCanvas"></canvas>
 
-    <!-- MENU DE COMENTÁRIOS INSTANTÂNEOS NO CANTO DA TELA -->
     <div class="instant-comments-box">
       <div class="instant-comments-header">💬 COMENTÁRIOS AO VIVO</div>
       <div class="instant-comments-list" id="instant-comments-list"></div>
     </div>
 
-    <!-- BARRA INFERIOR DE RECURSOS E AÇÕES -->
     <div class="bottom-bar">
       <button class="btn-tool" id="btn-record" onclick="toggleRecordGame()">🎥 Gravar Jogo</button>
       <button class="btn-tool" onclick="takeScreenshot()">📸 Print</button>
@@ -211,7 +204,6 @@
       <button class="btn-tool" id="btn-toggle-voice" onclick="toggleVoice()">🔊 Voz: ON</button>
     </div>
 
-    <!-- PAINEL OVERLAY: PIX -->
     <div id="panel-pix-overlay" class="overlay-panel">
       <h2>APOIE O JOGO COM PIX ⚡</h2>
       <p>Sua ajuda garante novos conteúdos e melhorias para o jogo!</p>
@@ -220,7 +212,6 @@
       <button class="btn-back" onclick="closeAllPanels()">◀ VOLTAR AO JOGO</button>
     </div>
 
-    <!-- PAINEL OVERLAY: DEIXAR COMENTÁRIO -->
     <div id="panel-comments-overlay" class="overlay-panel">
       <h2>DEIXE SEU COMENTÁRIO 💬</h2>
       <p>Envie sua mensagem para aparecer no jogo!</p>
@@ -230,7 +221,6 @@
       <button class="btn-back" onclick="closeAllPanels()">◀ VOLTAR AO JOGO</button>
     </div>
 
-    <!-- PAINEL INICIAR FASE / TRANSIÇÃO -->
     <div id="panel-stage-start" class="overlay-panel">
       <h2 id="stage-title">FASE 1</h2>
       <p id="stage-instruction">Destrua os alvos solicitados!</p>
@@ -238,7 +228,6 @@
       <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
     </div>
 
-    <!-- PAINEL QUIZ SEMI-MESTRE (DIÁLOGO) -->
     <div id="panel-boss-quiz" class="overlay-panel">
       <h2 id="quiz-boss-name" style="color: #ff0055;">SEMI-MESTRE LETRA A</h2>
       <p id="quiz-progress-text" style="color: #ffcc00; font-weight: bold;">Pergunta 1 de 5</p>
@@ -246,27 +235,23 @@
       <div class="btn-group" id="quiz-options-container"></div>
     </div>
 
-    <!-- PAINEL INTERAÇÃO YOUTUBE (TRANSIÇÃO DE FASE) -->
     <div id="panel-youtube-promo" class="overlay-panel">
       <h2>FASE CONCLUÍDA! 🎉</h2>
       <p>Apoie o canal do Doutor Chácara para continuar:</p>
       <div class="btn-group">
         <button class="btn-main" style="background: rgba(255, 0, 0, 0.65); color:#fff;" onclick="handleYtAnswer('inscrever')">🔴 Se inscreva no canal Doutor Chácara</button>
         <button class="btn-main" onclick="handleYtAnswer('sim')">👍 Já é inscrito</button>
-        <!-- A OPÇÃO DE CONTINUAR SÓ APARECE ATÉ A FASE 20 -->
         <button class="btn-sub" id="btn-continue-game" style="background: rgba(0, 153, 255, 0.65);" onclick="handleYtAnswer('continuar')">▶ Continuar jogo</button>
       </div>
       <div id="yt-feedback-msg" style="margin-top: 5px; font-weight: bold; color: #ffcc00; text-shadow: 0 0 5px #000;"></div>
     </div>
 
-    <!-- PAINEL PAUSA YOUTUBE RETORNO -->
     <div id="panel-yt-return" class="overlay-panel">
       <h2>JOGO PAUSADO ⏸️</h2>
       <p>O jogo está pausado enquanto você visita o canal!</p>
       <button class="btn-main" onclick="resumeGameFromYt()">CONTINUAR JOGO ▶</button>
     </div>
 
-    <!-- PAINEL CONFIGURAÇÃO DE TECLAS (PC) -->
     <div id="panel-key-config" class="overlay-panel">
       <h2>CONFIGURAÇÃO DE TECLAS</h2>
       <div class="key-bind-row">
@@ -284,7 +269,6 @@
       <button class="btn-main" onclick="closeKeyConfig()">SALVAR E FECHAR</button>
     </div>
 
-    <!-- MENU SECRETO DO CRIADOR: código jhonny -->
     <div id="panel-creator-menu" class="overlay-panel">
       <div class="creator-badge">🔐 MODO CRIADOR</div>
       <h2>MENU DO CRIADOR</h2>
@@ -297,7 +281,6 @@
 
     <div class="creator-footer">Criado por Doutor Chácara</div>
 
-    <!-- PAINEL VITÓRIA FINAL & VÍDEO DO DOUTOR CHÁCARA NA FASE 27 -->
     <div id="panel-victory" class="overlay-panel">
       <h2 style="color: #00ffcc;">PARABÉNS! VOCÊ ZEROU A FASE 27! 🏆</h2>
       <p>Mensagem especial do Doutor Chácara:</p>
@@ -310,7 +293,6 @@
       <button class="btn-main" onclick="saveVictoryScore()">GRAVAR NO PLACAR PARA SEMPRE 🏆</button>
     </div>
 
-    <!-- PAINEL GAME OVER & REGISTRO DE NOME -->
     <div id="panel-game-over" class="overlay-panel">
       <h2 style="color: #ff0055;">GAME OVER</h2>
       <p id="game-over-reason">Você perdeu a fase!</p>
@@ -389,17 +371,19 @@
     let isMusicEnabled = true;
     let isVoiceEnabled = true;
 
-    // VARIÁVEIS DO SEMI-MESTRE
     let bossActive = false;
-    let bossState = "none"; // 'quiz', 'walking', 'defeated'
+    let bossState = "none";
     let currentBossChar = "A";
     let bossQuizIndex = 0;
     let bossQuizQuestions = [];
     let bossEnemy = null;
 
-    // SISTEMA DE VIDAS E PONTUAÇÃO DE VIDAS EXTRAS
     let playerLives = 3;
     let nextExtraLifeScore = 15000;
+
+    // ASA DELTA E BRINDES EXTRAS
+    let hangGliderItem = null;
+    let stageGiftItem = null;
 
     const portugueseQuestionsBank = [
       { q: "Qual das palavras abaixo possui um DÍGRAFO?", options: ["Chuva", "Prato", "Escola", "Pedra"], correct: 0 },
@@ -415,8 +399,8 @@
     ];
 
     function addScore(amount) {
+      if (player.isFlying) return; // NÂO GANHA PONTOS VOANDO DE ASA DELTA
       score += amount;
-      // VERIFICA VIDA EXTRA A CADA 15.000 PONTOS
       while (score >= nextExtraLifeScore) {
         playerLives++;
         nextExtraLifeScore += 15000;
@@ -574,7 +558,16 @@
     const keyBinds = { attack: "KeyA", jump: "KeyS", shield: "KeyD" };
     let listeningKeyAction = null;
 
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let audioCtx = null;
+    function initAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
     let bgMusicTimer = null;
     let bgMusicNoteIndex = 0;
 
@@ -587,11 +580,12 @@
     ];
 
     function startBackgroundMusic() {
+      initAudioContext();
       if (!isMusicEnabled || bgMusicTimer) return;
       
       bgMusicTimer = setInterval(() => {
         if (!isMusicEnabled || gameOver || !stageStarted) return;
-        if (audioCtx.state === 'suspended') audioCtx.resume();
+        initAudioContext();
 
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -621,7 +615,7 @@
     }
 
     function playSound(type) {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      initAudioContext();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.connect(gain);
@@ -695,8 +689,7 @@
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'pt-BR';
-        utterance.rate = 1.08;
-        utterance.pitch = 1.0;
+        utterance.rate = 1.0;
         if (onEndCallback) {
           utterance.onend = onEndCallback;
         }
@@ -714,7 +707,6 @@
       }
     }
 
-    // VARIÁVEIS DE JOGO
     let currentStage = 1;
     const maxStages = 27;
     let score = 0;
@@ -725,7 +717,6 @@
     let sunAngle = 0;
     let gameTimerSeconds = 0;
 
-    // ESTRADA DE TERRA E BURACO
     let roadColors = { main: "#8B4513", accent: "#5C2E0B", edge: "#2e7d32" };
     let pitHole = { x: 0, width: 0, active: false };
 
@@ -750,45 +741,36 @@
       return canvas.height - 80;
     }
 
-    // PERSONAGEM
     const player = {
       x: 50, y: 280, width: 33, height: 71.5,
       vx: 0, vy: 0, speed: 4.5, friction: 0.82,
       grounded: false, crouching: false, facing: 'right', aimingUp: false,
       attacking: false, attackTimer: 0, attackMaxTime: 12,
       hasGreenCoat: false, shieldPowerUp: false,
-      bigShieldActive: false
+      bigShieldActive: false, isFlying: false
     };
 
     function triggerPlayerJump() {
-      if (player.grounded && stageStarted && !gameOver) {
-        player.vy = -12;
-        player.grounded = false;
-        playSound('jump');
+      initAudioContext();
+      if (stageStarted && !gameOver) {
+        if (player.isFlying) {
+          player.vy = -7;
+        } else if (player.grounded) {
+          player.vy = -12;
+          player.grounded = false;
+          playSound('jump');
+        }
       }
     }
 
     const gravity = 0.65;
-    // ALCANCE DO ESCUDO DE ATAQUE DIMINUÍDO PELA METADE (70px)
     const weapon = { x: 0, y: 0, length: 0, baseMaxLength: 70 };
 
     let notebookItem = null;
     let greenCoatItem = null;
-    let bonusVehicleItem = null;
-    let hangGliderItem = null;
-    let playerFlying = false;
-    let flightType = null;
-
-    const bonusVehicles = [
-      { type: 'car', icon: '🚗', name: 'CARRO TURBO' },
-      { type: 'motorcycle', icon: '🏍️', name: 'MOTO TURBO' },
-      { type: 'plane', icon: '✈️', name: 'AVIÃO' },
-      { type: 'helicopter', icon: '🚁', name: 'HELICÓPTERO' }
-    ];
 
     const aerialSymbols = ['plane', 'helicopter', 'balloon', 'rocket', 'ufo_mini', 'bird', 'dragon', 'blimp'];
 
-    // DARDOS DISPARADOS
     const darts = [];
 
     const stageRules = {
@@ -830,19 +812,14 @@
     function prepareStage() {
       enemies.length = 0;
       darts.length = 0;
-      bonusVehicleItem = null;
-      hangGliderItem = null;
-      playerFlying = false;
-      flightType = null;
-      player.vy = 0;
       closeAllPanels();
       bossActive = false;
       bossState = "none";
       bossEnemy = null;
+      player.isFlying = false;
 
       const groundY = getGroundY();
 
-      // VERIFICA SE É FASE DE SEMI-MESTRE (A CADA 5 FASES)
       if (currentStage % 5 === 0) {
         bossActive = true;
         const bossCharIndex = (currentStage / 5) - 1;
@@ -917,27 +894,36 @@
         aerialVehicle = { x: -80, y: 60 + Math.random() * 40, speed: 1.2 + Math.random() * 0.8, type: symbolType };
       }
 
+      // ASA DELTA APARECE A PARTIR DA FASE 6 (RANDÔMICA)
+      if (currentStage >= 6 && Math.random() < 0.75) {
+        hangGliderItem = {
+          x: 250 + Math.random() * 300,
+          y: groundY - 30,
+          width: 35,
+          height: 25,
+          active: true
+        };
+      } else {
+        hangGliderItem = null;
+      }
+
+      // BRINDES EXTRAS E VEÍCULOS VARIADOS ATE A FASE 20
+      if (currentStage <= 20 && Math.random() < 0.6) {
+        const giftTypes = ['🚗', '🏍️', '✈️', '🎁'];
+        stageGiftItem = {
+          x: 180 + Math.random() * 400,
+          y: groundY - 30,
+          type: giftTypes[Math.floor(Math.random() * giftTypes.length)],
+          active: true
+        };
+      } else {
+        stageGiftItem = null;
+      }
+
       if (Math.random() > 0.3) {
         notebookItem = { x: 200 + Math.random() * 400, y: groundY - 25, width: 20, height: 20, active: true };
       } else {
         notebookItem = null;
-      }
-
-      // BRINDE DE VEÍCULO: aparece aleatoriamente em todas as fases até a 20.
-      if (currentStage <= 20) {
-        const vehicle = bonusVehicles[Math.floor(Math.random() * bonusVehicles.length)];
-        bonusVehicleItem = {
-          ...vehicle, x: 260 + Math.random() * 420, y: groundY - 34,
-          width: 34, height: 28, active: true
-        };
-      }
-
-      // ASA-DELTA: começa na fase 6, aparece aleatoriamente no céu.
-      if (currentStage >= 6 && Math.random() < 0.42) {
-        hangGliderItem = {
-          x: 220 + Math.random() * Math.max(100, canvas.width - 420),
-          y: 90 + Math.random() * 100, width: 78, height: 42, active: true
-        };
       }
 
       const count = 4 + Math.floor(currentStage * 0.5);
@@ -1017,7 +1003,7 @@
     }
 
     function startStage() {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      initAudioContext();
       closeAllPanels();
       
       if (bossActive) {
@@ -1072,7 +1058,6 @@
         return;
       }
 
-      // COMANDO SECRETO DO CRIADOR: jhonny
       if (!creatorMenuActive && e.key && /^[a-zA-Z]$/.test(e.key)) {
         creatorCodeBuffer = (creatorCodeBuffer + e.key.toLowerCase()).slice(-6);
         if (creatorCodeBuffer === "jhonny") {
@@ -1095,7 +1080,6 @@
       closeAllPanels();
       document.getElementById("yt-feedback-msg").innerText = "";
 
-      // OPÇÃO DE CONTINUAR SÓ APARECE ATÉ A FASE 20
       const btnContinue = document.getElementById("btn-continue-game");
       if (currentStage > 20) {
         btnContinue.style.display = "none";
@@ -1184,7 +1168,6 @@
       playerLives--;
 
       if (playerLives > 0) {
-        // VIDA DISPONÍVEL: VOLTA PARA A MESMA FASE EM QUE MORREU.
         playSound('hitWrong');
         speakText(`Você perdeu uma vida! Restam ${playerLives} vidas. Voltando para a Fase ${currentStage}.`);
 
@@ -1201,12 +1184,10 @@
         player.attacking = false;
         player.attackTimer = 0;
 
-        // Recria somente a fase atual; a fase não é perdida.
         prepareStage();
         return;
       }
 
-      // GAME OVER DEFINITIVO QUANDO AS VIDAS ACABAM
       collisionAnimationActive = true;
       collisionAnimTimer = 0;
       mockingEnemy = enemyRef;
@@ -1276,6 +1257,7 @@
 
     document.getElementById("touch-attack").addEventListener("pointerdown", (e) => {
       e.preventDefault();
+      initAudioContext();
       if (!player.attacking && stageStarted && !gameOver) {
         player.attacking = true; player.attackTimer = player.attackMaxTime;
         playSound('attack');
@@ -1285,6 +1267,7 @@
     const touchShieldBtn = document.getElementById("touch-shield");
     touchShieldBtn.addEventListener("pointerdown", (e) => {
       e.preventDefault();
+      initAudioContext();
       if (stageStarted && !gameOver) player.bigShieldActive = true;
     });
     touchShieldBtn.addEventListener("pointerup", (e) => {
@@ -1300,8 +1283,7 @@
       gameOver = false; score = 0; currentStage = 1; gameTimerSeconds = 0;
       playerLives = 3; nextExtraLifeScore = 15000;
       player.x = 50; player.y = getGroundY() - player.height; player.vx = 0; player.vy = 0;
-      player.hasGreenCoat = false; player.shieldPowerUp = false; player.bigShieldActive = false;
-      playerFlying = false; flightType = null; bonusVehicleItem = null; hangGliderItem = null;
+      player.hasGreenCoat = false; player.shieldPowerUp = false; player.bigShieldActive = false; player.isFlying = false;
       prepareStage();
     }
 
@@ -1412,30 +1394,13 @@
 
       player.bigShieldActive = !!keys[keyBinds.shield];
 
-      // MODO ASA-DELTA: controle livre no céu. Ataques continuam funcionando,
-      // mas letras destruídas durante o voo não concedem pontos.
-      if (playerFlying) {
-        const flightX = joyVector.x || (keys["ArrowRight"] ? 1 : keys["ArrowLeft"] ? -1 : 0);
-        const flightY = joyVector.y || (keys["ArrowDown"] ? 1 : keys["ArrowUp"] ? -1 : 0);
-        player.vx = flightX * 4.2;
-        player.vy = flightY * 3.6;
-        player.x += player.vx;
-        player.y += player.vy;
-        player.grounded = false;
-        if (player.x < 0) player.x = 0;
-        if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
-        if (player.y < 55) player.y = 55;
-        if (player.y > groundY - player.height - 10) player.y = groundY - player.height - 10;
-        player.facing = flightX < 0 ? 'left' : flightX > 0 ? 'right' : player.facing;
-      } else {
-
       const moveX = joyVector.x || (keys["ArrowRight"] ? 1 : keys["ArrowLeft"] ? -1 : 0);
       const moveY = joyVector.y || (keys["ArrowDown"] ? 1 : keys["ArrowUp"] ? -1 : 0);
 
       player.aimingUp = moveY < -0.4;
       player.crouching = moveY > 0.4 && player.grounded;
 
-      if (Math.abs(moveX) > 0.2 && !player.crouching) {
+      if (Math.abs(moveX) > 0.2) {
         player.vx = moveX * player.speed;
         player.facing = moveX > 0 ? 'right' : 'left';
         walkCycle += 0.22;
@@ -1443,8 +1408,16 @@
         walkCycle = 0;
       }
 
-      if (!playerFlying && keys[keyBinds.jump] && player.grounded) {
-        triggerPlayerJump();
+      if (player.isFlying) {
+        if (Math.abs(moveY) > 0.2) {
+          player.vy = moveY * player.speed;
+        }
+        player.vy *= player.friction;
+      } else {
+        if (keys[keyBinds.jump] && player.grounded) {
+          triggerPlayerJump();
+        }
+        player.vy += gravity;
       }
 
       if (keys[keyBinds.attack] && !player.attacking) {
@@ -1452,30 +1425,53 @@
         playSound('attack');
       }
 
-      if (!playerFlying) {
-        player.vx *= player.friction; player.x += player.vx;
-        player.vy += gravity; player.y += player.vy;
-      }
-      } // fim do movimento normal quando não está voando
+      player.vx *= player.friction; player.x += player.vx;
+      player.y += player.vy;
 
       const pCenterX = player.x + player.width / 2;
       const isOverPit = pitHole.active && (pCenterX > pitHole.x && pCenterX < pitHole.x + pitHole.width);
 
-      if (!isOverPit) {
-        if (player.y + player.height >= groundY) {
-          player.y = groundY - player.height; player.vy = 0; player.grounded = true;
+      if (!player.isFlying) {
+        if (!isOverPit) {
+          if (player.y + player.height >= groundY) {
+            player.y = groundY - player.height; player.vy = 0; player.grounded = true;
+          }
+        } else {
+          player.grounded = false;
+          if (player.y > canvas.height) {
+            triggerGameOverSequence(null, "Você caiu no buraco!");
+            return;
+          }
         }
       } else {
-        player.grounded = false;
-        if (player.y > canvas.height) {
-          triggerGameOverSequence(null, "Você caiu no buraco!");
-          return;
-        }
+        if (player.y < 20) player.y = 20;
+        if (player.y + player.height >= groundY) player.y = groundY - player.height;
       }
 
       if (player.x < 0) player.x = 0;
 
-      // ATUALIZAÇÃO DO SEMI-MESTRE EM COMBATE
+      // COLISÃO ASA DELTA
+      if (hangGliderItem && hangGliderItem.active && !player.isFlying) {
+        if (player.x < hangGliderItem.x + hangGliderItem.width && player.x + player.width > hangGliderItem.x &&
+            player.y < hangGliderItem.y + hangGliderItem.height && player.y + player.height > hangGliderItem.y) {
+          hangGliderItem.active = false;
+          player.isFlying = true;
+          playSound('powerup');
+          speakText("Asa Delta ativada! Voe e controle livremente!");
+        }
+      }
+
+      // COLISÃO BRINDES EXTRAS (FASE 1 A 20)
+      if (stageGiftItem && stageGiftItem.active) {
+        if (player.x < stageGiftItem.x + 30 && player.x + player.width > stageGiftItem.x &&
+            player.y < stageGiftItem.y + 30 && player.y + player.height > stageGiftItem.y) {
+          stageGiftItem.active = false;
+          playSound('powerup');
+          addScore(1000);
+          speakText("Brinde extra coletado!");
+        }
+      }
+
       if (bossActive && bossState === "walking" && bossEnemy && bossEnemy.alive) {
         bossEnemy.x -= bossEnemy.speed;
 
@@ -1491,7 +1487,6 @@
             playSound('powerup');
             addScore(2000);
 
-            // PAUSA O JOGO, FALA A MENSAGEM DO MESTRE E DEPOIS EXIBE O MENU
             stageStarted = false;
             stopBackgroundMusic();
 
@@ -1507,7 +1502,6 @@
         return;
       }
 
-      // ITEM ESPECIAL QUE DEIXA O ESCUDO AMARELO
       if (notebookItem && notebookItem.active) {
         if (player.x < notebookItem.x + notebookItem.width && player.x + player.width > notebookItem.x &&
             player.y < notebookItem.y + notebookItem.height && player.y + player.height > notebookItem.y) {
@@ -1526,41 +1520,7 @@
         }
       }
 
-      // Brinde de veículo: acelera por alguns segundos e fica disponível só até a fase 20.
-      if (bonusVehicleItem && bonusVehicleItem.active && !playerFlying) {
-        if (player.x < bonusVehicleItem.x + bonusVehicleItem.width && player.x + player.width > bonusVehicleItem.x &&
-            player.y < bonusVehicleItem.y + bonusVehicleItem.height && player.y + player.height > bonusVehicleItem.y) {
-          bonusVehicleItem.active = false;
-          player.vx = 6;
-          playSound('powerup');
-          speakText(`${bonusVehicleItem.name}!`);
-        }
-      }
-
-      // Asa-delta: ao tocar, o personagem entra em modo voo e pode controlar altura/direção.
-      if (hangGliderItem && hangGliderItem.active && !playerFlying) {
-        if (player.x < hangGliderItem.x + hangGliderItem.width && player.x + player.width > hangGliderItem.x &&
-            player.y < hangGliderItem.y + hangGliderItem.height && player.y + player.height > hangGliderItem.y) {
-          hangGliderItem.active = false;
-          playerFlying = true;
-          flightType = 'hangglider';
-          player.vx = 0;
-          player.vy = 0;
-          playSound('powerup');
-          speakText('Asa delta! Agora você pode voar. Enquanto estiver voando, destruir letras não dá pontos.');
-        }
-      }
-
-      if (playerFlying && player.x + player.width >= canvas.width) {
-        playerFlying = false;
-        flightType = null;
-        player.x = canvas.width - player.width - 5;
-        player.y = getGroundY() - player.height;
-        player.vx = 0;
-        player.vy = 0;
-      }
-
-      if (!playerFlying && player.x + player.width >= canvas.width) {
+      if (player.x + player.width >= canvas.width) {
         if (currentStage < maxStages) {
           stageStarted = false;
           stopBackgroundMusic();
@@ -1572,7 +1532,6 @@
 
       if (player.attacking) {
         player.attackTimer--;
-        // ITEM ESPECIAL AUMENTA METADE DO ALCANCE ATUAL (1.5x)
         const maxLen = player.shieldPowerUp ? weapon.baseMaxLength * 1.5 : weapon.baseMaxLength;
         const progress = 1 - (player.attackTimer / player.attackMaxTime);
         weapon.length = Math.sin(progress * Math.PI) * maxLen;
@@ -1618,7 +1577,9 @@
             if (enemy.isTarget) {
               enemy.expression = 'sad';
               playSound('hitTarget');
-              if (!playerFlying) addScore(500);
+              if (!player.isFlying) {
+                addScore(500);
+              }
               setTimeout(() => { enemy.alive = false; }, 120);
             } else {
               enemy.expression = 'sad';
@@ -1631,7 +1592,7 @@
         const playerBox = { left: player.x + padding, right: player.x + player.width - padding, top: player.y + padding, bottom: player.y + player.height };
         const enemyBox = { left: enemy.x + padding, right: enemy.x + enemy.width - padding, top: enemy.y + padding, bottom: enemy.y + enemy.height };
 
-        if (!playerFlying && enemy.alive &&
+        if (enemy.alive &&
             playerBox.left < enemyBox.right && playerBox.right > enemyBox.left &&
             playerBox.top < enemyBox.bottom && playerBox.bottom > enemyBox.top) {
           
@@ -1719,10 +1680,9 @@
       ctx.save();
       ctx.translate(x, y);
 
-      // Halo externo forte para o relógio ficar visível em qualquer fundo.
       const halo = ctx.createRadialGradient(0, 0, radius * 0.5, 0, 0, radius * 1.8);
-      halo.addColorStop(0, "rgba(255, 215, 0, 0.30)");
-      halo.addColorStop(0.55, "rgba(255, 180, 0, 0.12)");
+      halo.addColorStop(0, "rgba(255, 215, 0, 0.35)");
+      halo.addColorStop(0.55, "rgba(255, 180, 0, 0.15)");
       halo.addColorStop(1, "rgba(255, 180, 0, 0)");
       ctx.fillStyle = halo;
       ctx.beginPath();
@@ -1731,7 +1691,6 @@
 
       const pulse = Math.sin(sunAngle * 2) * 2;
 
-      // Sol bem destacado.
       ctx.fillStyle = "#ffd43b";
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 3;
@@ -1740,7 +1699,6 @@
       ctx.fill();
       ctx.stroke();
 
-      // Raios grossos e luminosos.
       ctx.strokeStyle = "#ffea70";
       ctx.lineWidth = 3;
       for (let i = 0; i < 12; i++) {
@@ -1751,23 +1709,22 @@
         ctx.stroke();
       }
 
-      // Mostrador branco para alto contraste.
-      const clockRadius = radius * 0.76;
+      // RELÓGIO ANALÓGICO COM HORAS ATUAIS
+      const clockRadius = radius * 0.72;
       ctx.fillStyle = "rgba(255,255,255,0.96)";
-      ctx.strokeStyle = "#3a2a00";
+      ctx.strokeStyle = "#222";
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.arc(0, 0, clockRadius, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      // Marcações das horas.
-      ctx.strokeStyle = "#222";
+      ctx.strokeStyle = "#111";
       ctx.lineWidth = 2;
       for (let h = 0; h < 12; h++) {
         const a = (h * Math.PI) / 6;
-        const outer = clockRadius - 3;
-        const inner = h % 3 === 0 ? clockRadius - 10 : clockRadius - 7;
+        const outer = clockRadius - 2;
+        const inner = h % 3 === 0 ? clockRadius - 8 : clockRadius - 5;
         ctx.beginPath();
         ctx.moveTo(Math.sin(a) * inner, -Math.cos(a) * inner);
         ctx.lineTo(Math.sin(a) * outer, -Math.cos(a) * outer);
@@ -1779,10 +1736,9 @@
       const mins = now.getMinutes();
       const secs = now.getSeconds();
 
-      // Ponteiros grandes e fáceis de enxergar.
       const hourAngle = ((hrs + mins / 60) * Math.PI) / 6;
       ctx.strokeStyle = "#111";
-      ctx.lineWidth = 5;
+      ctx.lineWidth = 4;
       ctx.lineCap = "round";
       ctx.beginPath();
       ctx.moveTo(0, 0);
@@ -1790,15 +1746,15 @@
       ctx.stroke();
 
       const minAngle = ((mins + secs / 60) * Math.PI) / 30;
-      ctx.lineWidth = 3.5;
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.lineTo(Math.sin(minAngle) * (clockRadius * 0.68), -Math.cos(minAngle) * (clockRadius * 0.68));
       ctx.stroke();
 
       const secAngle = (secs * Math.PI) / 30;
-      ctx.strokeStyle = "#e6003c";
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#ff0055";
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.lineTo(Math.sin(secAngle) * (clockRadius * 0.82), -Math.cos(secAngle) * (clockRadius * 0.82));
@@ -1806,14 +1762,8 @@
 
       ctx.fillStyle = "#111";
       ctx.beginPath();
-      ctx.arc(0, 0, 4, 0, Math.PI * 2);
+      ctx.arc(0, 0, 3, 0, Math.PI * 2);
       ctx.fill();
-
-      // Identificação do relógio.
-      ctx.fillStyle = "#111";
-      ctx.font = "bold 10px 'Segoe UI'";
-      ctx.textAlign = "center";
-      ctx.fillText("HORA", 0, clockRadius * 0.45);
 
       ctx.restore();
     }
@@ -1857,6 +1807,17 @@
       }
     }
 
+    function drawHangGliderItem(x, y) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.fillStyle = "#ffcc00";
+      ctx.beginPath();
+      ctx.moveTo(0, 0); ctx.lineTo(35, 12); ctx.lineTo(0, 25); ctx.lineTo(8, 12);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 2; ctx.stroke();
+      ctx.restore();
+    }
+
     function draw() {
       const groundY = getGroundY();
 
@@ -1876,6 +1837,15 @@
 
       drawDirtRoad();
 
+      if (hangGliderItem && hangGliderItem.active) {
+        drawHangGliderItem(hangGliderItem.x, hangGliderItem.y);
+      }
+
+      if (stageGiftItem && stageGiftItem.active) {
+        ctx.font = "24px sans-serif";
+        ctx.fillText(stageGiftItem.type, stageGiftItem.x, stageGiftItem.y);
+      }
+
       if (notebookItem && notebookItem.active) {
         ctx.fillStyle = "#0088ff"; ctx.fillRect(notebookItem.x, notebookItem.y, notebookItem.width, notebookItem.height);
         ctx.fillStyle = "#fff"; ctx.font = "bold 10px sans-serif"; ctx.fillText("📖", notebookItem.x + 3, notebookItem.y + 14);
@@ -1884,36 +1854,6 @@
       if (greenCoatItem && greenCoatItem.active) {
         ctx.fillStyle = "#00ff66"; ctx.fillRect(greenCoatItem.x, greenCoatItem.y, greenCoatItem.width, greenCoatItem.height);
         ctx.fillStyle = "#000"; ctx.font = "bold 10px sans-serif"; ctx.fillText("🥼", greenCoatItem.x + 4, greenCoatItem.y + 15);
-      }
-
-      if (bonusVehicleItem && bonusVehicleItem.active) {
-        ctx.save();
-        ctx.shadowColor = "#ffd700"; ctx.shadowBlur = 14;
-        ctx.fillStyle = "rgba(255,215,0,0.95)";
-        ctx.beginPath(); ctx.roundRect(bonusVehicleItem.x - 5, bonusVehicleItem.y - 5, 44, 38, 9); ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.font = "24px sans-serif"; ctx.textAlign = "center";
-        ctx.fillText(bonusVehicleItem.icon, bonusVehicleItem.x + 17, bonusVehicleItem.y + 22);
-        ctx.restore();
-      }
-
-      if (hangGliderItem && hangGliderItem.active) {
-        ctx.save();
-        ctx.translate(hangGliderItem.x + hangGliderItem.width / 2, hangGliderItem.y + 18);
-        ctx.fillStyle = "#ff8c00"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.moveTo(-38, 5); ctx.lineTo(0, -18); ctx.lineTo(38, 5); ctx.lineTo(0, -3); ctx.closePath(); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#222"; ctx.fillRect(-3, -3, 6, 25);
-        ctx.restore();
-      }
-
-      if (playerFlying) {
-        ctx.save();
-        ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3;
-        ctx.fillStyle = "rgba(255,140,0,0.9)";
-        ctx.beginPath(); ctx.moveTo(player.x - 18, player.y + 15); ctx.lineTo(player.x + player.width / 2, player.y - 12); ctx.lineTo(player.x + player.width + 18, player.y + 15); ctx.lineTo(player.x + player.width / 2, player.y + 4); ctx.closePath(); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#ffe066"; ctx.font = "bold 13px 'Segoe UI'"; ctx.textAlign = "center";
-        ctx.fillText("VOANDO • SEM PONTOS", player.x + player.width / 2, player.y - 28);
-        ctx.restore();
       }
 
       if (isIntroPlaying) {
@@ -1931,6 +1871,10 @@
         drawDrChacaraSide(ufoState.x - player.width / 2, ufoState.playerY, 'right', false);
       } else {
         drawDrChacaraSide(player.x, player.y, player.facing, player.crouching);
+
+        if (player.isFlying) {
+          drawHangGliderItem(player.x - 5, player.y - 15);
+        }
 
         if (player.bigShieldActive) {
           drawBigShield(player.x + player.width / 2, player.y + player.height / 2);
@@ -1961,11 +1905,7 @@
       ctx.fillStyle = "#ffffff"; ctx.font = "bold 15px 'Segoe UI'"; ctx.textAlign = "left";
       ctx.fillText(`${currentRule.title}`, 20, 32);
       ctx.fillText(`PONTOS: ${score}  |  VIDAS: ❤️ x${playerLives}`, canvas.width - 270, 32);
-      ctx.fillStyle = "#ffffff"; ctx.font = "bold 13px 'Segoe UI'"; ctx.textAlign = "right";
-      const hudNow = new Date();
-      ctx.fillText(`HORA: ${String(hudNow.getHours()).padStart(2,'0')}:${String(hudNow.getMinutes()).padStart(2,'0')}:${String(hudNow.getSeconds()).padStart(2,'0')}`, canvas.width - 18, 52);
 
-      // INDICAÇÃO DA VERSÃO 1.15
       ctx.fillStyle = "rgba(0, 255, 204, 0.7)";
       ctx.font = "bold 11px monospace";
       ctx.textAlign = "left";
