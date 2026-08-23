@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Doutor Chácara - Alfabetização Arcade Mobile v1.15</title>
+  <title>Doutor Chácara - Alfabetização Arcade Mobile v1.14</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
     html, body {
@@ -83,15 +83,6 @@
 
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-    /* CREDITOS CRIADOR NO CANTO INFERIOR DIREITO */
-    .creator-credits {
-      position: absolute; bottom: 12px; right: 15px;
-      font-size: 0.75rem; font-weight: bold; color: #00ffcc;
-      text-shadow: 0 0 6px #000, 0 0 2px #000; z-index: 20;
-      background: rgba(0, 0, 0, 0.4); padding: 3px 8px; border-radius: 10px;
-      border: 1px solid rgba(0, 255, 204, 0.3); pointer-events: none;
-    }
-
     /* PAINÉIS OVERLAY SOBREPOSIÇÃO SUPER TRANSPARENTES */
     .overlay-panel {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -127,6 +118,13 @@
       backdrop-filter: blur(4px);
     }
 
+    .btn-option {
+      background: rgba(0, 150, 255, 0.6); color: #fff; font-size: 0.85rem; font-weight: bold;
+      padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(0, 255, 204, 0.5); cursor: pointer;
+      width: 100%; max-width: 380px; text-align: left; transition: background 0.2s;
+    }
+    .btn-option:hover { background: rgba(0, 255, 204, 0.8); color: #000; }
+
     .btn-group { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
 
     input[type="text"], input[type="number"], textarea {
@@ -137,7 +135,7 @@
 
     textarea { text-align: left; resize: none; height: 55px; }
 
-    /* MENU LATERAL DE COMENTÁRIOS AO VIVO */
+    /* MENU LATERAL DE COMENTÁRIOS AO VIVO (SUPER TRANSPARENTE) */
     .instant-comments-box {
       position: absolute; top: 55px; right: 15px; width: 210px; max-height: 170px;
       background: rgba(0, 0, 0, 0.12); backdrop-filter: blur(4px);
@@ -154,6 +152,7 @@
       font-family: monospace; font-size: 0.8rem; background: rgba(0,0,0,0.3);
       padding: 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
     }
+    .leaderboard-item { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dashed rgba(255,255,255,0.2); }
 
     .key-bind-row { display: flex; justify-content: space-between; width: 100%; align-items: center; padding: 4px 0; font-size: 0.85rem; }
     .key-bind-btn { background: rgba(0, 0, 0, 0.4); border: 1px solid #00ffcc; color: #00ffcc; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
@@ -162,6 +161,14 @@
       background: rgba(0, 255, 204, 0.08); border: 1px dashed rgba(0, 255, 204, 0.5);
       padding: 8px; border-radius: 10px; word-break: break-all; font-weight: bold;
       color: #00ffcc; margin: 4px 0; width: 100%; font-size: 0.8rem;
+    }
+
+    /* CRÉDITO DO CRIADOR NO CANTO INFERIOR DIREITO */
+    .creator-credit {
+      position: absolute; bottom: 12px; right: 15px; font-size: 0.75rem; font-weight: bold;
+      color: #00ffcc; text-shadow: 0 0 6px rgba(0,0,0,0.8), 0 0 3px #00ffcc; z-index: 10;
+      pointer-events: none; opacity: 0.85; background: rgba(0, 0, 0, 0.4); padding: 3px 8px;
+      border-radius: 10px; border: 1px solid rgba(0, 255, 204, 0.3);
     }
 
     video { width: 100%; border-radius: 12px; border: 1px solid #00ffcc; margin-top: 5px; }
@@ -175,7 +182,7 @@
 
     <canvas id="gameCanvas"></canvas>
 
-    <div class="creator-credits">Criado por: Doutor Chácara</div>
+    <div class="creator-credit">Criador: Doutor Chácara</div>
 
     <div class="instant-comments-box">
       <div class="instant-comments-header">💬 COMENTÁRIOS AO VIVO</div>
@@ -213,16 +220,14 @@
       <h2 id="stage-title">FASE 1</h2>
       <p id="stage-instruction">Destrua os alvos solicitados!</p>
       <div id="stage-score-info"></div>
-      <button class="btn-main" id="btn-start-action" onclick="startCurrentStageAction()">INICIAR FASE ▶</button>
+      <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
     </div>
 
-    <div id="panel-creator-menu" class="overlay-panel">
-      <h2 style="color: #00ffcc;">👑 MENU DO CRIADOR</h2>
-      <p>Modo desenvolvedor ativado!</p>
-      <p>Digite o número da fase desejada (1 a 27):</p>
-      <input type="number" id="creator-stage-input" min="1" max="27" placeholder="Ex: 5" value="1">
-      <button class="btn-main" onclick="goToSelectedStage()">IR PARA A FASE 🚀</button>
-      <button class="btn-back" onclick="resumeFromCreatorMenu()">CONTINUAR O JOGO ▶</button>
+    <div id="panel-boss-quiz" class="overlay-panel">
+      <h2 id="quiz-boss-name" style="color: #ff0055;">SEMI-MESTRE LETRA A</h2>
+      <p id="quiz-progress-text" style="color: #ffcc00; font-weight: bold;">Pergunta 1 de 5</p>
+      <p id="quiz-question-text" style="font-size: 1rem; font-weight: bold; margin: 5px 0;"></p>
+      <div class="btn-group" id="quiz-options-container"></div>
     </div>
 
     <div id="panel-youtube-promo" class="overlay-panel">
@@ -234,6 +239,12 @@
         <button class="btn-sub" id="btn-continue-game" style="background: rgba(0, 153, 255, 0.65);" onclick="handleYtAnswer('continuar')">▶ Continuar jogo</button>
       </div>
       <div id="yt-feedback-msg" style="margin-top: 5px; font-weight: bold; color: #ffcc00; text-shadow: 0 0 5px #000;"></div>
+    </div>
+
+    <div id="panel-yt-return" class="overlay-panel">
+      <h2>JOGO PAUSADO ⏸️</h2>
+      <p>O jogo está pausado enquanto você visita o canal!</p>
+      <button class="btn-main" onclick="resumeGameFromYt()">CONTINUAR JOGO ▶</button>
     </div>
 
     <div id="panel-key-config" class="overlay-panel">
@@ -253,6 +264,17 @@
       <button class="btn-main" onclick="closeKeyConfig()">SALVAR E FECHAR</button>
     </div>
 
+    <div id="panel-creator-menu" class="overlay-panel">
+      <h2>👑 MENU DO CRIADOR (JHONNY)</h2>
+      <p>Selecione uma opção:</p>
+      <div style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <label style="font-size: 0.85rem; color: #ffcc00;">Ir para a fase desejada (1 a 27):</label>
+        <input type="number" id="creator-stage-input" min="1" max="27" value="1" style="width: 120px;">
+        <button class="btn-main" onclick="executeCreatorGotoStage()">IR PARA A FASE 🚀</button>
+        <button class="btn-sub" onclick="resumeGameFromCreatorMenu()" style="background: rgba(0, 200, 100, 0.7); color: #fff;">CONTINUAR O JOGO ▶</button>
+      </div>
+    </div>
+
     <div id="panel-victory" class="overlay-panel">
       <h2 style="color: #00ffcc;">PARABÉNS! VOCÊ ZEROU A FASE 27! 🏆</h2>
       <p>Mensagem especial do Doutor Chácara:</p>
@@ -260,19 +282,20 @@
         <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
         Seu navegador não suporta vídeos HTML5.
       </video>
-      <button class="btn-main" onclick="restartGameComplete()">JOGAR NOVAMENTE 🔄</button>
+      <p>Digite seu nome para gravar seu recorde no placar para sempre:</p>
+      <input type="text" id="winner-name" placeholder="Seu Nome de Campeão" maxlength="15">
+      <button class="btn-main" onclick="saveVictoryScore()">GRAVAR NO PLACAR PARA SEMPRE 🏆</button>
     </div>
 
     <div id="panel-game-over" class="overlay-panel">
-      <h2 style="color: #ff0055;" id="game-over-title">GAME OVER</h2>
+      <h2 style="color: #ff0055;">GAME OVER</h2>
       <p id="game-over-reason">Você perdeu a fase!</p>
       <p>Sua pontuação: <strong id="final-score">0</strong></p>
-      <p id="lives-left-msg" style="color: #00ffcc; font-weight: bold;"></p>
+      <input type="text" id="player-name" placeholder="Digite seu nome" maxlength="12">
+      <button class="btn-main" id="btn-save-score">SALVAR RECORD 🔄</button>
       
-      <div class="btn-group" id="game-over-buttons">
-        <button class="btn-main" id="btn-use-life" style="display: none;" onclick="useExtraLifeOnCurrentStage()">USAR VIDA EXTRA NA FASE DE NOVO 💖</button>
-        <button class="btn-sub" onclick="restartGameComplete()">REINICIAR JOGO COMPLETO 🔄</button>
-      </div>
+      <h3 style="margin-top: 5px; color: #ffcc00; font-size: 0.85rem;">🏆 PLACAR PERMANENTE DE RECORDES</h3>
+      <div class="leaderboard-list" id="leaderboard-list"></div>
     </div>
 
     <div class="touch-controls">
@@ -298,78 +321,126 @@
     }
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
+    
+    const bgImageDefault = new Image();
+    bgImageDefault.src = "fundo.jpg.jpg";
+
+    const bgImageTiger = new Image();
+    bgImageTiger.src = "https://images.unsplash.com/photo-1561731216-c3a4d99437d5?auto=format&fit=crop&w=1200&q=80";
+
+    let bgImageCurrent = bgImageDefault;
+
+    const gamingBackgrounds = [
+      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80"
+    ];
 
     const panelStageStart = document.getElementById("panel-stage-start");
     const panelGameOver = document.getElementById("panel-game-over");
     const panelVictory = document.getElementById("panel-victory");
     const panelYtPromo = document.getElementById("panel-youtube-promo");
+    const panelYtReturn = document.getElementById("panel-yt-return");
     const panelKeyConfig = document.getElementById("panel-key-config");
     const panelPixOverlay = document.getElementById("panel-pix-overlay");
     const panelCommentsOverlay = document.getElementById("panel-comments-overlay");
+    const panelBossQuiz = document.getElementById("panel-boss-quiz");
     const panelCreatorMenu = document.getElementById("panel-creator-menu");
     
     const stageTitle = document.getElementById("stage-title");
     const stageInstruction = document.getElementById("stage-instruction");
     const stageScoreInfo = document.getElementById("stage-score-info");
     const finalScoreTxt = document.getElementById("final-score");
+    const playerNameInput = document.getElementById("player-name");
+    const leaderboardList = document.getElementById("leaderboard-list");
+    const btnStartAction = document.getElementById("btn-start-action");
+    const btnSaveScore = document.getElementById("btn-save-score");
+    const instantCommentsList = document.getElementById("instant-comments-list");
 
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let isRecording = false;
     let isMusicEnabled = true;
     let isVoiceEnabled = true;
+
+    // VARIÁVEIS DO SEMI-MESTRE
+    let bossActive = false;
+    let bossState = "none"; // 'quiz', 'walking', 'defeated'
+    let currentBossChar = "A";
+    let bossQuizIndex = 0;
+    let bossQuizQuestions = [];
+    let bossEnemy = null;
 
     // SISTEMA DE VIDAS E PONTUAÇÃO DE VIDAS EXTRAS (A CADA 20.000 PONTOS)
     let playerLives = 3;
     let nextExtraLifeScore = 20000;
-    let score = 0;
-    let currentStage = 1;
-    const maxStages = 27;
-    let gameOver = false;
-    let stageStarted = false;
-    let isPaused = false;
 
-    // DETECÇÃO DO COMANDO SECRETO "JHONNY"
-    let secretCodeBuffer = "";
+    // COMANDO ESCONDIDO DO CRIADOR ("jhonny")
+    let secretBuffer = "";
+    let isCreatorPaused = false;
+
     window.addEventListener("keydown", (e) => {
-      secretCodeBuffer += e.key.toLowerCase();
-      if (secretCodeBuffer.length > 10) {
-        secretCodeBuffer = secretCodeBuffer.slice(-10);
-      }
-      if (secretCodeBuffer.endsWith("jhonny")) {
-        secretCodeBuffer = "";
-        openCreatorMenu();
+      // Registrar letras para a palavra secreta "jhonny"
+      if (e.key && e.key.length === 1) {
+        secretBuffer += e.key.toLowerCase();
+        if (secretBuffer.length > 10) {
+          secretBuffer = secretBuffer.slice(-10);
+        }
+        if (secretBuffer.endsWith("jhonny")) {
+          secretBuffer = "";
+          openCreatorMenu();
+        }
       }
     });
 
     function openCreatorMenu() {
-      isPaused = true;
+      isCreatorPaused = true;
       closeAllPanels();
-      document.getElementById("creator-stage-input").value = currentStage;
+      const input = document.getElementById("creator-stage-input");
+      if (input) input.value = currentStage;
       panelCreatorMenu.style.display = "flex";
     }
 
-    function resumeFromCreatorMenu() {
-      panelCreatorMenu.style.display = "none";
-      isPaused = false;
+    function executeCreatorGotoStage() {
+      const input = document.getElementById("creator-stage-input");
+      let targetStage = parseInt(input.value) || 1;
+      if (targetStage < 1) targetStage = 1;
+      if (targetStage > maxStages) targetStage = maxStages;
+      
+      currentStage = targetStage;
+      closeAllPanels();
+      isCreatorPaused = false;
+      prepareStage();
     }
 
-    function goToSelectedStage() {
-      const inputVal = parseInt(document.getElementById("creator-stage-input").value);
-      if (inputVal >= 1 && inputVal <= maxStages) {
-        currentStage = inputVal;
-        panelCreatorMenu.style.display = "none";
-        isPaused = false;
-        resetStage();
-      } else {
-        alert("Por favor, escolha uma fase entre 1 e " + maxStages);
-      }
+    function resumeGameFromCreatorMenu() {
+      closeAllPanels();
+      isCreatorPaused = false;
     }
+
+    const portugueseQuestionsBank = [
+      { q: "Qual das palavras abaixo possui um DÍGRAFO?", options: ["Chuva", "Prato", "Escola", "Pedra"], correct: 0 },
+      { q: "Assinale a alternativa que contém apenas VOGAIS:", options: ["A, E, I, O, U", "A, B, C, D, E", "B, C, D, F, G", "A, E, I, F, U"], correct: 0 },
+      { q: "Qual palavra é uma PROPAROXÍTONA?", options: ["Lâmpada", "Café", "Mesa", "Computador"], correct: 0 },
+      { q: "Qual das palavras contém um ENCONTRO VOCÁLICO?", options: ["Peixe", "Gato", "Cachorro", "Livro"], correct: 0 },
+      { q: "Em 'O menino correu rápido', qual palavra é um ADJETIVO?", options: ["Rápido", "Menino", "Correu", "O"], correct: 0 },
+      { q: "A sílaba tônica da palavra 'CAFÉ' fica na última sílaba. Ela é:", options: ["Oxítona", "Paroxítona", "Proparoxítona", "Monossílaba"], correct: 0 },
+      { q: "Qual é o PLURAL correto da palavra 'Cão'?", options: ["Cães", "Cãos", "Cãoses", "Cãis"], correct: 0 },
+      { q: "Qual palavra está grafada CORRETAMENTE?", options: ["Exceção", "Eseção", "Exseção", "Exceçào"], correct: 0 },
+      { q: "Quantas sílabas tem a palavra 'ALFABETIZAÇÃO'?", options: ["6 sílabas", "5 sílabas", "4 sílabas", "7 sílabas"], correct: 0 },
+      { q: "Qual das palavras abaixo é um SUBSTANTIVO PROPRIO?", options: ["Brasil", "cidade", "menino", "país"], correct: 0 }
+    ];
 
     function addScore(amount) {
       score += amount;
+      // VERIFICA VIDA EXTRA A CADA 20.000 PONTOS
       while (score >= nextExtraLifeScore) {
         playerLives++;
         nextExtraLifeScore += 20000;
         playSound('powerup');
-        speakText("Vida extra adquirida!");
+        speakText("Vida extra!");
       }
     }
 
@@ -378,234 +449,619 @@
       panelGameOver.style.display = "none";
       panelVictory.style.display = "none";
       panelYtPromo.style.display = "none";
+      panelYtReturn.style.display = "none";
       panelKeyConfig.style.display = "none";
       panelPixOverlay.style.display = "none";
       panelCommentsOverlay.style.display = "none";
-      panelCreatorMenu.style.display = "none";
+      panelBossQuiz.style.display = "none";
+      if (panelCreatorMenu) panelCreatorMenu.style.display = "none";
     }
 
-    function handleGameOver() {
-      gameOver = true;
-      stageStarted = false;
+    function openYoutubeChannel() {
+      window.open("https://www.youtube.com/@DoutorChacara", "_blank");
+    }
+
+    function openPixOverlay() {
       closeAllPanels();
+      panelPixOverlay.style.display = "flex";
+    }
 
-      finalScoreTxt.innerText = score;
-      const livesLeftMsg = document.getElementById("lives-left-msg");
-      const btnUseLife = document.getElementById("btn-use-life");
+    function copyPixKey() {
+      navigator.clipboard.writeText("jhonemercadopago2023@gmail.com");
+      alert("Chave Pix copiada com sucesso!");
+    }
 
-      if (playerLives > 1) {
-        playerLives--;
-        livesLeftMsg.innerText = `Você perdeu 1 vida! Vidas restantes: ${playerLives}`;
-        btnUseLife.style.display = "block";
-      } else {
-        playerLives = 0;
-        livesLeftMsg.innerText = "Você não tem mais vidas extras restantes.";
-        btnUseLife.style.display = "none";
+    function openCommentsOverlay() {
+      closeAllPanels();
+      panelCommentsOverlay.style.display = "flex";
+    }
+
+    function loadAndRenderComments() {
+      const stored = localStorage.getItem("dr_chacara_comments") || "[]";
+      const comments = JSON.parse(stored);
+      if (comments.length === 0) {
+        instantCommentsList.innerHTML = `<div class="instant-item">Nenhum comentário enviado ainda.</div>`;
+        return;
       }
-
-      panelGameOver.style.display = "flex";
+      instantCommentsList.innerHTML = comments.map(c => `
+        <div class="instant-item">
+          <strong>${c.author}:</strong> ${c.text}
+        </div>
+      `).join('');
     }
 
-    function useExtraLifeOnCurrentStage() {
-      gameOver = false;
+    function saveNewComment() {
+      const authorInput = document.getElementById("comm-author");
+      const textInput = document.getElementById("comm-text");
+      const author = authorInput.value.trim() || "Anônimo";
+      const text = textInput.value.trim();
+
+      if (!text) { alert("Digite sua mensagem antes de enviar!"); return; }
+
+      const stored = localStorage.getItem("dr_chacara_comments") || "[]";
+      const comments = JSON.parse(stored);
+      comments.unshift({ author, text });
+      localStorage.setItem("dr_chacara_comments", JSON.stringify(comments.slice(0, 30)));
+
+      textInput.value = "";
+      alert("Comentário enviado e adicionado ao jogo!");
+      loadAndRenderComments();
       closeAllPanels();
-      resetStage();
     }
 
-    function restartGameComplete() {
-      score = 0;
-      playerLives = 3;
-      nextExtraLifeScore = 20000;
-      currentStage = 1;
-      gameOver = false;
-      closeAllPanels();
-      resetStage();
+    window.addEventListener("storage", loadAndRenderComments);
+    loadAndRenderComments();
+
+    function takeScreenshot() {
+      const dataURL = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.download = `doutor-chacara-print-${Date.now()}.png`;
+      link.href = dataURL;
+      link.click();
     }
 
-    function resetStage() {
-      stageStarted = false;
-      player.x = 50;
-      player.y = getGroundY() - player.height;
-      player.vx = 0;
-      player.vy = 0;
-      enemies = [];
-      spawnEnemiesForStage();
+    function toggleRecordGame() {
+      const btn = document.getElementById("btn-record");
+      if (!isRecording) {
+        startRecording();
+        btn.innerText = "⏹️ Parar Gravação";
+        btn.classList.add("recording");
+      } else {
+        stopRecording();
+        btn.innerText = "🎥 Gravar Jogo";
+        btn.classList.remove("recording");
+      }
+    }
+
+    function startRecording() {
+      recordedChunks = [];
+      const stream = canvas.captureStream(30);
+      mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) recordedChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: "video/webm" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `doutor-chacara-gameplay-${Date.now()}.webm`;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      mediaRecorder.start();
+      isRecording = true;
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+      }
+    }
+
+    function toggleMusic() {
+      isMusicEnabled = !isMusicEnabled;
+      const btn = document.getElementById("btn-toggle-music");
+      if (isMusicEnabled) {
+        btn.innerText = "🎵 Música: ON";
+        btn.classList.remove("off");
+        startBackgroundMusic();
+      } else {
+        btn.innerText = "🔇 Música: OFF";
+        btn.classList.add("off");
+        stopBackgroundMusic();
+      }
+    }
+
+    function toggleVoice() {
+      isVoiceEnabled = !isVoiceEnabled;
+      const btn = document.getElementById("btn-toggle-voice");
+      if (isVoiceEnabled) {
+        btn.innerText = "🔊 Voz: ON";
+        btn.classList.remove("off");
+      } else {
+        btn.innerText = "🔇 Voz: OFF";
+        btn.classList.add("off");
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      }
+    }
+
+    const keyBinds = { attack: "KeyA", jump: "KeyS", shield: "KeyD" };
+    let listeningKeyAction = null;
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let bgMusicTimer = null;
+    let bgMusicNoteIndex = 0;
+
+    const stageScales = [
+      [261.63, 293.66, 329.63, 349.23, 392.00, 440.00],
+      [293.66, 329.63, 369.99, 392.00, 440.00, 493.88],
+      [329.63, 369.99, 392.00, 440.00, 493.88, 523.25],
+      [349.23, 392.00, 440.00, 466.16, 523.25, 587.33],
+      [392.00, 440.00, 493.88, 523.25, 587.33, 659.25]
+    ];
+
+    function startBackgroundMusic() {
+      if (!isMusicEnabled || bgMusicTimer) return;
       
-      stageTitle.innerText = `FASE ${currentStage}`;
-      stageInstruction.innerText = getRuleForStage(currentStage).instruction;
-      stageScoreInfo.innerText = `Pontuação Atual: ${score} | Vidas: ${playerLives}`;
-      panelStageStart.style.display = "flex";
+      bgMusicTimer = setInterval(() => {
+        if (!isMusicEnabled || gameOver || !stageStarted || isCreatorPaused) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = (currentStage % 2 === 0) ? 'triangle' : 'sine';
+        
+        const scale = stageScales[(currentStage - 1) % stageScales.length];
+        const note = scale[bgMusicNoteIndex % scale.length];
+        bgMusicNoteIndex++;
+
+        osc.frequency.setValueAtTime(note, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.002, audioCtx.currentTime + 0.35);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      }, 350);
     }
 
-    function startCurrentStageAction() {
-      closeAllPanels();
-      stageStarted = true;
+    function stopBackgroundMusic() {
+      if (bgMusicTimer) {
+        clearInterval(bgMusicTimer);
+        bgMusicTimer = null;
+      }
     }
 
-    // PERSONAGEM E ELEMENTOS
-    function getGroundY() { return canvas.height - 80; }
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
 
+      if (type === 'jump') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(750, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'attack') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+      } else if (type === 'hitTarget') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+      } else if (type === 'hitWrong') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'powerup') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+      } else if (type === 'ufo') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 1.5);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
+        osc.start(); osc.stop(audioCtx.currentTime + 1.5);
+      } else if (type === 'dart') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(300, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+      } else if (type === 'block') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+      }
+    }
+
+    function speakText(text, onEndCallback) {
+      if (!isVoiceEnabled) {
+        if (onEndCallback) setTimeout(onEndCallback, 3000);
+        return;
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'pt-BR';
+        utterance.rate = 1.0;
+        if (onEndCallback) {
+          utterance.onend = onEndCallback;
+        }
+        window.speechSynthesis.speak(utterance);
+      } else if (onEndCallback) {
+        setTimeout(onEndCallback, 3000);
+      }
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    // VARIÁVEIS DE JOGO
+    let currentStage = 1;
+    const maxStages = 27;
+    let score = 0;
+    let gameOver = false;
+    let stageStarted = false;
+    let stageMissionText = "";
+    let walkCycle = 0;
+    let sunAngle = 0;
+    let gameTimerSeconds = 0;
+
+    // ESTRADA DE TERRA E BURACO
+    let roadColors = { main: "#8B4513", accent: "#5C2E0B", edge: "#2e7d32" };
+    let pitHole = { x: 0, width: 0, active: false };
+    let collisionAnimationActive = false;
+    let collisionAnimTimer = 0;
+    let playerSpeechBubble = "";
+    let enemySpeechBubble = "";
+    let mockingEnemy = null;
+
+    const positiveFrases = [
+      "Vou ficar mais atento!",
+      "Cada erro é um aprendizado!",
+      "Não desisto, vou conseguir!",
+      "Atenção dobrada na próxima!",
+      "A prática leva à perfeição!"
+    ];
+
+    let isIntroPlaying = false;
+    let ufoState = { x: -100, y: 50, beamOpacity: 0, playerY: -100, step: 0 };
+
+    function getGroundY() {
+      return canvas.height - 80;
+    }
+
+    // PERSONAGEM
     const player = {
-      x: 50, y: 200, width: 35, height: 70, vx: 0, vy: 0, speed: 5,
-      grounded: true, attacking: false, facing: 'right'
+      x: 50, y: 280, width: 33, height: 71.5,
+      vx: 0, vy: 0, speed: 4.5, friction: 0.82, grounded: false,
+      crouching: false, facing: 'right', aimingUp: false,
+      attacking: false, attackTimer: 0, attackMaxTime: 12,
+      hasGreenCoat: false, shieldPowerUp: false, bigShieldActive: false
     };
 
-    let enemies = [];
+    function triggerPlayerJump() {
+      if (player.grounded && stageStarted && !gameOver && !isCreatorPaused) {
+        player.vy = -12;
+        player.grounded = false;
+        playSound('jump');
+      }
+    }
+
+    const gravity = 0.65;
+    // ALCANCE DO ESCUDO DE ATAQUE
+    const weapon = { x: 0, y: 0, length: 0, baseMaxLength: 70 };
+
+    let notebookItem = null;
+    let greenCoatItem = null;
+
+    const aerialSymbols = ['plane', 'helicopter', 'balloon', 'rocket', 'ufo_mini', 'bird', 'dragon', 'blimp'];
+
+    // DARDOS DISPARADOS
+    const darts = [];
+
+    const stageRules = {
+      1: {
+        title: "FASE 1: LETRAS MINÚSCULAS",
+        instruction: "ATENÇÃO: Destrua APENAS as letras MINÚSCULAS (a-f)!",
+        isValid: (char) => char === char.toLowerCase() && isNaN(char),
+        generateChar: () => ['A','B','C','D','E','F','a','b','c','d','e','f'][Math.floor(Math.random() * 12)]
+      },
+      2: {
+        title: "FASE 2: NÚMEROS PARES",
+        instruction: "ATENÇÃO: Destrua APENAS os NÚMEROS PARES!",
+        isValid: (char) => !isNaN(char) && parseInt(char) % 2 === 0,
+        generateChar: () => ['1','2','3','4','5','6','7','8','9'][Math.floor(Math.random() * 9)]
+      }
+    };
+
+    function getRuleForStage(stage) {
+      if (stageRules[stage]) return stageRules[stage];
+      if (stage === maxStages) {
+        return {
+          title: "FASE 27: O DESAFIO FINAL DO TIGRE",
+          instruction: "ATENÇÃO: Destrua APENAS as VOGAIS para VENCER O JOGO!",
+          isValid: (char) => ['A','E','I','O','U'].includes(char.toUpperCase()),
+          generateChar: () => ['A','B','E','F','I','K','O','P','U'][Math.floor(Math.random() * 9)]
+        };
+      }
+      return {
+        title: `FASE ${stage}: DESAFIO DE VOGAIS`,
+        instruction: "ATENÇÃO: Destrua APENAS as VOGAIS!",
+        isValid: (char) => ['A','E','I','O','U'].includes(char.toUpperCase()),
+        generateChar: () => ['A','B','E','F','I','K','O','P','U'][Math.floor(Math.random() * 9)]
+      };
+    }
+
+    const enemies = [];
+    let aerialVehicle = { x: -100, y: 80, speed: 1.5, type: 'plane' };
+
+    function prepareStage() {
+      enemies.length = 0;
+      darts.length = 0;
+      closeAllPanels();
+      bossActive = false;
+      bossState = "none";
+      bossEnemy = null;
+
+      const groundY = getGroundY();
+
+      // Mudar imagem de fundo se for fase final
+      bgImageCurrent = (currentStage === maxStages) ? bgImageTiger : bgImageDefault;
+
+      // Reset do jogador na posição inicial
+      player.x = 50;
+      player.y = groundY - player.height;
+      player.vx = 0; player.vy = 0;
+      player.grounded = true;
+
+      const rule = getRuleForStage(currentStage);
+      stageTitle.innerText = rule.title;
+      stageInstruction.innerText = rule.instruction;
+      panelStageStart.style.display = "flex";
+      stageStarted = false;
+
+      speakText(rule.instruction);
+    }
+
+    btnStartAction.onclick = () => {
+      closeAllPanels();
+      stageStarted = true;
+      gameOver = false;
+      startBackgroundMusic();
+      spawnEnemiesForStage();
+    };
+
     function spawnEnemiesForStage() {
-      enemies = [];
-      for (let i = 0; i < 5; i++) {
+      const rule = getRuleForStage(currentStage);
+      const groundY = getGroundY();
+      const count = 6 + Math.min(currentStage, 10);
+
+      for (let i = 0; i < count; i++) {
+        const char = rule.generateChar();
         enemies.push({
-          x: 300 + i * 120,
-          y: getGroundY() - 40,
-          width: 35, height: 40,
-          char: getRuleForStage(currentStage).generateChar(),
-          speed: 1.5 + Math.random()
+          x: 300 + i * 140,
+          y: groundY - 45,
+          width: 35,
+          height: 45,
+          char: char,
+          isValid: rule.isValid(char),
+          speed: 1.2 + Math.random() * 1.5,
+          vx: (Math.random() > 0.5 ? 1 : -1) * (1.2 + Math.random() * 1.2)
         });
       }
     }
 
-    function getRuleForStage(stage) {
-      return {
-        instruction: `Destrua os alvos da Fase ${stage}!`,
-        generateChar: () => String.fromCharCode(65 + Math.floor(Math.random() * 26))
-      };
+    function handlePlayerDeath(reason) {
+      if (gameOver) return;
+
+      playerLives--;
+      playSound('hitWrong');
+
+      if (playerLives > 0) {
+        // PERMANECE NA MESMA FASE USANDO A VIDA EXTRA
+        speakText("Você perdeu uma vida! Continuando a fase...", () => {
+          prepareStage();
+        });
+      } else {
+        // ACABARAM AS VIDAS: GAME OVER
+        gameOver = true;
+        stageStarted = false;
+        stopBackgroundMusic();
+        document.getElementById("game-over-reason").innerText = reason || "Suas vidas acabaram!";
+        finalScoreTxt.innerText = score;
+        closeAllPanels();
+        panelGameOver.style.display = "flex";
+        speakText("Game Over! Suas vidas acabaram.");
+      }
     }
 
-    let gameTimeSeconds = 0;
-    setInterval(() => {
-      if (stageStarted && !gameOver && !isPaused) {
-        gameTimeSeconds++;
-      }
-    }, 1000);
-
-    // DESENHAR RELÓGIO DO SOL BEM VISÍVEL
-    function drawSunClock() {
-      const sunX = canvas.width / 2;
-      const sunY = 75;
-      const radius = 38;
+    // DESENHAR RELÓGIO DE SOL BEM VISÍVEL COM SOMBRA E DESTAQUE
+    function drawSunClock(cx, cy, radius) {
+      sunAngle += 0.01;
 
       ctx.save();
-      
-      // Brilho Externo Solar
+
+      // Sombra e fundo bem destacado
+      ctx.shadowColor = "rgba(0, 255, 204, 0.8)";
+      ctx.shadowBlur = 12;
+
+      ctx.fillStyle = "#111827";
       ctx.beginPath();
-      ctx.arc(sunX, sunY, radius + 12, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(255, 204, 0, 0.35)";
+      ctx.arc(cx, cy, radius + 6, 0, Math.PI * 2);
       ctx.fill();
 
-      // Corpo do Sol
-      ctx.beginPath();
-      ctx.arc(sunX, sunY, radius, 0, Math.PI * 2);
-      ctx.fillStyle = "#ffcc00";
-      ctx.fill();
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = "#ff6600";
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#00ffcc";
       ctx.stroke();
 
-      // Raios Solares
-      for (let i = 0; i < 8; i++) {
-        const angle = (i * Math.PI / 4) + (gameTimeSeconds * 0.02);
-        const rx1 = sunX + Math.cos(angle) * (radius + 4);
-        const ry1 = sunY + Math.sin(angle) * (radius + 4);
-        const rx2 = sunX + Math.cos(angle) * (radius + 12);
-        const ry2 = sunY + Math.sin(angle) * (radius + 12);
-        
+      // Mostrador solar
+      ctx.fillStyle = "#facc15";
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Marcas dos pontos cardeais/horas
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 12; i++) {
+        const ang = (i * Math.PI) / 6;
+        const x1 = cx + Math.cos(ang) * (radius - 5);
+        const y1 = cy + Math.sin(ang) * (radius - 5);
+        const x2 = cx + Math.cos(ang) * radius;
+        const y2 = cy + Math.sin(ang) * radius;
         ctx.beginPath();
-        ctx.moveTo(rx1, ry1);
-        ctx.lineTo(rx2, ry2);
-        ctx.strokeStyle = "#ff9900";
-        ctx.lineWidth = 3;
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
         ctx.stroke();
       }
 
-      // Mostrador do Relógio Digital no Sol
-      const mins = Math.floor(gameTimeSeconds / 60).toString().padStart(2, '0');
-      const secs = (gameTimeSeconds % 60).toString().padStart(2, '0');
-      const timeStr = `${mins}:${secs}`;
+      // Ponteiro da sombra do sol
+      const handX = cx + Math.cos(sunAngle) * (radius - 8);
+      const handY = cy + Math.sin(sunAngle) * (radius - 8);
 
-      ctx.fillStyle = "#000000";
-      ctx.font = "bold 16px 'Segoe UI', sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(timeStr, sunX, sunY);
+      ctx.strokeStyle = "#dc2626";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(handX, handY);
+      ctx.stroke();
+
+      // Centro do relógio
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+      ctx.fill();
 
       ctx.restore();
     }
 
     function update() {
-      if (!stageStarted || gameOver || isPaused) return;
+      if (!stageStarted || gameOver || isCreatorPaused) return;
 
-      // Movimentação do Personagem
+      const groundY = getGroundY();
+
+      // Física simples do jogador
+      player.vy += gravity;
       player.x += player.vx;
-      if (player.x < 0) player.x = 0;
-      if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+      player.y += player.vy;
 
-      // Movimentação dos Inimigos
-      enemies.forEach(e => {
-        e.x -= e.speed;
-        if (e.x < -40) e.x = canvas.width + 40;
+      if (player.y + player.height >= groundY) {
+        player.y = groundY - player.height;
+        player.vy = 0;
+        player.grounded = true;
+      }
 
-        // Colisão com o Jogador
-        if (player.x < e.x + e.width && player.x + player.width > e.x &&
-            player.y < e.y + e.height && player.y + player.height > e.y) {
-          handleGameOver();
+      player.vx *= player.friction;
+
+      // Atualiza inimigos
+      enemies.forEach((enemy) => {
+        enemy.x += enemy.vx;
+        if (enemy.x <= 10 || enemy.x + enemy.width >= canvas.width - 10) {
+          enemy.vx *= -1;
+        }
+
+        // Colisão com o jogador
+        if (
+          player.x < enemy.x + enemy.width &&
+          player.x + player.width > enemy.x &&
+          player.y < enemy.y + enemy.height &&
+          player.y + player.height > enemy.y
+        ) {
+          if (!enemy.isValid) {
+            // Inimigo incorreto colidiu -> Perde vida
+            handlePlayerDeath("Você tocou em um símbolo incorreto!");
+          }
         }
       });
     }
 
-    function render() {
+    function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Fundo e Chão
-      ctx.fillStyle = "#111827";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Fundo
+      if (bgImageCurrent.complete && bgImageCurrent.naturalWidth !== 0) {
+        ctx.drawImage(bgImageCurrent, 0, 0, canvas.width, canvas.height);
+      } else {
+        ctx.fillStyle = "#111";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
 
       const groundY = getGroundY();
-      ctx.fillStyle = "#2e7d32";
-      ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
 
-      // Relógio do Sol
-      drawSunClock();
+      // Chão
+      ctx.fillStyle = roadColors.edge;
+      ctx.fillRect(0, groundY, canvas.width, 80);
 
       // Jogador
       ctx.fillStyle = "#00ffcc";
       ctx.fillRect(player.x, player.y, player.width, player.height);
 
       // Inimigos
-      ctx.fillStyle = "#ff0055";
-      enemies.forEach(e => {
-        ctx.fillRect(e.x, e.y, e.width, e.height);
+      enemies.forEach((enemy) => {
+        ctx.fillStyle = enemy.isValid ? "#22c55e" : "#ef4444";
+        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+
         ctx.fillStyle = "#fff";
-        ctx.font = "bold 16px sans-serif";
-        ctx.fillText(e.char, e.x + 10, e.y + 25);
-        ctx.fillStyle = "#ff0055";
+        ctx.font = "bold 20px 'Segoe UI'";
+        ctx.textAlign = "center";
+        ctx.fillText(enemy.char, enemy.x + enemy.width / 2, enemy.y + 30);
       });
 
-      // HUD de Vidas e Pontos
+      // RELÓGIO DE SOL REFEITO E BEM VISÍVEL (canto superior direito)
+      drawSunClock(canvas.width - 70, 70, 32);
+
+      // HUD Superior de Informações
+      const currentRule = getRuleForStage(currentStage);
       ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 16px 'Segoe UI'";
+      ctx.font = "bold 15px 'Segoe UI'";
       ctx.textAlign = "left";
-      ctx.fillText(`FASE: ${currentStage} | PONTOS: ${score} | VIDAS: 💖 ${playerLives}`, 20, 35);
+      ctx.fillText(`${currentRule.title}`, 20, 32);
+      ctx.fillText(`PONTOS: ${score}  |  VIDAS: ❤️ x${playerLives}`, 20, 55);
     }
 
     function gameLoop() {
       update();
-      render();
+      draw();
       requestAnimationFrame(gameLoop);
     }
 
-    // OUTRAS FUNÇÕES AUXILIARES
-    function openYoutubeChannel() { window.open("https://www.youtube.com/@DoutorChacara", "_blank"); }
-    function openPixOverlay() { closeAllPanels(); panelPixOverlay.style.display = "flex"; }
-    function copyPixKey() { navigator.clipboard.writeText("jhonemercadopago2023@gmail.com"); alert("Chave Pix copiada!"); }
-    function openCommentsOverlay() { closeAllPanels(); panelCommentsOverlay.style.display = "flex"; }
-    function toggleFullScreen() {
-      if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(() => {}); }
-      else { document.exitFullscreen().catch(() => {}); }
-    }
-    function playSound(type) {}
-    function speakText(text) {}
-
-    resetStage();
     requestAnimationFrame(gameLoop);
   </script>
 </body>
