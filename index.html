@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Doutor Chácara - Alfabetização Arcade Mobile v2.4</title>
+  <title>Doutor Chácara - Alfabetização Arcade Mobile v2.5</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
     html, body {
@@ -20,7 +20,6 @@
       background: #000; width: 100vw; height: 100vh; object-fit: fill; display: block;
     }
 
-    /* CONTROLES VIRTUAIS TOUCH TRANSPARENTES */
     .touch-controls {
       position: absolute; bottom: 65px; left: 0; width: 100%;
       display: flex; justify-content: space-between; align-items: flex-end;
@@ -67,7 +66,6 @@
     }
     .btn-top-bar:hover { background: rgba(0, 255, 204, 0.2); border-color: #00ffcc; }
 
-    /* BARRA DE FERRAMENTAS INFERIOR SUPER TRANSPARENTE */
     .bottom-bar {
       position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
       display: flex; gap: 8px; background: rgba(10, 10, 18, 0.25);
@@ -84,7 +82,6 @@
     .btn-tool:hover { background: rgba(0, 255, 204, 0.2); border-color: #00ffcc; }
     .btn-tool.off { background: rgba(100, 100, 100, 0.3); opacity: 0.5; }
 
-    /* PAINÉIS OVERLAY */
     .overlay-panel {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: rgba(10, 10, 18, 0.85); 
@@ -119,24 +116,16 @@
       backdrop-filter: blur(4px);
     }
 
-    .btn-option {
-      background: rgba(0, 150, 255, 0.6); color: #fff; font-size: 0.85rem; font-weight: bold;
-      padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(0, 255, 204, 0.5); cursor: pointer;
-      width: 100%; max-width: 380px; text-align: left; transition: background 0.2s;
-    }
-    .btn-option:hover { background: rgba(0, 255, 204, 0.8); color: #000; }
-
     .btn-group { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
 
-    input[type="text"], textarea {
+    input[type="text"], textarea, select {
       padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(0, 255, 204, 0.5);
-      background: rgba(0, 0, 0, 0.4); color: #fff; font-size: 0.9rem; text-align: center; width: 90%;
+      background: rgba(0, 0, 0, 0.8); color: #fff; font-size: 0.9rem; text-align: center; width: 90%;
       backdrop-filter: blur(4px);
     }
 
     textarea { text-align: left; resize: none; height: 55px; }
 
-    /* MENU LATERAL DE COMENTÁRIOS AO VIVO */
     .instant-comments-box {
       position: absolute; top: 55px; right: 15px; width: 210px; max-height: 170px;
       background: rgba(0, 0, 0, 0.12); backdrop-filter: blur(4px);
@@ -204,6 +193,15 @@
       <button class="btn-back" onclick="closeAllPanels()">◀ VOLTAR AO JOGO</button>
     </div>
 
+    <!-- PAINEL OVERLAY: CHEAT / MENU DE FASES (fasedoutor) -->
+    <div id="panel-cheat-stage" class="overlay-panel">
+      <h2>SELEÇÃO DE FASES 🧪</h2>
+      <p>Escolha a fase para onde deseja se transportar:</p>
+      <select id="cheat-stage-select"></select>
+      <button class="btn-main" onclick="jumpToSelectedStage()">TELEPORTAR ▶</button>
+      <button class="btn-back" onclick="closeAllPanels()">◀ CANCELAR</button>
+    </div>
+
     <!-- PAINEL OVERLAY: DEIXAR COMENTÁRIO -->
     <div id="panel-comments-overlay" class="overlay-panel">
       <h2>DEIXE SEU COMENTÁRIO 💬</h2>
@@ -222,22 +220,14 @@
       <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
     </div>
 
-    <!-- PAINEL QUIZ SEMI-MESTRE -->
-    <div id="panel-boss-quiz" class="overlay-panel">
-      <h2 id="quiz-boss-name" style="color: #ff0055;">SEMI-MESTRE LETRA A</h2>
-      <p id="quiz-progress-text" style="color: #ffcc00; font-weight: bold;">Pergunta 1 de 5</p>
-      <p id="quiz-question-text" style="font-size: 1rem; font-weight: bold; margin: 5px 0;"></p>
-      <div class="btn-group" id="quiz-options-container"></div>
-    </div>
-
     <!-- PAINEL INTERAÇÃO YOUTUBE -->
     <div id="panel-youtube-promo" class="overlay-panel">
       <h2>FASE CONCLUÍDA! 🎉</h2>
-      <p>Apoie o canal do Doutor Chácara para continuar:</p>
+      <p>Apoie o canal do Doutor Chácara para continuar (Aperte ENTER ou clique abaixo):</p>
       <div class="btn-group">
         <button class="btn-main" style="background: rgba(255, 0, 0, 0.65); color:#fff;" onclick="handleYtAnswer('inscrever')">🔴 Se inscreva no canal Doutor Chácara</button>
         <button class="btn-main" onclick="handleYtAnswer('sim')">👍 Já é inscrito</button>
-        <button class="btn-sub" id="btn-continue-game" style="background: rgba(0, 153, 255, 0.65);" onclick="handleYtAnswer('continuar')">▶ Continuar jogo</button>
+        <button class="btn-sub" id="btn-continue-game" style="background: rgba(0, 153, 255, 0.65);" onclick="handleYtAnswer('continuar')">▶ Continuar jogo (ENTER / Click)</button>
       </div>
       <div id="yt-feedback-msg" style="margin-top: 5px; font-weight: bold; color: #ffcc00; text-shadow: 0 0 5px #000;"></div>
     </div>
@@ -249,7 +239,7 @@
       <button class="btn-main" onclick="resumeGameFromYt()">CONTINUAR JOGO ▶</button>
     </div>
 
-    <!-- CONFIGURAÇÃO DE CONTROLES DO PC (VERSÃO 2.4) -->
+    <!-- CONFIGURAÇÃO DE CONTROLES DO PC -->
     <div id="panel-key-config" class="overlay-panel">
       <h2>⚙️ CONFIGURAÇÃO DE CONTROLES (PC)</h2>
       <p style="font-size:0.75rem; color:#00ffcc;">Clique no botão e escolha a tecla desejada no teclado:</p>
@@ -363,7 +353,7 @@
     const panelKeyConfig = document.getElementById("panel-key-config");
     const panelPixOverlay = document.getElementById("panel-pix-overlay");
     const panelCommentsOverlay = document.getElementById("panel-comments-overlay");
-    const panelBossQuiz = document.getElementById("panel-boss-quiz");
+    const panelCheatStage = document.getElementById("panel-cheat-stage");
     
     const stageTitle = document.getElementById("stage-title");
     const stageInstruction = document.getElementById("stage-instruction");
@@ -379,13 +369,18 @@
     let isMusicEnabled = true;
     let isVoiceEnabled = true;
 
+    // VARIÁVEIS DE DETECÇÃO DO CHEAT "fasedoutor"
+    let cheatBuffer = "";
+
     // VARIÁVEIS DO SEMI-MESTRE
     let bossActive = false;
-    let bossState = "none";
+    let bossState = "none"; // 'none', 'quiz_hq', 'boss_walking_defeat', 'player_walking_defeat', 'defeated'
     let currentBossChar = "A";
     let bossQuizIndex = 0;
     let bossQuizQuestions = [];
     let bossEnemy = null;
+    let playerInputAnswer = "";
+    let hqAnimTimer = 0;
 
     // SISTEMA DE VIDAS E PONTUAÇÃO DE VIDAS EXTRAS
     let playerLives = 3;
@@ -400,16 +395,11 @@
     let vehicleType = 'aviao';
 
     const portugueseQuestionsBank = [
-      { q: "Qual das palavras abaixo possui um DÍGRAFO?", options: ["Chuva", "Prato", "Escola", "Pedra"], correct: 0 },
-      { q: "Assinale a alternativa que contém apenas VOGAIS:", options: ["A, E, I, O, U", "A, B, C, D, E", "B, C, D, F, G", "A, E, I, F, U"], correct: 0 },
-      { q: "Qual palavra é uma PROPAROXÍTONA?", options: ["Lâmpada", "Café", "Mesa", "Computador"], correct: 0 },
-      { q: "Qual das palavras contém um ENCONTRO VOCÁLICO?", options: ["Peixe", "Gato", "Cachorro", "Livro"], correct: 0 },
-      { q: "Em 'O menino correu rápido', qual palavra é um ADJETIVO?", options: ["Rápido", "Menino", "Correu", "O"], correct: 0 },
-      { q: "A sílaba tônica da palavra 'CAFÉ' fica na última sílaba. Ela é:", options: ["Oxítona", "Paroxítona", "Proparoxítona", "Monossílaba"], correct: 0 },
-      { q: "Qual é o PLURAL correto da palavra 'Cão'?", options: ["Cães", "Cãos", "Cãoses", "Cãis"], correct: 0 },
-      { q: "Qual palavra está grafada CORRETAMENTE?", options: ["Exceção", "Eseção", "Exseção", "Exceçào"], correct: 0 },
-      { q: "Quantas sílabas tem a palavra 'ALFABETIZAÇÃO'?", options: ["6 sílabas", "5 sílabas", "4 sílabas", "7 sílabas"], correct: 0 },
-      { q: "Qual das palavras abaixo é um SUBSTANTIVO PROPRIO?", options: ["Brasil", "cidade", "menino", "país"], correct: 0 }
+      { q: "Qual palavra tem DÍGRAFO?", options: ["CHUVA", "PRATO", "ESCOLA", "PEDRA"], correctText: "CHUVA" },
+      { q: "Qual palavra tem apenas VOGAIS?", options: ["AEIOU", "BCDEF", "FGHIJ", "LMNOP"], correctText: "AEIOU" },
+      { q: "Qual palavra e PROPAROXITONA?", options: ["LAMPADA", "CAFE", "MESA", "COMPUTADOR"], correctText: "LAMPADA" },
+      { q: "Qual palavra tem ENCONTRO VOCALICO?", options: ["PEIXE", "GATO", "CACHORRO", "LIVRO"], correctText: "PEIXE" },
+      { q: "Qual e o PLURAL de CAO?", options: ["CAES", "CAOS", "CAOSES", "CAIS"], correctText: "CAES" }
     ];
 
     function addScore(amount) {
@@ -454,7 +444,7 @@
       panelKeyConfig.style.display = "none";
       panelPixOverlay.style.display = "none";
       panelCommentsOverlay.style.display = "none";
-      panelBossQuiz.style.display = "none";
+      panelCheatStage.style.display = "none";
       isPausedForConfig = false;
     }
 
@@ -550,16 +540,33 @@
       }
     }
 
-    // CARREGAMENTO E SALVAMENTO DE TECLAS VIA LOCALSTORAGE
+    // MENU DE CHEAT: "fasedoutor"
+    function openCheatMenu() {
+      closeAllPanels();
+      const select = document.getElementById("cheat-stage-select");
+      select.innerHTML = "";
+      for (let i = 1; i <= maxStages; i++) {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.innerText = `Fase ${i} ${i % 5 === 0 ? '(Semi-Mestre)' : ''}`;
+        if (i === currentStage) opt.selected = true;
+        select.appendChild(opt);
+      }
+      panelCheatStage.style.display = "flex";
+      isPausedForConfig = true;
+    }
+
+    function jumpToSelectedStage() {
+      const select = document.getElementById("cheat-stage-select");
+      currentStage = parseInt(select.value);
+      closeAllPanels();
+      prepareStage();
+    }
+
+    // CONTROLES DE TECLADO
     let keyBinds = { 
-      left: "KeyA", 
-      right: "KeyD", 
-      up: "KeyW", 
-      down: "KeyS", 
-      jump: "Space", 
-      jump2: "KeyO",
-      attack: "KeyU", 
-      shield: "KeyI" 
+      left: "KeyA", right: "KeyD", up: "KeyW", down: "KeyS", 
+      jump: "Space", jump2: "KeyO", attack: "KeyU", shield: "KeyI" 
     };
 
     function loadSavedKeyBinds() {
@@ -733,7 +740,6 @@
     let sunAngle = 0;
     let gameTimerSeconds = 0;
 
-    // ESTRADA DE TERRA E BURACO
     let roadColors = { main: "#8B4513", accent: "#5C2E0B", edge: "#2e7d32" };
     let pitHole = { x: 0, width: 0, active: false };
 
@@ -769,7 +775,6 @@
       return canvas.height - 80;
     }
 
-    // PERSONAGEM DOUTOR CHÁCARA
     const player = {
       x: 50, y: 280, width: 33, height: 71.5,
       vx: 0, vy: 0, speed: 4.5, friction: 0.82,
@@ -777,11 +782,12 @@
       attacking: false, attackTimer: 0, attackMaxTime: 12,
       hasImmunityColor: false,
       shieldPowerUp: false,
-      bigShieldActive: false
+      bigShieldActive: false,
+      isKnockedDown: false
     };
 
     function triggerPlayerJump() {
-      if ((player.grounded || isUsingVehicle) && stageStarted && !gameOver && !isPausedForConfig) {
+      if ((player.grounded || isUsingVehicle) && stageStarted && !gameOver && !isPausedForConfig && !player.isKnockedDown) {
         player.vy = isUsingVehicle ? -8 : -12;
         player.grounded = false;
         playSound('jump');
@@ -790,10 +796,7 @@
 
     const gravity = 0.65;
     const weapon = { x: 0, y: 0, length: 0, baseMaxLength: 70 };
-
     const aerialSymbols = ['plane', 'helicopter', 'balloon', 'rocket', 'ufo_mini', 'bird', 'dragon', 'blimp'];
-
-    // DARDOS DISPARADOS
     const darts = [];
 
     const stageRules = {
@@ -842,6 +845,8 @@
       bossEnemy = null;
       isUsingVehicle = false;
       specialVehicle = null;
+      player.isKnockedDown = false;
+      playerInputAnswer = "";
 
       const groundY = getGroundY();
 
@@ -850,11 +855,7 @@
         for (let k = 0; k < 4; k++) {
           schoolItems.push({
             x: 220 + k * 180 + Math.random() * 50,
-            y: groundY - 25,
-            width: 22,
-            height: 22,
-            icon: itemIcons[k % itemIcons.length],
-            active: true
+            y: groundY - 25, width: 22, height: 22, icon: itemIcons[k % itemIcons.length], active: true
           });
         }
       }
@@ -865,22 +866,26 @@
         const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         currentBossChar = alphabet[bossCharIndex % alphabet.length];
 
-        stageTitle.innerText = `FASE ${currentStage}: BATALHA DO SEMI-MESTRE LETRA ${currentBossChar}`;
-        stageInstruction.innerText = `Derrote o Semi-Mestre ${currentBossChar} respondendo 5 perguntas e usando seu ESCUDO!`;
+        stageTitle.innerText = `FASE ${currentStage}: BATALHA HQ DO SEMI-MESTRE ${currentBossChar}`;
+        stageInstruction.innerText = `Responda 5 perguntas via teclado para vencer o Semi-Mestre ${currentBossChar}!`;
         
         const topRecord = getTopScores()[0] || { name: 'Ninguém', score: 0 };
         stageScoreInfo.innerHTML = `Pontuação Atual: <strong>${score}</strong> | Vidas: <strong>❤️ x${playerLives}</strong><br>Recorde do Jogo: <strong>${topRecord.score}</strong> (${topRecord.name})`;
         panelStageStart.style.display = "flex";
 
+        player.x = 100;
+        player.y = groundY - player.height;
+
         bossEnemy = {
-          x: canvas.width - 160,
+          x: canvas.width - 200,
           y: groundY - 143,
           width: 66,
           height: 143,
           symbol: currentBossChar,
-          speed: 2.2,
+          speed: 2.5,
           alive: true,
-          expression: 'normal'
+          isKnockedDown: false,
+          speechText: ""
         };
         return;
       }
@@ -911,11 +916,7 @@
       };
 
       if (currentStage % 2 !== 0) {
-        pitHole = {
-          x: 320 + Math.random() * 160,
-          width: 80 + Math.random() * 40,
-          active: true
-        };
+        pitHole = { x: 320 + Math.random() * 160, width: 80 + Math.random() * 40, active: true };
       } else {
         pitHole = { x: 0, width: 0, active: false };
       }
@@ -945,8 +946,7 @@
         const isPurpleSpecial = (currentStage >= 4 && i === 0);
 
         enemies.push({
-          x: spawnX,
-          y: groundY - 55, width: 40, height: 55,
+          x: spawnX, y: groundY - 55, width: 40, height: 55,
           speed: 1.4 + (currentStage * 0.1), alive: true,
           symbol: charSymbol, isTarget: currentRule.isValid(charSymbol),
           dir: -1, expression: 'normal', mockOffset: 0,
@@ -956,56 +956,48 @@
       }
     }
 
-    function startBossQuiz() {
-      bossState = "quiz";
+    function startBossQuizHQ() {
+      bossState = "quiz_hq";
       bossQuizIndex = 0;
+      playerInputAnswer = "";
       
       const shuffled = [...portugueseQuestionsBank].sort(() => 0.5 - Math.random());
       bossQuizQuestions = shuffled.slice(0, 5);
       
-      renderBossQuizQuestion();
+      speakCurrentBossQuestion();
     }
 
-    function renderBossQuizQuestion() {
+    function speakCurrentBossQuestion() {
       if (bossQuizIndex >= 5) {
-        closeAllPanels();
-        bossState = "walking";
-        stageStarted = true;
-        startBackgroundMusic();
-        speakText(`Muito bem! Agora use seu escudo para rebater o Semi Mestre Letra ${currentBossChar}!`);
+        // VENCEU O QUIZ DO SEMI-MESTRE
+        bossState = "player_walking_defeat";
+        hqAnimTimer = 0;
+        speakText("Parabéns! Você respondeu todas as 5 perguntas corretamente!");
         return;
       }
-
-      closeAllPanels();
       const q = bossQuizQuestions[bossQuizIndex];
-      document.getElementById("quiz-boss-name").innerText = `SEMI-MESTRE LETRA ${currentBossChar}`;
-      document.getElementById("quiz-progress-text").innerText = `Pergunta ${bossQuizIndex + 1} de 5`;
-      document.getElementById("quiz-question-text").innerText = q.q;
-
-      const optsContainer = document.getElementById("quiz-options-container");
-      optsContainer.innerHTML = "";
-
-      q.options.forEach((optText, idx) => {
-        const btn = document.createElement("button");
-        btn.className = "btn-option";
-        btn.innerText = `${String.fromCharCode(65 + idx)}) ${optText}`;
-        btn.onclick = () => handleQuizAnswer(idx === q.correct);
-        optsContainer.appendChild(btn);
-      });
-
-      panelBossQuiz.style.display = "flex";
-      speakText(`Pergunta ${bossQuizIndex + 1}: ${q.q}`);
+      bossEnemy.speechText = `P${bossQuizIndex + 1}: ${q.q} (${q.options.join(', ')})`;
+      speakText(bossEnemy.speechText);
     }
 
-    function handleQuizAnswer(isCorrect) {
-      if (isCorrect) {
+    function checkPlayerAnswerHQ() {
+      if (bossState !== "quiz_hq") return;
+      const q = bossQuizQuestions[bossQuizIndex];
+      const cleanAnswer = playerInputAnswer.trim().toUpperCase();
+      
+      if (cleanAnswer === q.correctText) {
         playSound('powerup');
         addScore(200);
         bossQuizIndex++;
-        renderBossQuizQuestion();
+        playerInputAnswer = "";
+        speakCurrentBossQuestion();
       } else {
-        closeAllPanels();
-        triggerGameOverSequence(bossEnemy, `Você errou a pergunta do Semi-Mestre Letra ${currentBossChar}!`);
+        // JOGADOR ERROU A PERGUNTA
+        bossState = "boss_walking_defeat";
+        hqAnimTimer = 0;
+        const msg = "Vá estudar mais, eu sou melhor que você! Kkkk!";
+        bossEnemy.speechText = msg;
+        speakText(msg);
       }
     }
 
@@ -1014,7 +1006,8 @@
       closeAllPanels();
       
       if (bossActive) {
-        startBossQuiz();
+        stageStarted = true;
+        startBossQuizHQ();
         return;
       }
 
@@ -1059,7 +1052,39 @@
       btn.innerText = "Pressione uma tecla...";
     }
 
+    // CAPTURA DO TECLADO: CHEAT "fasedoutor", RESPOSTAS HQ E CONTROLES
     window.addEventListener("keydown", (e) => {
+      // Cheat "fasedoutor"
+      if (e.key.length === 1) {
+        cheatBuffer += e.key.toLowerCase();
+        if (cheatBuffer.length > 20) cheatBuffer = cheatBuffer.slice(-20);
+        if (cheatBuffer.includes("fasedoutor")) {
+          cheatBuffer = "";
+          openCheatMenu();
+          return;
+        }
+      }
+
+      // Avançar na tela de Youtube Promo usando ENTER
+      if (panelYtPromo.style.display === "flex" && e.code === "Enter") {
+        handleYtAnswer('continuar');
+        return;
+      }
+
+      // Digitação da Resposta no Quiz HQ do Semi-Mestre
+      if (bossActive && bossState === "quiz_hq") {
+        if (e.key === "Enter") {
+          checkPlayerAnswerHQ();
+          return;
+        } else if (e.key === "Backspace") {
+          playerInputAnswer = playerInputAnswer.slice(0, -1);
+          return;
+        } else if (e.key.length === 1 && /[a-zA-Z0-9áéíóúÁÉÍÓÚçÇ ]/.test(e.key)) {
+          if (playerInputAnswer.length < 15) playerInputAnswer += e.key.toUpperCase();
+          return;
+        }
+      }
+
       if (listeningKeyAction) {
         keyBinds[listeningKeyAction] = e.code;
         document.getElementById(`bind-${listeningKeyAction}-btn`).innerText = e.code;
@@ -1082,7 +1107,7 @@
       }
 
       panelYtPromo.style.display = "flex";
-      speakText("Se inscreva no canal do Doutor Chácara!");
+      speakText("Fase concluída! Se inscreva no canal do Doutor Chácara ou aperte Enter para continuar!");
     }
 
     function handleYtAnswer(option) {
@@ -1168,6 +1193,7 @@
         player.x = 50;
         player.y = getGroundY() - player.height;
         player.vx = 0; player.vy = 0;
+        player.isKnockedDown = false;
         return;
       }
 
@@ -1264,14 +1290,13 @@
       playerLives = 3; nextExtraLifeScore = 10000; nextVehicleScore = 10000;
       schoolItemsCollected = 0;
       player.x = 50; player.y = getGroundY() - player.height; player.vx = 0; player.vy = 0;
-      player.hasImmunityColor = false; player.shieldPowerUp = false; player.bigShieldActive = false;
+      player.hasImmunityColor = false; player.shieldPowerUp = false; player.bigShieldActive = false; player.isKnockedDown = false;
       prepareStage();
     }
 
     const keys = {};
     window.addEventListener("keyup", (e) => { keys[e.code] = false; });
 
-    // SUPORTE A GAMEPAD / JOYSTICK CONECTADO AO PC
     let gamepadState = { x: 0, y: 0, jump: false, attack: false, shield: false };
 
     function pollGamepad() {
@@ -1289,7 +1314,6 @@
         if (Math.abs(axisX) < threshold) axisX = 0;
         if (Math.abs(axisY) < threshold) axisY = 0;
 
-        // D-Pad Suporte
         if (gp.buttons[14] && gp.buttons[14].pressed) axisX = -1;
         if (gp.buttons[15] && gp.buttons[15].pressed) axisX = 1;
         if (gp.buttons[12] && gp.buttons[12].pressed) axisY = -1;
@@ -1360,10 +1384,43 @@
       if (isIntroPlaying) { updateIntro(); return; }
       if (gameOver || !stageStarted || collisionAnimationActive) return;
 
-      // ATIVAÇÃO DO ESCUDO ESPECIAL
+      // EXECUÇÃO DAS ANIMAÇÕES TEATRAIS DO SEMI-MESTRE
+      if (bossActive && bossEnemy) {
+        if (bossState === "boss_walking_defeat") {
+          hqAnimTimer += 0.015;
+          bossEnemy.x -= bossEnemy.speed;
+          
+          if (bossEnemy.x <= player.x + 20) {
+            player.isKnockedDown = true;
+          }
+
+          if (bossEnemy.x < -100) {
+            triggerGameOverSequence(bossEnemy, "O Semi-Mestre te venceu no desafio!");
+          }
+          return;
+        }
+
+        if (bossState === "player_walking_defeat") {
+          hqAnimTimer += 0.015;
+          player.x += player.speed * 1.2;
+          walkCycle += 0.22;
+
+          if (player.x >= bossEnemy.x - 20) {
+            bossEnemy.isKnockedDown = true;
+          }
+
+          if (player.x >= canvas.width + 50) {
+            bossActive = false;
+            stageStarted = false;
+            stopBackgroundMusic();
+            openYoutubePromo();
+          }
+          return;
+        }
+      }
+
       player.bigShieldActive = !!keys[keyBinds.shield] || gamepadState.shield;
 
-      // MOVIMENTAÇÃO DO TECLADO E GAMEPAD
       const moveLeft = keys[keyBinds.left];
       const moveRight = keys[keyBinds.right];
       const moveUp = keys[keyBinds.up];
@@ -1375,7 +1432,7 @@
       player.aimingUp = moveY < -0.4;
       player.crouching = moveY > 0.4 && player.grounded && !isUsingVehicle;
 
-      if (Math.abs(moveX) > 0.2 && !player.crouching) {
+      if (Math.abs(moveX) > 0.2 && !player.crouching && !player.isKnockedDown) {
         player.vx = moveX * (isUsingVehicle ? 6 : player.speed);
         player.facing = moveX > 0 ? 'right' : 'left';
         walkCycle += 0.22;
@@ -1393,7 +1450,7 @@
         }
       }
 
-      if (keys[keyBinds.attack] && !player.attacking) {
+      if (keys[keyBinds.attack] && !player.attacking && !player.isKnockedDown) {
         player.attacking = true; player.attackTimer = player.attackMaxTime;
         playSound('attack');
       }
@@ -1422,38 +1479,7 @@
 
       if (player.x < 0) player.x = 0;
 
-      // ATUALIZAÇÃO DO SEMI-MESTRE EM COMBATE
-      if (bossActive && bossState === "walking" && bossEnemy && bossEnemy.alive) {
-        bossEnemy.x -= bossEnemy.speed;
-
-        const bossBox = { left: bossEnemy.x, right: bossEnemy.x + bossEnemy.width, top: bossEnemy.y, bottom: bossEnemy.y + bossEnemy.height };
-        const pBox = { left: player.x, right: player.x + player.width, top: player.y, bottom: player.y + player.height };
-
-        if (pBox.left < bossBox.right && pBox.right > bossBox.left &&
-            pBox.top < bossBox.bottom && pBox.bottom > bossBox.top) {
-          
-          if (player.bigShieldActive) {
-            bossEnemy.alive = false;
-            bossState = "defeated";
-            playSound('powerup');
-            addScore(2000);
-
-            stageStarted = false;
-            stopBackgroundMusic();
-
-            const victoryMsg = "Você venceu, parabéns! Mas tem meu mestre à frente e ele não é fácil, boa sorte!";
-            speakText(victoryMsg, () => {
-              openYoutubePromo();
-            });
-
-          } else {
-            triggerGameOverSequence(bossEnemy, `O Semi-Mestre Letra ${currentBossChar} pegou você! Use o ESCUDO (Letra I ou botão)!`);
-          }
-        }
-        return;
-      }
-
-      // COLETA DE ITENS ESCOLARES
+      // COLETA DE ITENS
       schoolItems.forEach(item => {
         if (item.active &&
             player.x < item.x + item.width && player.x + player.width > item.x &&
@@ -1470,7 +1496,6 @@
         }
       });
 
-      // COLETA DO VEÍCULO ESPECIAL
       if (specialVehicle && specialVehicle.active) {
         if (player.x < specialVehicle.x + specialVehicle.width && player.x + player.width > specialVehicle.x &&
             player.y < specialVehicle.y + specialVehicle.height && player.y + player.height > specialVehicle.y) {
@@ -1482,8 +1507,7 @@
         }
       }
 
-      // FINALIZAÇÃO DE FASE
-      if (player.x + player.width >= canvas.width) {
+      if (player.x + player.width >= canvas.width && !bossActive) {
         if (currentStage < maxStages) {
           stageStarted = false;
           stopBackgroundMusic();
@@ -1512,6 +1536,7 @@
         if (player.attackTimer <= 0) player.attacking = false;
       }
 
+      // COLISÕES COM INIMIGOS (Escudo Especial NÃO protege contra contato direto de inimigos)
       enemies.forEach(enemy => {
         if (!enemy.alive) return;
 
@@ -1557,10 +1582,7 @@
             playerBox.left < enemyBox.right && playerBox.right > enemyBox.left &&
             playerBox.top < enemyBox.bottom && playerBox.bottom > enemyBox.top) {
           
-          if (player.bigShieldActive) {
-            enemy.x += 100;
-            playSound('block');
-          } else if (player.hasImmunityColor) {
+          if (player.hasImmunityColor) {
             player.hasImmunityColor = false;
             schoolItemsCollected = 0;
             enemy.x += 80;
@@ -1573,6 +1595,7 @@
         }
       });
 
+      // DARDO / PROJÉTIL (Escudo Especial protege SOMENTE contra projéteis)
       darts.forEach(dart => {
         if (!dart.active) return;
         dart.x += dart.vx;
@@ -1581,7 +1604,7 @@
         const pCenterY = player.y + player.height / 2;
         const distToPlayer = Math.hypot(dart.x - pCenterX, dart.y - pCenterY);
 
-        if (distToPlayer < player.width) {
+        if (distToPlayer < player.width + 10) {
           if (player.bigShieldActive) {
             dart.active = false;
             playSound('block');
@@ -1610,6 +1633,44 @@
 
         if (dart.x < -50 || dart.x > canvas.width + 50) dart.active = false;
       });
+    }
+
+    // BALÕES EM FORMATO DE QUADRINHOS (HQ)
+    function drawHQComicBubble(x, y, text, isPlayerBubble = false) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      ctx.font = "bold 12px 'Segoe UI'";
+      const textWidth = ctx.measureText(text).width;
+      const bw = Math.max(textWidth + 30, 120);
+      const bh = 55;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 3;
+
+      // Balão oval HQ
+      ctx.beginPath();
+      ctx.ellipse(0, -bh/2, bw/2, bh/2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Rabinho do balão
+      ctx.beginPath();
+      if (isPlayerBubble) {
+        ctx.moveTo(10, -5); ctx.lineTo(25, 15); ctx.lineTo(-5, -5);
+      } else {
+        ctx.moveTo(-10, -5); ctx.lineTo(-25, 15); ctx.lineTo(5, -5);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#000000";
+      ctx.font = "bold 11px 'Segoe UI'";
+      ctx.textAlign = "center";
+      ctx.fillText(text, 0, -bh/2 + 4);
+
+      ctx.restore();
     }
 
     function drawSpeechBubble(x, y, text, scaleFactor) {
@@ -1762,6 +1823,10 @@
       ctx.translate(x + player.width / 2, y);
       if (facing === 'left') ctx.scale(-1, 1);
 
+      if (player.isKnockedDown) {
+        ctx.rotate(Math.PI / 2);
+      }
+
       const leg1Angle = Math.sin(walkCycle) * 0.6;
       const leg2Angle = Math.sin(walkCycle + Math.PI) * 0.6;
       const arm1Angle = Math.sin(walkCycle + Math.PI) * 0.5;
@@ -1873,6 +1938,10 @@
 
       ctx.save();
       ctx.translate(boss.x + boss.width / 2, boss.y);
+
+      if (boss.isKnockedDown) {
+        ctx.rotate(-Math.PI / 2);
+      }
 
       const legCycle = Math.sin(Date.now() * 0.015) * 14;
 
@@ -2019,6 +2088,14 @@
 
       if (bossActive && bossEnemy) {
         drawBossEnemy(bossEnemy);
+
+        // BALÕES DE QUADRINHOS (HQ) NO COMBATE DO SEMI-MESTRE
+        if (bossState === "quiz_hq") {
+          drawHQComicBubble(bossEnemy.x - 30, bossEnemy.y - 20, bossEnemy.speechText, false);
+          drawHQComicBubble(player.x + 30, player.y - 30, `Resp: ${playerInputAnswer}_ (ENTER)`, true);
+        } else if (bossState === "boss_walking_defeat") {
+          drawHQComicBubble(bossEnemy.x - 30, bossEnemy.y - 20, bossEnemy.speechText, false);
+        }
       }
 
       if (collisionAnimationActive) {
@@ -2033,11 +2110,10 @@
       ctx.fillText(`${currentRule.title}`, 20, 32);
       ctx.fillText(`PONTOS: ${score}  |  VIDAS: ❤️ x${playerLives}  |  ESCOLARES: 📚 x${schoolItemsCollected}/3`, canvas.width - 400, 32);
 
-      // INDICAÇÃO DA VERSÃO 2.4
       ctx.fillStyle = "rgba(0, 255, 204, 0.85)";
       ctx.font = "bold 12px monospace";
       ctx.textAlign = "left";
-      ctx.fillText("Versão 2.4", 12, canvas.height - 12);
+      ctx.fillText("Versão 2.5", 12, canvas.height - 12);
     }
 
     function loop() { update(); draw(); requestAnimationFrame(loop); }
