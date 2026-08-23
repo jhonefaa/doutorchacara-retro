@@ -82,10 +82,7 @@
       transition: all 0.2s ease;
     }
     .btn-tool:hover { background: rgba(0, 255, 204, 0.2); border-color: #00ffcc; }
-    .btn-tool.recording { background: rgba(255, 0, 85, 0.6); border-color: #ff0055; animation: pulse 1s infinite; }
     .btn-tool.off { background: rgba(100, 100, 100, 0.3); opacity: 0.5; }
-
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
     /* PAINÉIS OVERLAY SOBREPOSIÇÃO SUPER TRANSPARENTES */
     .overlay-panel {
@@ -182,15 +179,12 @@
 
     <canvas id="gameCanvas"></canvas>
 
-    <!-- MENU DE COMENTÁRIOS INSTANTÂNEOS NO CANTO DA TELA -->
     <div class="instant-comments-box">
       <div class="instant-comments-header">💬 COMENTÁRIOS AO VIVO</div>
       <div class="instant-comments-list" id="instant-comments-list"></div>
     </div>
 
-    <!-- BARRA INFERIOR DE RECURSOS E AÇÕES -->
     <div class="bottom-bar">
-      <button class="btn-tool" id="btn-record" onclick="toggleRecordGame()">🎥 Gravar Jogo</button>
       <button class="btn-tool" onclick="takeScreenshot()">📸 Print</button>
       <button class="btn-tool" onclick="openYoutubeChannel()">🔴 YouTube</button>
       <button class="btn-tool" onclick="openPixOverlay()">⚡ Pix</button>
@@ -199,7 +193,6 @@
       <button class="btn-tool" id="btn-toggle-voice" onclick="toggleVoice()">🔊 Voz: ON</button>
     </div>
 
-    <!-- PAINEL OVERLAY: PIX -->
     <div id="panel-pix-overlay" class="overlay-panel">
       <h2>APOIE O JOGO COM PIX ⚡</h2>
       <p>Sua ajuda garante novos conteúdos e melhorias para o jogo!</p>
@@ -208,7 +201,6 @@
       <button class="btn-back" onclick="closeAllPanels()">◀ VOLTAR AO JOGO</button>
     </div>
 
-    <!-- PAINEL OVERLAY: DEIXAR COMENTÁRIO -->
     <div id="panel-comments-overlay" class="overlay-panel">
       <h2>DEIXE SEU COMENTÁRIO 💬</h2>
       <p>Envie sua mensagem para aparecer no jogo!</p>
@@ -218,7 +210,6 @@
       <button class="btn-back" onclick="closeAllPanels()">◀ VOLTAR AO JOGO</button>
     </div>
 
-    <!-- PAINEL INICIAR FASE / TRANSIÇÃO -->
     <div id="panel-stage-start" class="overlay-panel">
       <h2 id="stage-title">FASE 1</h2>
       <p id="stage-instruction">Destrua os alvos solicitados!</p>
@@ -226,7 +217,6 @@
       <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
     </div>
 
-    <!-- PAINEL QUIZ SEMI-MESTRE (DIÁLOGO) -->
     <div id="panel-boss-quiz" class="overlay-panel">
       <h2 id="quiz-boss-name" style="color: #ff0055;">SEMI-MESTRE LETRA A</h2>
       <p id="quiz-progress-text" style="color: #ffcc00; font-weight: bold;">Pergunta 1 de 5</p>
@@ -234,7 +224,6 @@
       <div class="btn-group" id="quiz-options-container"></div>
     </div>
 
-    <!-- PAINEL INTERAÇÃO YOUTUBE (TRANSIÇÃO DE FASE) -->
     <div id="panel-youtube-promo" class="overlay-panel">
       <h2>FASE CONCLUÍDA! 🎉</h2>
       <p>Apoie o canal do Doutor Chácara para continuar:</p>
@@ -246,14 +235,12 @@
       <div id="yt-feedback-msg" style="margin-top: 5px; font-weight: bold; color: #ffcc00; text-shadow: 0 0 5px #000;"></div>
     </div>
 
-    <!-- PAINEL PAUSA YOUTUBE RETORNO -->
     <div id="panel-yt-return" class="overlay-panel">
       <h2>JOGO PAUSADO ⏸️</h2>
       <p>O jogo está pausado enquanto você visita o canal!</p>
       <button class="btn-main" onclick="resumeGameFromYt()">CONTINUAR JOGO ▶</button>
     </div>
 
-    <!-- ABA DEDICADA: CONFIGURAÇÃO DE CONTROLES DO PC (VERSÃO a2.0) -->
     <div id="panel-key-config" class="overlay-panel">
       <h2>⚙️ CONFIGURAÇÃO DE CONTROLES (PC)</h2>
       <p style="font-size:0.75rem; color:#00ffcc;">Clique no botão e escolha a tecla desejada no teclado:</p>
@@ -291,10 +278,9 @@
         <button class="key-bind-btn" id="bind-shield-btn" onclick="listenKeyChange('shield')">KeyI</button>
       </div>
 
-      <button class="btn-main" onclick="closeKeyConfig()">SALVAR E FECHAR 💾</button>
+      <button class="btn-main" onclick="closeKeyConfig()">SALVAR E VOLTAR AO JOGO 💾</button>
     </div>
 
-    <!-- PAINEL VITÓRIA FINAL & VÍDEO DO DOUTOR CHÁCARA NA FASE 27 -->
     <div id="panel-victory" class="overlay-panel">
       <h2 style="color: #00ffcc;">PARABÉNS! VOCÊ ZEROU A FASE 27! 🏆</h2>
       <p>Mensagem especial do Doutor Chácara:</p>
@@ -307,7 +293,6 @@
       <button class="btn-main" onclick="saveVictoryScore()">GRAVAR NO PLACAR PARA SEMPRE 🏆</button>
     </div>
 
-    <!-- PAINEL GAME OVER & REGISTRO DE NOME -->
     <div id="panel-game-over" class="overlay-panel">
       <h2 style="color: #ff0055;">GAME OVER</h2>
       <p id="game-over-reason">Você perdeu a fase!</p>
@@ -343,22 +328,6 @@
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
     
-    const bgImageDefault = new Image();
-    bgImageDefault.src = "fundo.jpg.jpg";
-
-    const bgImageTiger = new Image();
-    bgImageTiger.src = "https://images.unsplash.com/photo-1561731216-c3a4d99437d5?auto=format&fit=crop&w=1200&q=80";
-
-    let bgImageCurrent = bgImageDefault;
-
-    const gamingBackgrounds = [
-      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80"
-    ];
-
     const panelStageStart = document.getElementById("panel-stage-start");
     const panelGameOver = document.getElementById("panel-game-over");
     const panelVictory = document.getElementById("panel-victory");
@@ -369,90 +338,73 @@
     const panelCommentsOverlay = document.getElementById("panel-comments-overlay");
     const panelBossQuiz = document.getElementById("panel-boss-quiz");
     
-    const stageTitle = document.getElementById("stage-title");
-    const stageInstruction = document.getElementById("stage-instruction");
-    const stageScoreInfo = document.getElementById("stage-score-info");
-    const finalScoreTxt = document.getElementById("final-score");
-    const playerNameInput = document.getElementById("player-name");
-    const leaderboardList = document.getElementById("leaderboard-list");
-    const btnStartAction = document.getElementById("btn-start-action");
-    const btnSaveScore = document.getElementById("btn-save-score");
     const instantCommentsList = document.getElementById("instant-comments-list");
 
-    let mediaRecorder = null;
-    let recordedChunks = [];
-    let isRecording = false;
     let isMusicEnabled = true;
     let isVoiceEnabled = true;
+    let isGamePaused = false; // Controle de pausa do jogo
 
-    // VARIÁVEIS DO SEMI-MESTRE
-    let bossActive = false;
-    let bossState = "none";
-    let currentBossChar = "A";
-    let bossQuizIndex = 0;
-    let bossQuizQuestions = [];
-    let bossEnemy = null;
+    // SISTEMA DE CONTROLES DO PC COM PERSISTÊNCIA EM LOCALSTORAGE
+    let defaultKeyBinds = { 
+      left: "KeyA", 
+      right: "KeyD", 
+      up: "KeyW", 
+      down: "KeyS", 
+      jump: "Space", 
+      jump2: "KeyO",
+      attack: "KeyU", 
+      shield: "KeyI" 
+    };
 
-    // SISTEMA DE VIDAS E PONTUAÇÃO DE VIDAS EXTRAS
-    let playerLives = 3;
-    let nextExtraLifeScore = 10000;
-    let nextVehicleScore = 10000;
+    let keyBinds = loadKeyBinds();
+    let listeningKeyAction = null;
 
-    // OBJETOS ESCOLARES E VEÍCULOS
-    let schoolItems = [];
-    let schoolItemsCollected = 0;
-    let specialVehicle = null;
-    let isUsingVehicle = false;
-    let vehicleType = 'aviao';
-
-    const portugueseQuestionsBank = [
-      { q: "Qual das palavras abaixo possui um DÍGRAFO?", options: ["Chuva", "Prato", "Escola", "Pedra"], correct: 0 },
-      { q: "Assinale a alternativa que contém apenas VOGAIS:", options: ["A, E, I, O, U", "A, B, C, D, E", "B, C, D, F, G", "A, E, I, F, U"], correct: 0 },
-      { q: "Qual palavra é uma PROPAROXÍTONA?", options: ["Lâmpada", "Café", "Mesa", "Computador"], correct: 0 },
-      { q: "Qual das palavras contém um ENCONTRO VOCÁLICO?", options: ["Peixe", "Gato", "Cachorro", "Livro"], correct: 0 },
-      { q: "Em 'O menino correu rápido', qual palavra é um ADJETIVO?", options: ["Rápido", "Menino", "Correu", "O"], correct: 0 },
-      { q: "A sílaba tônica da palavra 'CAFÉ' fica na última sílaba. Ela é:", options: ["Oxítona", "Paroxítona", "Proparoxítona", "Monossílaba"], correct: 0 },
-      { q: "Qual é o PLURAL correto da palavra 'Cão'?", options: ["Cães", "Cãos", "Cãoses", "Cãis"], correct: 0 },
-      { q: "Qual palavra está grafada CORRETAMENTE?", options: ["Exceção", "Eseção", "Exseção", "Exceçào"], correct: 0 },
-      { q: "Quantas sílabas tem a palavra 'ALFABETIZAÇÃO'?", options: ["6 sílabas", "5 sílabas", "4 sílabas", "7 sílabas"], correct: 0 },
-      { q: "Qual das palavras abaixo é um SUBSTANTIVO PROPRIO?", options: ["Brasil", "cidade", "menino", "país"], correct: 0 }
-    ];
-
-    function addScore(amount) {
-      // NÃO GANHA PONTOS DESTRUINDO LETRAS QUANDO ESTÁ USANDO VEÍCULO ESPECIAL
-      if (isUsingVehicle) return;
-
-      score += amount;
-      
-      // VERIFICA VIDA EXTRA A CADA 10.000 PONTOS
-      while (score >= nextExtraLifeScore) {
-        playerLives++;
-        nextExtraLifeScore += 10000;
-        playSound('powerup');
-        speakText("Vida extra!");
+    function loadKeyBinds() {
+      const saved = localStorage.getItem("dr_chacara_keybinds");
+      if (saved) {
+        try { return { ...defaultKeyBinds, ...JSON.parse(saved) }; } catch(e) {}
       }
-
-      // GERA VEÍCULO ESPECIAL A CADA 10.000 PONTOS
-      if (score >= nextVehicleScore && !specialVehicle && !isUsingVehicle) {
-        spawnSpecialVehicle();
-        nextVehicleScore += 10000;
-      }
+      return { ...defaultKeyBinds };
     }
 
-    function spawnSpecialVehicle() {
-      const types = ['aviao', 'carro', 'moto'];
-      vehicleType = types[Math.floor(Math.random() * types.length)];
-      const groundY = getGroundY();
-      specialVehicle = {
-        x: player.x + 300,
-        y: groundY - 40,
-        width: 45,
-        height: 30,
-        type: vehicleType,
-        active: true
-      };
-      playSound('powerup');
-      speakText(`Veículo especial ${vehicleType} apareceu!`);
+    function saveKeyBinds() {
+      localStorage.setItem("dr_chacara_keybinds", JSON.stringify(keyBinds));
+    }
+
+    function openKeyConfig() {
+      isGamePaused = true; // PAUSA O JOGO AO ABRIR OS CONTROLES
+      updateKeyButtonsUI();
+      closeAllPanels();
+      panelKeyConfig.style.display = "flex";
+    }
+
+    function closeKeyConfig() {
+      saveKeyBinds();
+      panelKeyConfig.style.display = "none";
+      isGamePaused = false; // RETORNA AO JOGO AO SALVAR
+    }
+
+    function listenKeyChange(action) {
+      listeningKeyAction = action;
+      const btn = document.getElementById(`bind-${action}-btn`);
+      if (btn) btn.innerText = "Pressione uma tecla...";
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if (listeningKeyAction) {
+        keyBinds[listeningKeyAction] = e.code;
+        listeningKeyAction = null;
+        updateKeyButtonsUI();
+        saveKeyBinds();
+        return;
+      }
+    });
+
+    function updateKeyButtonsUI() {
+      for (let act in keyBinds) {
+        const btn = document.getElementById(`bind-${act}-btn`);
+        if (btn) btn.innerText = keyBinds[act];
+      }
     }
 
     function closeAllPanels() {
@@ -530,60 +482,15 @@
       link.click();
     }
 
-    function toggleRecordGame() {
-      const btn = document.getElementById("btn-record");
-      if (!isRecording) {
-        startRecording();
-        btn.innerText = "⏹️ Parar Gravação";
-        btn.classList.add("recording");
-      } else {
-        stopRecording();
-        btn.innerText = "🎥 Gravar Jogo";
-        btn.classList.remove("recording");
-      }
-    }
-
-    function startRecording() {
-      recordedChunks = [];
-      const stream = canvas.captureStream(30);
-      mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
-
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) recordedChunks.push(e.data);
-      };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunks, { type: "video/webm" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `doutor-chacara-gameplay-${Date.now()}.webm`;
-        a.click();
-        URL.revokeObjectURL(url);
-      };
-
-      mediaRecorder.start();
-      isRecording = true;
-    }
-
-    function stopRecording() {
-      if (mediaRecorder && isRecording) {
-        mediaRecorder.stop();
-        isRecording = false;
-      }
-    }
-
     function toggleMusic() {
       isMusicEnabled = !isMusicEnabled;
       const btn = document.getElementById("btn-toggle-music");
       if (isMusicEnabled) {
         btn.innerText = "🎵 Música: ON";
         btn.classList.remove("off");
-        startBackgroundMusic();
       } else {
         btn.innerText = "🔇 Música: OFF";
         btn.classList.add("off");
-        stopBackgroundMusic();
       }
     }
 
@@ -600,158 +507,6 @@
       }
     }
 
-    // CONFIGURAÇÃO DE TECLAS DE PC (PADRÃO VERSÃO a2.0)
-    const keyBinds = { 
-      left: "KeyA", 
-      right: "KeyD", 
-      up: "KeyW", 
-      down: "KeyS", 
-      jump: "Space", 
-      jump2: "KeyO",
-      attack: "KeyU", 
-      shield: "KeyI" 
-    };
-    
-    let listeningKeyAction = null;
-
-    function updateKeyButtonsUI() {
-      for (let act in keyBinds) {
-        const btn = document.getElementById(`bind-${act}-btn`);
-        if (btn) btn.innerText = keyBinds[act];
-      }
-    }
-
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    let bgMusicTimer = null;
-    let bgMusicNoteIndex = 0;
-
-    const stageScales = [
-      [261.63, 293.66, 329.63, 349.23, 392.00, 440.00],
-      [293.66, 329.63, 369.99, 392.00, 440.00, 493.88],
-      [329.63, 369.99, 392.00, 440.00, 493.88, 523.25],
-      [349.23, 392.00, 440.00, 466.16, 523.25, 587.33],
-      [392.00, 440.00, 493.88, 523.25, 587.33, 659.25]
-    ];
-
-    function startBackgroundMusic() {
-      if (!isMusicEnabled || bgMusicTimer) return;
-      
-      bgMusicTimer = setInterval(() => {
-        if (!isMusicEnabled || gameOver || !stageStarted) return;
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = (currentStage % 2 === 0) ? 'triangle' : 'sine';
-        
-        const scale = stageScales[(currentStage - 1) % stageScales.length];
-        const note = scale[bgMusicNoteIndex % scale.length];
-        bgMusicNoteIndex++;
-
-        osc.frequency.setValueAtTime(note, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.002, audioCtx.currentTime + 0.35);
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.35);
-      }, 350);
-    }
-
-    function stopBackgroundMusic() {
-      if (bgMusicTimer) {
-        clearInterval(bgMusicTimer);
-        bgMusicTimer = null;
-      }
-    }
-
-    function playSound(type) {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      if (type === 'jump') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(750, audioCtx.currentTime + 0.3);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-      } else if (type === 'attack') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-      } else if (type === 'hitTarget') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.25);
-        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.25);
-      } else if (type === 'hitWrong') {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-      } else if (type === 'powerup') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.2);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-      } else if (type === 'ufo') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 1.5);
-        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
-        osc.start(); osc.stop(audioCtx.currentTime + 1.5);
-      } else if (type === 'dart') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(300, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-      } else if (type === 'block') {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-      }
-    }
-
-    function speakText(text, onEndCallback) {
-      if (!isVoiceEnabled) {
-        if (onEndCallback) setTimeout(onEndCallback, 3000);
-        return;
-      }
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'pt-BR';
-        utterance.rate = 1.0;
-        if (onEndCallback) {
-          utterance.onend = onEndCallback;
-        }
-        window.speechSynthesis.speak(utterance);
-      } else if (onEndCallback) {
-        setTimeout(onEndCallback, 3000);
-      }
-    }
-
     function toggleFullScreen() {
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(() => {});
@@ -760,1287 +515,22 @@
       }
     }
 
-    // VARIÁVEIS DE JOGO
-    let currentStage = 1;
-    const maxStages = 27;
-    let score = 0;
-    let gameOver = false;
-    let stageStarted = false;
-    let stageMissionText = "";
-    let walkCycle = 0;
-    let sunAngle = 0;
-    let gameTimerSeconds = 0;
-
-    // ESTRADA DE TERRA E BURACO
-    let roadColors = { main: "#8B4513", accent: "#5C2E0B", edge: "#2e7d32" };
-    let pitHole = { x: 0, width: 0, active: false };
-
-    let collisionAnimationActive = false;
-    let collisionAnimTimer = 0;
-    let playerSpeechBubble = "";
-    let enemySpeechBubble = "";
-    let mockingEnemy = null;
-
-    const positiveFrases = [
-      "Vou ficar mais atento!",
-      "Cada erro é um aprendizado!",
-      "Não desisto, vou conseguir!",
-      "Atenção dobrada na próxima!",
-      "A prática leva à perfeição!"
-    ];
-
-    let isIntroPlaying = false;
-    let ufoState = { x: -100, y: 50, beamOpacity: 0, playerY: -100, step: 0 };
-
     function skipIntro() {
-      if (isIntroPlaying) {
-        isIntroPlaying = false;
-        stageStarted = true;
-        startBackgroundMusic();
-        player.x = 100; player.y = getGroundY() - player.height;
-        const currentRule = getRuleForStage(currentStage);
-        speakText(`${currentRule.title}. ${currentRule.instruction}`);
-      }
-    }
-
-    function getGroundY() {
-      return canvas.height - 80;
-    }
-
-    // PERSONAGEM DOUTOR CHÁCARA
-    const player = {
-      x: 50, y: 280, width: 33, height: 71.5,
-      vx: 0, vy: 0, speed: 4.5, friction: 0.82,
-      grounded: false, crouching: false, facing: 'right', aimingUp: false,
-      attacking: false, attackTimer: 0, attackMaxTime: 12,
-      hasImmunityColor: false,
-      shieldPowerUp: false,
-      bigShieldActive: false
-    };
-
-    function triggerPlayerJump() {
-      if ((player.grounded || isUsingVehicle) && stageStarted && !gameOver) {
-        player.vy = isUsingVehicle ? -8 : -12;
-        player.grounded = false;
-        playSound('jump');
-      }
-    }
-
-    const gravity = 0.65;
-    const weapon = { x: 0, y: 0, length: 0, baseMaxLength: 70 };
-
-    const aerialSymbols = ['plane', 'helicopter', 'balloon', 'rocket', 'ufo_mini', 'bird', 'dragon', 'blimp'];
-
-    // DARDOS DISPARADOS
-    const darts = [];
-
-    const stageRules = {
-      1: {
-        title: "FASE 1: LETRAS MINÚSCULAS",
-        instruction: "ATENÇÃO: Destrua APENAS as letras MINÚSCULAS (a-f)!",
-        isValid: (char) => char === char.toLowerCase() && isNaN(char),
-        generateChar: () => ['A','B','C','D','E','F','a','b','c','d','e','f'][Math.floor(Math.random() * 12)]
-      },
-      2: {
-        title: "FASE 2: NÚMEROS PARES",
-        instruction: "ATENÇÃO: Destrua APENAS os NÚMEROS PARES!",
-        isValid: (char) => !isNaN(char) && parseInt(char) % 2 === 0,
-        generateChar: () => ['1','2','3','4','5','6','7','8','9'][Math.floor(Math.random() * 9)]
-      }
-    };
-
-    function getRuleForStage(stage) {
-      if (stageRules[stage]) return stageRules[stage];
-      if (stage === maxStages) {
-        return {
-          title: "FASE 27: O DESAFIO FINAL DO TIGRE",
-          instruction: "ATENÇÃO: Destrua APENAS as VOGAIS para VENCER O JOGO!",
-          isValid: (char) => ['A','E','I','O','U'].includes(char.toUpperCase()),
-          generateChar: () => ['A','B','E','F','I','K','O','P','U'][Math.floor(Math.random() * 9)]
-        };
-      }
-      return {
-        title: `FASE ${stage}: DESAFIO DE VOGAIS`,
-        instruction: "ATENÇÃO: Destrua APENAS as VOGAIS!",
-        isValid: (char) => ['A','E','I','O','U'].includes(char.toUpperCase()),
-        generateChar: () => ['A','B','E','F','I','K','O','P','U'][Math.floor(Math.random() * 9)]
-      };
-    }
-
-    const enemies = [];
-    let aerialVehicle = { x: -100, y: 80, speed: 1.5, type: 'plane' };
-
-    function prepareStage() {
-      enemies.length = 0;
-      darts.length = 0;
-      schoolItems.length = 0;
       closeAllPanels();
-      bossActive = false;
-      bossState = "none";
-      bossEnemy = null;
-      isUsingVehicle = false;
-      specialVehicle = null;
-
-      const groundY = getGroundY();
-
-      // FASES DE 1 A 20 GERAM ITENS ESCOLARES (LIVROS, LÁPIS, BORRACHAS, CADERNOS)
-      if (currentStage <= 20) {
-        const itemIcons = ['📖', '✏️', '📝', '🧹'];
-        for (let k = 0; k < 4; k++) {
-          schoolItems.push({
-            x: 220 + k * 180 + Math.random() * 50,
-            y: groundY - 25,
-            width: 22,
-            height: 22,
-            icon: itemIcons[k % itemIcons.length],
-            active: true
-          });
-        }
-      }
-
-      // VERIFICA SE É FASE DE SEMI-MESTRE (A CADA 5 FASES)
-      if (currentStage % 5 === 0) {
-        bossActive = true;
-        const bossCharIndex = (currentStage / 5) - 1;
-        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        currentBossChar = alphabet[bossCharIndex % alphabet.length];
-
-        stageTitle.innerText = `FASE ${currentStage}: BATALHA DO SEMI-MESTRE LETRA ${currentBossChar}`;
-        stageInstruction.innerText = `Derrote o Semi-Mestre ${currentBossChar} respondendo 5 perguntas e usando seu ESCUDO!`;
-        
-        const topRecord = getTopScores()[0] || { name: 'Ninguém', score: 0 };
-        stageScoreInfo.innerHTML = `Pontuação Atual: <strong>${score}</strong> | Vidas: <strong>❤️ x${playerLives}</strong><br>Recorde do Jogo: <strong>${topRecord.score}</strong> (${topRecord.name})`;
-        panelStageStart.style.display = "flex";
-
-        bossEnemy = {
-          x: canvas.width - 160,
-          y: groundY - 143,
-          width: 66,
-          height: 143,
-          symbol: currentBossChar,
-          speed: 2.2,
-          alive: true,
-          expression: 'normal'
-        };
-        return;
-      }
-
-      const currentRule = getRuleForStage(currentStage);
-      stageMissionText = currentRule.instruction;
-      stageStarted = false;
-
-      if (currentStage === maxStages) {
-        bgImageCurrent = bgImageTiger;
-      } else if (currentStage % 2 === 0) {
-        bgImageCurrent = bgImageDefault;
-      } else {
-        const randomImgUrl = gamingBackgrounds[((currentStage - 1) / 2) % gamingBackgrounds.length];
-        bgImageCurrent = new Image();
-        bgImageCurrent.src = randomImgUrl;
-      }
-
-      const mainEarthColors = ["#8B4513", "#A0522D", "#6B4226", "#B8860B", "#795548", "#5D4037"];
-      const accentEarthColors = ["#5C2E0B", "#5C3A21", "#4A2E1B", "#8B6508", "#4E342E", "#3E2723"];
-      const edgeGrassColors = ["#2e7d32", "#388e3c", "#1b5e20", "#43a047", "#2e7d32", "#1b5e20"];
-
-      const colorIdx = (currentStage - 1) % mainEarthColors.length;
-      roadColors = {
-        main: mainEarthColors[colorIdx],
-        accent: accentEarthColors[colorIdx],
-        edge: edgeGrassColors[colorIdx]
-      };
-
-      if (currentStage % 2 !== 0) {
-        pitHole = {
-          x: 320 + Math.random() * 160,
-          width: 80 + Math.random() * 40,
-          active: true
-        };
-      } else {
-        pitHole = { x: 0, width: 0, active: false };
-      }
-
-      stageTitle.innerText = currentRule.title;
-      stageInstruction.innerText = currentRule.instruction;
-      
-      const topRecord = getTopScores()[0] || { name: 'Ninguém', score: 0 };
-      stageScoreInfo.innerHTML = `Pontuação Atual: <strong>${score}</strong> | Vidas: <strong>❤️ x${playerLives}</strong><br>Recorde do Jogo: <strong>${topRecord.score}</strong> (${topRecord.name})`;
-      
-      panelStageStart.style.display = "flex";
-
-      if (currentStage > 1) {
-        const symbolType = aerialSymbols[(currentStage - 2) % aerialSymbols.length];
-        aerialVehicle = { x: -80, y: 60 + Math.random() * 40, speed: 1.2 + Math.random() * 0.8, type: symbolType };
-      }
-
-      const count = 4 + Math.floor(currentStage * 0.5);
-      
-      for (let i = 0; i < count; i++) {
-        const charSymbol = currentRule.generateChar();
-        let spawnX = 450 + i * 150 + Math.random() * 30;
-        if (pitHole.active && spawnX > pitHole.x - 30 && spawnX < pitHole.x + pitHole.width + 30) {
-          spawnX += pitHole.width + 40;
-        }
-
-        const isPurpleSpecial = (currentStage >= 4 && i === 0);
-
-        enemies.push({
-          x: spawnX,
-          y: groundY - 55, width: 40, height: 55,
-          speed: 1.4 + (currentStage * 0.1), alive: true,
-          symbol: charSymbol, isTarget: currentRule.isValid(charSymbol),
-          dir: -1, expression: 'normal', mockOffset: 0,
-          isPurple: isPurpleSpecial,
-          shootCooldown: Math.floor(Math.random() * 100) + 100
-        });
-      }
+      isGamePaused = false;
     }
 
-    function startBossQuiz() {
-      bossState = "quiz";
-      bossQuizIndex = 0;
-      
-      const shuffled = [...portugueseQuestionsBank].sort(() => 0.5 - Math.random());
-      bossQuizQuestions = shuffled.slice(0, 5);
-      
-      renderBossQuizQuestion();
-    }
-
-    function renderBossQuizQuestion() {
-      if (bossQuizIndex >= 5) {
-        closeAllPanels();
-        bossState = "walking";
-        stageStarted = true;
-        startBackgroundMusic();
-        speakText(`Muito bem! Agora use seu escudo para rebater o Semi Mestre Letra ${currentBossChar}!`);
-        return;
-      }
-
-      closeAllPanels();
-      const q = bossQuizQuestions[bossQuizIndex];
-      document.getElementById("quiz-boss-name").innerText = `SEMI-MESTRE LETRA ${currentBossChar}`;
-      document.getElementById("quiz-progress-text").innerText = `Pergunta ${bossQuizIndex + 1} de 5`;
-      document.getElementById("quiz-question-text").innerText = q.q;
-
-      const optsContainer = document.getElementById("quiz-options-container");
-      optsContainer.innerHTML = "";
-
-      q.options.forEach((optText, idx) => {
-        const btn = document.createElement("button");
-        btn.className = "btn-option";
-        btn.innerText = `${String.fromCharCode(65 + idx)}) ${optText}`;
-        btn.onclick = () => handleQuizAnswer(idx === q.correct);
-        optsContainer.appendChild(btn);
-      });
-
-      panelBossQuiz.style.display = "flex";
-      speakText(`Pergunta ${bossQuizIndex + 1}: ${q.q}`);
-    }
-
-    function handleQuizAnswer(isCorrect) {
-      if (isCorrect) {
-        playSound('powerup');
-        addScore(200);
-        bossQuizIndex++;
-        renderBossQuizQuestion();
-      } else {
-        closeAllPanels();
-        triggerGameOverSequence(bossEnemy, `Você errou a pergunta do Semi-Mestre Letra ${currentBossChar}!`);
-      }
-    }
-
-    function startStage() {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      closeAllPanels();
-      
-      if (bossActive) {
-        startBossQuiz();
-        return;
-      }
-
-      if (currentStage === 1) {
-        isIntroPlaying = true;
-        ufoState = { x: -100, y: 80, beamOpacity: 0, playerY: 80, step: 0 };
-        playSound('ufo');
-        speakText("Doutor Chácara foi trazido pelo Disco Voador. Prepare-se!");
-      } else {
-        stageStarted = true;
-        startBackgroundMusic();
-        const currentRule = getRuleForStage(currentStage);
-        speakText(`${currentRule.title}. ${currentRule.instruction}`);
-      }
-    }
-
-    btnStartAction.addEventListener("click", startStage);
-    btnSaveScore.addEventListener("click", saveScoreAndRestart);
-
-    setInterval(() => {
-      if (stageStarted && !gameOver && !isIntroPlaying) {
-        gameTimerSeconds++;
-      }
-    }, 1000);
-
-    function openKeyConfig() {
-      closeAllPanels();
-      updateKeyButtonsUI();
-      panelKeyConfig.style.display = "flex";
-    }
-    function closeKeyConfig() { panelKeyConfig.style.display = "none"; }
-    
-    function listenKeyChange(action) {
-      listeningKeyAction = action;
-      const btn = document.getElementById(`bind-${action}-btn`);
-      btn.innerText = "Pressione uma tecla...";
-    }
-
-    window.addEventListener("keydown", (e) => {
-      if (listeningKeyAction) {
-        keyBinds[listeningKeyAction] = e.code;
-        document.getElementById(`bind-${listeningKeyAction}-btn`).innerText = e.code;
-        listeningKeyAction = null;
-        return;
-      }
-      keys[e.code] = true;
-    });
-
-    function openYoutubePromo() {
-      closeAllPanels();
-      document.getElementById("yt-feedback-msg").innerText = "";
-
-      const btnContinue = document.getElementById("btn-continue-game");
-      if (currentStage > 20) {
-        btnContinue.style.display = "none";
-      } else {
-        btnContinue.style.display = "inline-block";
-      }
-
-      panelYtPromo.style.display = "flex";
-      speakText("Se inscreva no canal do Doutor Chácara!");
-    }
-
-    function handleYtAnswer(option) {
-      const msgBox = document.getElementById("yt-feedback-msg");
-      if (option === 'inscrever') {
-        window.open("https://www.youtube.com/@DoutorChacara", "_blank");
-        closeAllPanels();
-        panelYtReturn.style.display = "flex";
-      } else if (option === 'sim') {
-        msgBox.innerText = "Muito obrigado por fazer parte do nosso canal! 💙";
-        speakText("Muito obrigado por fazer parte do nosso canal!");
-        setTimeout(() => { closeAllPanels(); advanceToNextStage(); }, 1500);
-      } else if (option === 'continuar') {
-        closeAllPanels();
-        advanceToNextStage();
-      }
-    }
-
-    function resumeGameFromYt() {
-      closeAllPanels();
-      advanceToNextStage();
-    }
-
-    function advanceToNextStage() {
-      currentStage++; player.x = 20;
-      prepareStage();
-    }
-
-    function showVictoryOverlay() {
-      stopBackgroundMusic();
-      stageStarted = false;
-      closeAllPanels();
-      
-      speakText("Parabéns! Você zerou a Fase 27! O Doutor Chácara agradece e te parabeniza por esta grande vitória!");
-      panelVictory.style.display = "flex";
-    }
-
-    function saveVictoryScore() {
-      const winnerNameInput = document.getElementById("winner-name");
-      const name = winnerNameInput.value.trim() || "Campeão Absoluto";
-      
-      const scores = getTopScores();
-      scores.push({ name: `🏆 ${name}`, score: score + 10000 });
-      scores.sort((a, b) => b.score - a.score);
-      localStorage.setItem("dr_chacara_scores", JSON.stringify(scores));
-
-      alert("Recorde imortalizado no placar para sempre!");
-      resetGame();
-    }
-
-    function getTopScores() {
-      const data = localStorage.getItem("dr_chacara_scores");
-      return data ? JSON.parse(data) : [];
-    }
-
-    function renderLeaderboard() {
-      const scores = getTopScores();
-      leaderboardList.innerHTML = scores.map((s, i) => `
-        <div class="leaderboard-item">
-          <span>#${i+1} ${s.name}</span>
-          <span>${s.score} pts</span>
-        </div>
-      `).join('') || '<div>Nenhum recorde ainda!</div>';
-    }
-
-    function saveScoreAndRestart() {
-      const name = playerNameInput.value.trim() || "Jogador";
-      const scores = getTopScores();
-      scores.push({ name: name, score: score });
-      scores.sort((a, b) => b.score - a.score);
-      localStorage.setItem("dr_chacara_scores", JSON.stringify(scores));
-
-      resetGame();
-    }
-
-    function triggerGameOverSequence(enemyRef, reason) {
-      playerLives--;
-
-      if (playerLives > 0) {
-        playSound('hitWrong');
-        speakText(`Você perdeu uma vida! Restam ${playerLives} vidas.`);
-        player.x = 50;
-        player.y = getGroundY() - player.height;
-        player.vx = 0; player.vy = 0;
-        return;
-      }
-
-      collisionAnimationActive = true;
-      collisionAnimTimer = 0;
-      mockingEnemy = enemyRef;
-      
-      playerSpeechBubble = positiveFrases[Math.floor(Math.random() * positiveFrases.length)];
-      enemySpeechBubble = enemyRef ? "Você não consegue me vencer! Kkkk" : "Cuidado com o perigo!";
-      
-      playSound('hitWrong');
-      speakText(playerSpeechBubble);
-
-      let animInterval = setInterval(() => {
-        collisionAnimTimer += 0.2;
-        if (mockingEnemy) mockingEnemy.mockOffset = Math.sin(collisionAnimTimer * 5) * 8;
-        
-        if (collisionAnimTimer >= 3.5) {
-          clearInterval(animInterval);
-          collisionAnimationActive = false;
-          gameOver = true;
-          stopBackgroundMusic();
-          closeAllPanels();
-          document.getElementById("game-over-reason").innerText = reason;
-          finalScoreTxt.innerText = score;
-          renderLeaderboard();
-          panelGameOver.style.display = "flex";
-        }
-      }, 50);
-    }
-
-    const joyZone = document.getElementById("joystick-zone");
-    const joyStick = document.getElementById("joystick-stick");
-    let joyActive = false;
-    let joyVector = { x: 0, y: 0 };
-
-    joyZone.addEventListener("pointerdown", (e) => { joyActive = true; updateJoystick(e); });
-    window.addEventListener("pointermove", (e) => { if (joyActive) updateJoystick(e); });
-    window.addEventListener("pointerup", () => {
-      joyActive = false; joyVector = { x: 0, y: 0 };
-      joyStick.style.top = "35px"; joyStick.style.left = "35px";
-    });
-
-    function updateJoystick(e) {
-      const rect = joyZone.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      let dx = e.clientX - centerX;
-      let dy = e.clientY - centerY;
-      const dist = Math.hypot(dx, dy);
-      const maxDist = 40;
-
-      if (dist > maxDist) {
-        dx = (dx / dist) * maxDist;
-        dy = (dy / dist) * maxDist;
-      }
-
-      joyStick.style.left = `${35 + dx}px`;
-      joyStick.style.top = `${35 + dy}px`;
-
-      joyVector.x = dx / maxDist;
-      joyVector.y = dy / maxDist;
-    }
-
-    document.getElementById("touch-jump").addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      triggerPlayerJump();
-    });
-
-    document.getElementById("touch-attack").addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      if (!player.attacking && stageStarted && !gameOver) {
-        player.attacking = true; player.attackTimer = player.attackMaxTime;
-        playSound('attack');
-      }
-    });
-
-    const touchShieldBtn = document.getElementById("touch-shield");
-    touchShieldBtn.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      if (stageStarted && !gameOver) player.bigShieldActive = true;
-    });
-    touchShieldBtn.addEventListener("pointerup", (e) => {
-      e.preventDefault();
-      player.bigShieldActive = false;
-    });
-    touchShieldBtn.addEventListener("pointerleave", (e) => {
-      e.preventDefault();
-      player.bigShieldActive = false;
-    });
-
-    function resetGame() {
-      gameOver = false; score = 0; currentStage = 1; gameTimerSeconds = 0;
-      playerLives = 3; nextExtraLifeScore = 10000; nextVehicleScore = 10000;
-      schoolItemsCollected = 0;
-      player.x = 50; player.y = getGroundY() - player.height; player.vx = 0; player.vy = 0;
-      player.hasImmunityColor = false; player.shieldPowerUp = false; player.bigShieldActive = false;
-      prepareStage();
-    }
-
-    const keys = {};
-    window.addEventListener("keyup", (e) => { keys[e.code] = false; });
-
-    function updateIntro() {
-      if (!isIntroPlaying) return;
-      const groundY = getGroundY();
-
-      if (ufoState.step === 0) {
-        ufoState.x += 3;
-        if (ufoState.x >= 100) ufoState.step = 1;
-      } else if (ufoState.step === 1) {
-        ufoState.beamOpacity += 0.05;
-        if (ufoState.beamOpacity >= 1) ufoState.step = 2;
-      } else if (ufoState.step === 2) {
-        ufoState.playerY += 2.5;
-        if (ufoState.playerY >= groundY - player.height) {
-          ufoState.playerY = groundY - player.height;
-          ufoState.step = 3;
-        }
-      } else if (ufoState.step === 3) {
-        ufoState.beamOpacity -= 0.05;
-        if (ufoState.beamOpacity <= 0) {
-          ufoState.x += 4;
-          if (ufoState.x > canvas.width + 100) {
-            isIntroPlaying = false;
-            stageStarted = true;
-            startBackgroundMusic();
-            player.x = 100; player.y = groundY - player.height;
-            const currentRule = getRuleForStage(currentStage);
-            speakText(`${currentRule.title}. ${currentRule.instruction}`);
-          }
-        }
-      }
-    }
-
-    function update() {
-      sunAngle += 0.01;
-      const groundY = getGroundY();
-
-      if (currentStage > 1) {
-        aerialVehicle.x += aerialVehicle.speed;
-        if (aerialVehicle.x > canvas.width + 100) aerialVehicle.x = -100;
-      }
-
-      if (isIntroPlaying) { updateIntro(); return; }
-      if (gameOver || !stageStarted || collisionAnimationActive) return;
-
-      // ATIVAÇÃO DO ESCUDO ESPECIAL DEDICADO NA TECLA 'I'
-      player.bigShieldActive = !!keys[keyBinds.shield];
-
-      // MOVIMENTAÇÃO DO TECLADO DE ACORDO COM AS CONFIGURAÇÕES
-      const moveLeft = keys[keyBinds.left];
-      const moveRight = keys[keyBinds.right];
-      const moveUp = keys[keyBinds.up];
-      const moveDown = keys[keyBinds.down];
-
-      const moveX = joyVector.x || (moveRight ? 1 : moveLeft ? -1 : 0);
-      const moveY = joyVector.y || (moveDown ? 1 : moveUp ? -1 : 0);
-
-      player.aimingUp = moveY < -0.4;
-      player.crouching = moveY > 0.4 && player.grounded && !isUsingVehicle;
-
-      if (Math.abs(moveX) > 0.2 && !player.crouching) {
-        player.vx = moveX * (isUsingVehicle ? 6 : player.speed);
-        player.facing = moveX > 0 ? 'right' : 'left';
-        walkCycle += 0.22;
-      } else {
-        walkCycle = 0;
-      }
-
-      // SE ESTIVER EM VEÍCULO (EX: AVIÃO) PODE VOAR LIVREMENTE CONTROLANDO O PERSONAGEM
-      if (isUsingVehicle) {
-        if (moveUp) player.y -= 4;
-        if (moveDown) player.y += 4;
-        player.vy = 0;
-      } else {
-        if ((keys[keyBinds.jump] || keys[keyBinds.jump2]) && player.grounded) {
-          triggerPlayerJump();
-        }
-      }
-
-      if (keys[keyBinds.attack] && !player.attacking) {
-        player.attacking = true; player.attackTimer = player.attackMaxTime;
-        playSound('attack');
-      }
-
-      player.vx *= player.friction; player.x += player.vx;
-      if (!isUsingVehicle) {
-        player.vy += gravity; player.y += player.vy;
-      }
-
-      const pCenterX = player.x + player.width / 2;
-      const isOverPit = pitHole.active && (pCenterX > pitHole.x && pCenterX < pitHole.x + pitHole.width);
-
-      if (!isUsingVehicle) {
-        if (!isOverPit) {
-          if (player.y + player.height >= groundY) {
-            player.y = groundY - player.height; player.vy = 0; player.grounded = true;
-          }
-        } else {
-          player.grounded = false;
-          if (player.y > canvas.height) {
-            triggerGameOverSequence(null, "Você caiu no buraco!");
-            return;
-          }
-        }
-      }
-
-      if (player.x < 0) player.x = 0;
-
-      // ATUALIZAÇÃO DO SEMI-MESTRE EM COMBATE
-      if (bossActive && bossState === "walking" && bossEnemy && bossEnemy.alive) {
-        bossEnemy.x -= bossEnemy.speed;
-
-        const bossBox = { left: bossEnemy.x, right: bossEnemy.x + bossEnemy.width, top: bossEnemy.y, bottom: bossEnemy.y + bossEnemy.height };
-        const pBox = { left: player.x, right: player.x + player.width, top: player.y, bottom: player.y + player.height };
-
-        if (pBox.left < bossBox.right && pBox.right > bossBox.left &&
-            pBox.top < bossBox.bottom && pBox.bottom > bossBox.top) {
-          
-          if (player.bigShieldActive) {
-            bossEnemy.alive = false;
-            bossState = "defeated";
-            playSound('powerup');
-            addScore(2000);
-
-            stageStarted = false;
-            stopBackgroundMusic();
-
-            const victoryMsg = "Você venceu, parabéns! Mas tem meu mestre à frente e ele não é fácil, boa sorte!";
-            speakText(victoryMsg, () => {
-              openYoutubePromo();
-            });
-
-          } else {
-            triggerGameOverSequence(bossEnemy, `O Semi-Mestre Letra ${currentBossChar} pegou você! Use o ESCUDO (Letra I ou botão)!`);
-          }
-        }
-        return;
-      }
-
-      // COLETA DE ITENS ESCOLARES NAS FASES 1 A 20
-      schoolItems.forEach(item => {
-        if (item.active &&
-            player.x < item.x + item.width && player.x + player.width > item.x &&
-            player.y < item.y + item.height && player.y + player.height > item.y) {
-          
-          item.active = false;
-          schoolItemsCollected++;
-          playSound('powerup');
-
-          if (schoolItemsCollected >= 3) {
-            player.hasImmunityColor = true;
-            speakText("3 Itens Coletados! Doutor Chácara agora tem imunidade!");
-          }
-        }
-      });
-
-      // COLETA DO VEÍCULO ESPECIAL (AVIÃO / CARRO / MOTO)
-      if (specialVehicle && specialVehicle.active) {
-        if (player.x < specialVehicle.x + specialVehicle.width && player.x + player.width > specialVehicle.x &&
-            player.y < specialVehicle.y + specialVehicle.height && player.y + player.height > specialVehicle.y) {
-          
-          specialVehicle.active = false;
-          isUsingVehicle = true;
-          playSound('powerup');
-          speakText(`Você pegou o ${specialVehicle.type}! Agora você pode voar e finalizar a fase!`);
-        }
-      }
-
-      // FINALIZAÇÃO DE FASE
-      if (player.x + player.width >= canvas.width) {
-        if (currentStage < maxStages) {
-          stageStarted = false;
-          stopBackgroundMusic();
-          openYoutubePromo();
-        } else {
-          showVictoryOverlay();
-        }
-      }
-
-      if (player.attacking) {
-        player.attackTimer--;
-        const maxLen = player.shieldPowerUp ? weapon.baseMaxLength * 1.5 : weapon.baseMaxLength;
-        const progress = 1 - (player.attackTimer / player.attackMaxTime);
-        weapon.length = Math.sin(progress * Math.PI) * maxLen;
-
-        if (player.aimingUp) {
-          weapon.x = player.x + player.width / 2; weapon.y = player.y - weapon.length;
-        } else if (player.crouching) {
-          weapon.y = player.y + player.height - 20;
-          weapon.x = (player.facing === 'right') ? player.x + player.width + weapon.length : player.x - weapon.length;
-        } else {
-          weapon.y = player.y + 25;
-          weapon.x = (player.facing === 'right') ? player.x + player.width + weapon.length : player.x - weapon.length;
-        }
-
-        if (player.attackTimer <= 0) player.attacking = false;
-      }
-
-      enemies.forEach(enemy => {
-        if (!enemy.alive) return;
-
-        enemy.x += enemy.speed * enemy.dir;
-        if (enemy.x < -50) enemy.x = canvas.width + 50;
-
-        if (enemy.isPurple) {
-          enemy.shootCooldown--;
-          if (enemy.shootCooldown <= 0) {
-            enemy.shootCooldown = 150 + Math.random() * 80;
-            const dirX = (player.x + player.width/2) < enemy.x ? -1 : 1;
-            darts.push({
-              x: enemy.x + (dirX === -1 ? -10 : enemy.width + 10),
-              y: enemy.y + enemy.height / 2,
-              vx: dirX * 6,
-              active: true
-            });
-            playSound('dart');
-          }
-        }
-
-        if (player.attacking) {
-          const hit = (enemy.x < weapon.x + 25 && enemy.x + enemy.width > weapon.x - 25 &&
-                       enemy.y < weapon.y + 25 && enemy.y + enemy.height > weapon.y - 25);
-          if (hit) {
-            if (enemy.isTarget) {
-              enemy.expression = 'sad';
-              playSound('hitTarget');
-              // REGRA: NÃO GANHA PONTOS QUANDO UTILIZA VEÍCULO ESPECIAL
-              addScore(500);
-              setTimeout(() => { enemy.alive = false; }, 120);
-            } else {
-              enemy.expression = 'sad';
-              triggerGameOverSequence(enemy, "Você destruiu o elemento incorreto!");
-            }
-          }
-        }
-
-        const padding = 5;
-        const playerBox = { left: player.x + padding, right: player.x + player.width - padding, top: player.y + padding, bottom: player.y + player.height };
-        const enemyBox = { left: enemy.x + padding, right: enemy.x + enemy.width - padding, top: enemy.y + padding, bottom: enemy.y + enemy.height };
-
-        if (enemy.alive &&
-            playerBox.left < enemyBox.right && playerBox.right > enemyBox.left &&
-            playerBox.top < enemyBox.bottom && playerBox.bottom > enemyBox.top) {
-          
-          if (player.bigShieldActive) {
-            enemy.x += 100;
-            playSound('block');
-          } else if (player.hasImmunityColor) {
-            // PERDE A COR DE IMUNIDADE E VOLTA À COR ANTERIOR
-            player.hasImmunityColor = false;
-            schoolItemsCollected = 0;
-            enemy.x += 80;
-            playSound('powerup');
-            speakText("Imunidade usada!");
-          } else {
-            enemy.expression = 'happy';
-            triggerGameOverSequence(enemy, "A letra encostou em você!");
-          }
-        }
-      });
-
-      darts.forEach(dart => {
-        if (!dart.active) return;
-        dart.x += dart.vx;
-
-        const pCenterX = player.x + player.width / 2;
-        const pCenterY = player.y + player.height / 2;
-        const distToPlayer = Math.hypot(dart.x - pCenterX, dart.y - pCenterY);
-
-        if (distToPlayer < player.width) {
-          if (player.bigShieldActive) {
-            dart.active = false;
-            playSound('block');
-            return;
-          }
-
-          if (player.attacking) {
-            const distToWeapon = Math.hypot(dart.x - weapon.x, dart.y - weapon.y);
-            if (distToWeapon < 40) {
-              dart.active = false;
-              playSound('block');
-              return;
-            }
-          }
-
-          dart.active = false;
-          if (player.hasImmunityColor) {
-            player.hasImmunityColor = false;
-            schoolItemsCollected = 0;
-            playSound('powerup');
-            speakText("Imunidade usada!");
-          } else {
-            triggerGameOverSequence(null, "Você foi atingido pelo dardo da letra roxa!");
-          }
-        }
-
-        if (dart.x < -50 || dart.x > canvas.width + 50) dart.active = false;
-      });
-    }
-
-    function drawSpeechBubble(x, y, text, scaleFactor) {
-      ctx.save();
-      ctx.translate(x, y);
-
-      ctx.font = "bold 11px 'Segoe UI'";
-      const textWidth = ctx.measureText(text).width;
-      const bw = Math.max(textWidth + 16, 90) * scaleFactor;
-      const bh = 38 * scaleFactor;
-
-      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-      ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 1.5;
-
-      ctx.beginPath();
-      ctx.roundRect(-bw / 2, -bh - 12, bw, bh, 8);
-      ctx.fill(); ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(-4, -12); ctx.lineTo(0, 0); ctx.lineTo(4, -12);
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = "#000000";
-      ctx.font = `bold ${9 * scaleFactor}px 'Segoe UI'`;
-      ctx.textAlign = "center";
-      ctx.fillText(text, 0, -bh / 2 - 8);
-
-      ctx.restore();
-    }
-
-    // SOL LIMPO SEM O RELÓGIO ANALÓGICO
-    function drawAnimatedSun(x, y, radius) {
-      ctx.save();
-      ctx.translate(x, y);
-
-      ctx.strokeStyle = "rgba(255, 204, 0, 0.4)";
-      ctx.lineWidth = 2;
-      const numRays = 12;
-      for (let i = 0; i < numRays; i++) {
-        const angle = sunAngle + (i * Math.PI * 2) / numRays;
-        ctx.beginPath();
-        ctx.moveTo(Math.cos(angle) * (radius + 4), Math.sin(angle) * (radius + 4));
-        ctx.lineTo(Math.cos(angle) * (radius + 16), Math.sin(angle) * (radius + 16));
-        ctx.stroke();
-      }
-
-      const pulse = Math.sin(sunAngle * 3) * 2;
-      ctx.fillStyle = "rgba(255, 204, 0, 0.85)";
-      ctx.beginPath();
-      ctx.arc(0, 0, radius + pulse, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.restore();
-    }
-
-    function drawAerialVehicle(vehicle) {
-      ctx.save();
-      ctx.translate(vehicle.x, vehicle.y);
-      ctx.fillStyle = "#ffffff";
-      ctx.strokeStyle = "#00ffcc";
-      ctx.lineWidth = 1.5;
-
-      if (vehicle.type === 'plane') {
-        ctx.beginPath(); ctx.ellipse(0, 0, 20, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillRect(-4, -14, 6, 28); ctx.fillRect(-18, -8, 5, 10);
-      } else if (vehicle.type === 'helicopter') {
-        ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillRect(-16, -2, 14, 3);
-        const prop = Math.sin(Date.now() * 0.05) * 16; ctx.strokeRect(-prop, -13, prop * 2, 2);
-      } else if (vehicle.type === 'balloon') {
-        ctx.beginPath(); ctx.arc(0, -8, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#ff0055"; ctx.fillRect(-3, 8, 6, 6);
-      } else if (vehicle.type === 'rocket') {
-        ctx.beginPath(); ctx.ellipse(0, 0, 16, 5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#ffcc00"; ctx.fillRect(-20, -2, 6, 4);
-      }
-
-      ctx.restore();
-    }
-
-    function drawShieldWeapon(x, y) {
-      ctx.save();
-      ctx.translate(x, y);
-
-      const w = player.shieldPowerUp ? 42 : 32;
-      const h = player.shieldPowerUp ? 50 : 38;
-      ctx.fillStyle = player.shieldPowerUp ? "#ffcc00" : "#00ffcc";
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2;
-
-      ctx.beginPath();
-      ctx.moveTo(-w/2, -h/2);
-      ctx.lineTo(w/2, -h/2);
-      ctx.lineTo(w/2, 0);
-      ctx.quadraticCurveTo(w/2, h/2, 0, h/2 + 5);
-      ctx.quadraticCurveTo(-w/2, h/2, -w/2, 0);
-      ctx.closePath();
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = "#000000";
-      ctx.font = "bold 9px 'Segoe UI'";
-      ctx.textAlign = "center";
-      ctx.fillText("Dr.", 0, -5);
-      ctx.font = "bold 8px 'Segoe UI'";
-      ctx.fillText("Chácara", 0, 6);
-
-      ctx.restore();
-    }
-
-    // ESCUDO ESPECIAL COM RELÓGIO DIGITAL DENTRO (TECLA I)
-    function drawBigShieldWithDigitalClock(centerX, centerY) {
-      ctx.save();
-      ctx.translate(centerX, centerY);
-
-      const radius = 60;
-      
-      ctx.fillStyle = "rgba(0, 255, 204, 0.25)";
-      ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.strokeStyle = "rgba(0, 255, 204, 0.9)";
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.fillStyle = "#00ffcc";
-      ctx.font = "bold 11px 'Segoe UI'";
-      ctx.textAlign = "center";
-      ctx.fillText("ESCUDO ESPECIAL", 0, -20);
-
-      // DESENHA O RELÓGIO DIGITAL COM A HORA ATUAL EM TEMPO REAL
-      const now = new Date();
-      const timeStr = now.toTimeString().split(' ')[0];
-
-      ctx.fillStyle = "#000";
-      ctx.fillRect(-35, -8, 70, 22);
-      ctx.strokeStyle = "#00ffcc";
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(-35, -8, 70, 22);
-
-      ctx.fillStyle = "#ffcc00";
-      ctx.font = "bold 13px monospace";
-      ctx.fillText(timeStr, 0, 8);
-
-      ctx.restore();
-    }
-
-    function drawDrChacaraSide(x, y, facing, crouching) {
-      ctx.save();
-      ctx.translate(x + player.width / 2, y);
-      if (facing === 'left') ctx.scale(-1, 1);
-
-      const leg1Angle = Math.sin(walkCycle) * 0.6;
-      const leg2Angle = Math.sin(walkCycle + Math.PI) * 0.6;
-      const arm1Angle = Math.sin(walkCycle + Math.PI) * 0.5;
-      const arm2Angle = Math.sin(walkCycle) * 0.5;
-
-      const h = crouching ? 50 : 71.5;
-
-      ctx.save();
-      ctx.translate(-3, h - 28);
-      ctx.rotate(leg2Angle);
-      ctx.strokeStyle = "#12121a"; ctx.lineWidth = 5.5; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 14); ctx.stroke();
-      
-      ctx.translate(0, 14);
-      const knee2Angle = Math.max(0, -leg2Angle * 0.8);
-      ctx.rotate(knee2Angle);
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(2, 12); ctx.stroke();
-      
-      ctx.fillStyle = "#1a1a1a";
-      ctx.fillRect(-1, 10, 9, 4);
-      ctx.restore();
-
-      ctx.save();
-      ctx.translate(-2, crouching ? 20 : 24);
-      ctx.rotate(arm2Angle);
-      ctx.strokeStyle = "#f3c099"; ctx.lineWidth = 4.5;
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-2, 14); ctx.stroke();
-      ctx.restore();
-
-      ctx.fillStyle = "#0066cc";
-      ctx.fillRect(-8, crouching ? 18 : 22, 16, 24);
-
-      // MUDANÇA DE COR AO PEGAR 3 ITENS ESCOLARES (VERDE IMUNE)
-      ctx.fillStyle = player.hasImmunityColor ? "#00ffcc" : "#ffffff";
-      ctx.fillRect(-10, crouching ? 12 : 18, 20, crouching ? 20 : 28);
-
-      ctx.fillStyle = "#f3c099"; ctx.fillRect(-3, 0, 16, 18);
-      ctx.fillStyle = "#111111"; ctx.fillRect(-5, -1, 18, 4);
-      ctx.fillStyle = "#5A5A66"; ctx.fillRect(-6, -7, 20, 7);
-      
-      ctx.strokeStyle = "#000"; ctx.lineWidth = 1.8; ctx.strokeRect(3, 3, 7, 6);
-      ctx.beginPath(); ctx.moveTo(-3, 5); ctx.lineTo(3, 5); ctx.stroke();
-
-      ctx.save();
-      ctx.translate(3, h - 28);
-      ctx.rotate(leg1Angle);
-      ctx.strokeStyle = "#1a1a24"; ctx.lineWidth = 6; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 14); ctx.stroke();
-      
-      ctx.translate(0, 14);
-      const knee1Angle = Math.max(0, -leg1Angle * 0.8);
-      ctx.rotate(knee1Angle);
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(2, 12); ctx.stroke();
-      
-      ctx.fillStyle = "#0a0a0a";
-      ctx.fillRect(-1, 10, 10, 4.5);
-      ctx.restore();
-
-      ctx.save();
-      ctx.translate(3, crouching ? 20 : 24);
-      ctx.rotate(arm1Angle);
-      ctx.strokeStyle = "#f3c099"; ctx.lineWidth = 5; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(3, 14); ctx.stroke();
-      ctx.restore();
-
-      // DESENHA VEÍCULO SE ESTIVER USANDO UM PODER ESPECIAL (EX: AVIÃO)
-      if (isUsingVehicle) {
-        ctx.fillStyle = "#ffcc00";
-        ctx.font = "24px sans-serif";
-        ctx.fillText("✈️", -12, h + 10);
-      }
-
-      ctx.restore();
-    }
-
-    function drawLetterEnemy(enemy) {
-      if (!enemy.alive) return;
-
-      ctx.save();
-      ctx.translate(enemy.x + enemy.width / 2, enemy.y + (enemy.mockOffset || 0));
-
-      const legCycle = Math.sin(Date.now() * 0.01 + enemy.x) * 8;
-
-      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(-6, enemy.height - 8); ctx.lineTo(-6 + legCycle, enemy.height); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(6, enemy.height - 8); ctx.lineTo(6 - legCycle, enemy.height); ctx.stroke();
-
-      if (enemy.isPurple) {
-        ctx.fillStyle = "#a020f0";
-        ctx.shadowColor = "#9370db";
-        ctx.shadowBlur = 8;
-      } else {
-        ctx.fillStyle = enemy.isTarget ? "#00ffcc" : "#ff0055";
-      }
-
-      ctx.font = "bold 40px 'Segoe UI'"; ctx.textAlign = "center";
-      ctx.fillText(enemy.symbol, 0, enemy.height - 10);
-
-      ctx.fillStyle = "#ffffff"; ctx.font = "bold 12px 'Segoe UI'";
-      if (enemy.expression === 'happy') {
-        ctx.fillText(":D", 14, 14);
-      } else if (enemy.expression === 'sad') {
-        ctx.fillText(":(", 14, 14);
-      }
-
-      ctx.restore();
-    }
-
-    function drawBossEnemy(boss) {
-      if (!boss || !boss.alive) return;
-
-      ctx.save();
-      ctx.translate(boss.x + boss.width / 2, boss.y);
-
-      const legCycle = Math.sin(Date.now() * 0.015) * 14;
-
-      ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 7; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(-15, boss.height - 20); ctx.lineTo(-15 + legCycle, boss.height); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(15, boss.height - 20); ctx.lineTo(15 - legCycle, boss.height); ctx.stroke();
-
-      ctx.fillStyle = "#ff0055";
-      ctx.shadowColor = "#ff3300";
-      ctx.shadowBlur = 15;
-
-      ctx.font = "bold 110px 'Segoe UI'";
-      ctx.textAlign = "center";
-      ctx.fillText(boss.symbol, 0, boss.height - 20);
-
-      ctx.fillStyle = "#ffcc00";
-      ctx.beginPath();
-      ctx.moveTo(-20, -10); ctx.lineTo(-10, -25); ctx.lineTo(0, -10); ctx.lineTo(10, -25); ctx.lineTo(20, -10);
-      ctx.closePath(); ctx.fill();
-
-      ctx.restore();
-    }
-
-    function drawDarts() {
-      darts.forEach(dart => {
-        if (!dart.active) return;
-        ctx.save();
-        ctx.translate(dart.x, dart.y);
-        ctx.fillStyle = "#a020f0";
-        ctx.strokeStyle = "#ff00ff";
-        ctx.lineWidth = 1.5;
-
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(dart.vx > 0 ? 14 : -14, -3);
-        ctx.lineTo(dart.vx > 0 ? 14 : -14, 3);
-        ctx.closePath();
-        ctx.fill(); ctx.stroke();
-
-        ctx.restore();
-      });
-    }
-
-    function drawDirtRoad() {
-      const groundY = getGroundY();
-
-      ctx.fillStyle = roadColors.edge;
-      ctx.fillRect(0, groundY - 5, canvas.width, 8);
-
-      if (!pitHole.active) {
-        ctx.fillStyle = roadColors.main;
-        ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
-
-        ctx.fillStyle = roadColors.accent;
-        for (let x = 10; x < canvas.width; x += 30) {
-          const waveHeight = ((x * currentStage) % 7) + 2;
-          ctx.fillRect(x, groundY + waveHeight, 14, 3);
-          ctx.fillRect(x + 10, groundY + 22, 8, 3);
-        }
-      } else {
-        ctx.fillStyle = roadColors.main;
-        ctx.fillRect(0, groundY, pitHole.x, canvas.height - groundY);
-
-        ctx.fillRect(pitHole.x + pitHole.width, groundY, canvas.width - (pitHole.x + pitHole.width), canvas.height - groundY);
-
-        ctx.fillStyle = roadColors.accent;
-        for (let x = 10; x < pitHole.x - 10; x += 30) {
-          ctx.fillRect(x, groundY + 4, 14, 3);
-        }
-        for (let x = pitHole.x + pitHole.width + 10; x < canvas.width; x += 30) {
-          ctx.fillRect(x, groundY + 4, 14, 3);
-        }
-
-        ctx.fillStyle = "#080503";
-        ctx.fillRect(pitHole.x, groundY, pitHole.width, canvas.height - groundY);
-
-        ctx.fillStyle = "#221105";
-        ctx.fillRect(pitHole.x - 3, groundY, 3, canvas.height - groundY);
-        ctx.fillRect(pitHole.x + pitHole.width, groundY, 3, canvas.height - groundY);
-      }
-    }
-
-    function draw() {
-      const groundY = getGroundY();
-
-      if (bgImageCurrent.complete && bgImageCurrent.naturalWidth !== 0) {
-        ctx.drawImage(bgImageCurrent, 0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "rgba(10, 10, 18, 0.4)";
+    // LOOP PRINCIPAL DO JOGO COM SUPORTE À PAUSA
+    function gameLoop() {
+      if (!isGamePaused) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Desenha e atualiza o jogo
+        ctx.fillStyle = "#000";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-      } else {
-        const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        grad.addColorStop(0, "#120826"); grad.addColorStop(0.6, "#7a223b"); grad.addColorStop(1, "#2e1200");
-        ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
-
-      drawAnimatedSun(canvas.width - 110, 110, 36);
-
-      if (currentStage > 1) drawAerialVehicle(aerialVehicle);
-
-      drawDirtRoad();
-
-      // DESENHA ITENS ESCOLARES (FASES 1 A 20)
-      schoolItems.forEach(item => {
-        if (item.active) {
-          ctx.font = "20px sans-serif";
-          ctx.fillText(item.icon, item.x, item.y + 18);
-        }
-      });
-
-      // DESENHA VEÍCULO ESPECIAL NO CHÃO SE ESTIVER ATIVO
-      if (specialVehicle && specialVehicle.active) {
-        ctx.font = "28px sans-serif";
-        const vIcon = specialVehicle.type === 'aviao' ? '✈️' : specialVehicle.type === 'carro' ? '🚗' : '🏍️';
-        ctx.fillText(vIcon, specialVehicle.x, specialVehicle.y + 20);
-      }
-
-      if (isIntroPlaying) {
-        if (ufoState.beamOpacity > 0) {
-          ctx.fillStyle = `rgba(0, 255, 204, ${ufoState.beamOpacity * 0.35})`;
-          ctx.beginPath();
-          ctx.moveTo(ufoState.x - 12, ufoState.y); ctx.lineTo(ufoState.x + 12, ufoState.y);
-          ctx.lineTo(ufoState.x + 35, groundY); ctx.lineTo(ufoState.x - 35, groundY);
-          ctx.closePath(); ctx.fill();
-        }
-
-        ctx.fillStyle = "#00ffcc"; ctx.beginPath(); ctx.ellipse(ufoState.x, ufoState.y, 30, 10, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(ufoState.x, ufoState.y - 5, 12, 0, Math.PI, true); ctx.fill();
-
-        drawDrChacaraSide(ufoState.x - player.width / 2, ufoState.playerY, 'right', false);
-      } else {
-        drawDrChacaraSide(player.x, player.y, player.facing, player.crouching);
-
-        if (player.bigShieldActive) {
-          drawBigShieldWithDigitalClock(player.x + player.width / 2, player.y + player.height / 2);
-        }
-      }
-
-      if (player.attacking && !isIntroPlaying) {
-        ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 3; ctx.beginPath();
-        ctx.moveTo(player.x + player.width / 2, player.y + 25); ctx.lineTo(weapon.x, weapon.y); ctx.stroke();
-        drawShieldWeapon(weapon.x, weapon.y);
-      }
-
-      enemies.forEach(enemy => drawLetterEnemy(enemy));
-      drawDarts();
-
-      if (bossActive && bossEnemy) {
-        drawBossEnemy(bossEnemy);
-      }
-
-      if (collisionAnimationActive) {
-        drawSpeechBubble(player.x + player.width / 2, player.y - 20, playerSpeechBubble, 1.5);
-        if (mockingEnemy) {
-          drawSpeechBubble(mockingEnemy.x + mockingEnemy.width / 2, mockingEnemy.y - 20, enemySpeechBubble, 1.5);
-        }
-      }
-
-      const currentRule = getRuleForStage(currentStage);
-      ctx.fillStyle = "#ffffff"; ctx.font = "bold 15px 'Segoe UI'"; ctx.textAlign = "left";
-      ctx.fillText(`${currentRule.title}`, 20, 32);
-      ctx.fillText(`PONTOS: ${score}  |  VIDAS: ❤️ x${playerLives}  |  ESCOLARES: 📚 x${schoolItemsCollected}/3`, canvas.width - 400, 32);
-
-      // INDICAÇÃO DA VERSÃO a2.0
-      ctx.fillStyle = "rgba(0, 255, 204, 0.85)";
-      ctx.font = "bold 12px monospace";
-      ctx.textAlign = "left";
-      ctx.fillText("Versão a2.0", 12, canvas.height - 12);
+      requestAnimationFrame(gameLoop);
     }
-
-    function loop() { update(); draw(); requestAnimationFrame(loop); }
-    
-    prepareStage();
-    loop();
+    requestAnimationFrame(gameLoop);
   </script>
 </body>
 </html>
