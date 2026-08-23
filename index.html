@@ -695,7 +695,8 @@
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'pt-BR';
-        utterance.rate = 1.0;
+        utterance.rate = 1.08;
+        utterance.pitch = 1.0;
         if (onEndCallback) {
           utterance.onend = onEndCallback;
         }
@@ -773,6 +774,17 @@
 
     let notebookItem = null;
     let greenCoatItem = null;
+    let bonusVehicleItem = null;
+    let hangGliderItem = null;
+    let playerFlying = false;
+    let flightType = null;
+
+    const bonusVehicles = [
+      { type: 'car', icon: '🚗', name: 'CARRO TURBO' },
+      { type: 'motorcycle', icon: '🏍️', name: 'MOTO TURBO' },
+      { type: 'plane', icon: '✈️', name: 'AVIÃO' },
+      { type: 'helicopter', icon: '🚁', name: 'HELICÓPTERO' }
+    ];
 
     const aerialSymbols = ['plane', 'helicopter', 'balloon', 'rocket', 'ufo_mini', 'bird', 'dragon', 'blimp'];
 
@@ -818,6 +830,11 @@
     function prepareStage() {
       enemies.length = 0;
       darts.length = 0;
+      bonusVehicleItem = null;
+      hangGliderItem = null;
+      playerFlying = false;
+      flightType = null;
+      player.vy = 0;
       closeAllPanels();
       bossActive = false;
       bossState = "none";
@@ -904,6 +921,23 @@
         notebookItem = { x: 200 + Math.random() * 400, y: groundY - 25, width: 20, height: 20, active: true };
       } else {
         notebookItem = null;
+      }
+
+      // BRINDE DE VEÍCULO: aparece aleatoriamente em todas as fases até a 20.
+      if (currentStage <= 20) {
+        const vehicle = bonusVehicles[Math.floor(Math.random() * bonusVehicles.length)];
+        bonusVehicleItem = {
+          ...vehicle, x: 260 + Math.random() * 420, y: groundY - 34,
+          width: 34, height: 28, active: true
+        };
+      }
+
+      // ASA-DELTA: começa na fase 6, aparece aleatoriamente no céu.
+      if (currentStage >= 6 && Math.random() < 0.42) {
+        hangGliderItem = {
+          x: 220 + Math.random() * Math.max(100, canvas.width - 420),
+          y: 90 + Math.random() * 100, width: 78, height: 42, active: true
+        };
       }
 
       const count = 4 + Math.floor(currentStage * 0.5);
@@ -1267,6 +1301,7 @@
       playerLives = 3; nextExtraLifeScore = 15000;
       player.x = 50; player.y = getGroundY() - player.height; player.vx = 0; player.vy = 0;
       player.hasGreenCoat = false; player.shieldPowerUp = false; player.bigShieldActive = false;
+      playerFlying = false; flightType = null; bonusVehicleItem = null; hangGliderItem = null;
       prepareStage();
     }
 
@@ -1377,6 +1412,23 @@
 
       player.bigShieldActive = !!keys[keyBinds.shield];
 
+      // MODO ASA-DELTA: controle livre no céu. Ataques continuam funcionando,
+      // mas letras destruídas durante o voo não concedem pontos.
+      if (playerFlying) {
+        const flightX = joyVector.x || (keys["ArrowRight"] ? 1 : keys["ArrowLeft"] ? -1 : 0);
+        const flightY = joyVector.y || (keys["ArrowDown"] ? 1 : keys["ArrowUp"] ? -1 : 0);
+        player.vx = flightX * 4.2;
+        player.vy = flightY * 3.6;
+        player.x += player.vx;
+        player.y += player.vy;
+        player.grounded = false;
+        if (player.x < 0) player.x = 0;
+        if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+        if (player.y < 55) player.y = 55;
+        if (player.y > groundY - player.height - 10) player.y = groundY - player.height - 10;
+        player.facing = flightX < 0 ? 'left' : flightX > 0 ? 'right' : player.facing;
+      } else {
+
       const moveX = joyVector.x || (keys["ArrowRight"] ? 1 : keys["ArrowLeft"] ? -1 : 0);
       const moveY = joyVector.y || (keys["ArrowDown"] ? 1 : keys["ArrowUp"] ? -1 : 0);
 
@@ -1391,7 +1443,7 @@
         walkCycle = 0;
       }
 
-      if (keys[keyBinds.jump] && player.grounded) {
+      if (!playerFlying && keys[keyBinds.jump] && player.grounded) {
         triggerPlayerJump();
       }
 
@@ -1400,8 +1452,11 @@
         playSound('attack');
       }
 
-      player.vx *= player.friction; player.x += player.vx;
-      player.vy += gravity; player.y += player.vy;
+      if (!playerFlying) {
+        player.vx *= player.friction; player.x += player.vx;
+        player.vy += gravity; player.y += player.vy;
+      }
+      } // fim do movimento normal quando não está voando
 
       const pCenterX = player.x + player.width / 2;
       const isOverPit = pitHole.active && (pCenterX > pitHole.x && pCenterX < pitHole.x + pitHole.width);
@@ -1471,7 +1526,41 @@
         }
       }
 
-      if (player.x + player.width >= canvas.width) {
+      // Brinde de veículo: acelera por alguns segundos e fica disponível só até a fase 20.
+      if (bonusVehicleItem && bonusVehicleItem.active && !playerFlying) {
+        if (player.x < bonusVehicleItem.x + bonusVehicleItem.width && player.x + player.width > bonusVehicleItem.x &&
+            player.y < bonusVehicleItem.y + bonusVehicleItem.height && player.y + player.height > bonusVehicleItem.y) {
+          bonusVehicleItem.active = false;
+          player.vx = 6;
+          playSound('powerup');
+          speakText(`${bonusVehicleItem.name}!`);
+        }
+      }
+
+      // Asa-delta: ao tocar, o personagem entra em modo voo e pode controlar altura/direção.
+      if (hangGliderItem && hangGliderItem.active && !playerFlying) {
+        if (player.x < hangGliderItem.x + hangGliderItem.width && player.x + player.width > hangGliderItem.x &&
+            player.y < hangGliderItem.y + hangGliderItem.height && player.y + player.height > hangGliderItem.y) {
+          hangGliderItem.active = false;
+          playerFlying = true;
+          flightType = 'hangglider';
+          player.vx = 0;
+          player.vy = 0;
+          playSound('powerup');
+          speakText('Asa delta! Agora você pode voar. Enquanto estiver voando, destruir letras não dá pontos.');
+        }
+      }
+
+      if (playerFlying && player.x + player.width >= canvas.width) {
+        playerFlying = false;
+        flightType = null;
+        player.x = canvas.width - player.width - 5;
+        player.y = getGroundY() - player.height;
+        player.vx = 0;
+        player.vy = 0;
+      }
+
+      if (!playerFlying && player.x + player.width >= canvas.width) {
         if (currentStage < maxStages) {
           stageStarted = false;
           stopBackgroundMusic();
@@ -1529,7 +1618,7 @@
             if (enemy.isTarget) {
               enemy.expression = 'sad';
               playSound('hitTarget');
-              addScore(500);
+              if (!playerFlying) addScore(500);
               setTimeout(() => { enemy.alive = false; }, 120);
             } else {
               enemy.expression = 'sad';
@@ -1542,7 +1631,7 @@
         const playerBox = { left: player.x + padding, right: player.x + player.width - padding, top: player.y + padding, bottom: player.y + player.height };
         const enemyBox = { left: enemy.x + padding, right: enemy.x + enemy.width - padding, top: enemy.y + padding, bottom: enemy.y + enemy.height };
 
-        if (enemy.alive &&
+        if (!playerFlying && enemy.alive &&
             playerBox.left < enemyBox.right && playerBox.right > enemyBox.left &&
             playerBox.top < enemyBox.bottom && playerBox.bottom > enemyBox.top) {
           
@@ -1797,6 +1886,36 @@
         ctx.fillStyle = "#000"; ctx.font = "bold 10px sans-serif"; ctx.fillText("🥼", greenCoatItem.x + 4, greenCoatItem.y + 15);
       }
 
+      if (bonusVehicleItem && bonusVehicleItem.active) {
+        ctx.save();
+        ctx.shadowColor = "#ffd700"; ctx.shadowBlur = 14;
+        ctx.fillStyle = "rgba(255,215,0,0.95)";
+        ctx.beginPath(); ctx.roundRect(bonusVehicleItem.x - 5, bonusVehicleItem.y - 5, 44, 38, 9); ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.font = "24px sans-serif"; ctx.textAlign = "center";
+        ctx.fillText(bonusVehicleItem.icon, bonusVehicleItem.x + 17, bonusVehicleItem.y + 22);
+        ctx.restore();
+      }
+
+      if (hangGliderItem && hangGliderItem.active) {
+        ctx.save();
+        ctx.translate(hangGliderItem.x + hangGliderItem.width / 2, hangGliderItem.y + 18);
+        ctx.fillStyle = "#ff8c00"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(-38, 5); ctx.lineTo(0, -18); ctx.lineTo(38, 5); ctx.lineTo(0, -3); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#222"; ctx.fillRect(-3, -3, 6, 25);
+        ctx.restore();
+      }
+
+      if (playerFlying) {
+        ctx.save();
+        ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3;
+        ctx.fillStyle = "rgba(255,140,0,0.9)";
+        ctx.beginPath(); ctx.moveTo(player.x - 18, player.y + 15); ctx.lineTo(player.x + player.width / 2, player.y - 12); ctx.lineTo(player.x + player.width + 18, player.y + 15); ctx.lineTo(player.x + player.width / 2, player.y + 4); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#ffe066"; ctx.font = "bold 13px 'Segoe UI'"; ctx.textAlign = "center";
+        ctx.fillText("VOANDO • SEM PONTOS", player.x + player.width / 2, player.y - 28);
+        ctx.restore();
+      }
+
       if (isIntroPlaying) {
         if (ufoState.beamOpacity > 0) {
           ctx.fillStyle = `rgba(0, 255, 204, ${ufoState.beamOpacity * 0.35})`;
@@ -1842,12 +1961,15 @@
       ctx.fillStyle = "#ffffff"; ctx.font = "bold 15px 'Segoe UI'"; ctx.textAlign = "left";
       ctx.fillText(`${currentRule.title}`, 20, 32);
       ctx.fillText(`PONTOS: ${score}  |  VIDAS: ❤️ x${playerLives}`, canvas.width - 270, 32);
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 13px 'Segoe UI'"; ctx.textAlign = "right";
+      const hudNow = new Date();
+      ctx.fillText(`HORA: ${String(hudNow.getHours()).padStart(2,'0')}:${String(hudNow.getMinutes()).padStart(2,'0')}:${String(hudNow.getSeconds()).padStart(2,'0')}`, canvas.width - 18, 52);
 
       // INDICAÇÃO DA VERSÃO 1.15
       ctx.fillStyle = "rgba(0, 255, 204, 0.7)";
       ctx.font = "bold 11px monospace";
       ctx.textAlign = "left";
-      ctx.fillText("Versão 1.15", 12, canvas.height - 12);
+      ctx.fillText("Versão 1.16", 12, canvas.height - 12);
 
       ctx.textAlign = "right";
       ctx.fillStyle = "rgba(255,255,255,0.95)";
