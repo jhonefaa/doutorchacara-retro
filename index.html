@@ -253,6 +253,7 @@
       <div class="btn-group">
         <button class="btn-main" style="background: rgba(255, 0, 0, 0.65); color:#fff;" onclick="handleYtAnswer('inscrever')">🔴 Se inscreva no canal Doutor Chácara</button>
         <button class="btn-main" onclick="handleYtAnswer('sim')">👍 Já é inscrito</button>
+        <!-- A OPÇÃO DE CONTINUAR SÓ APARECE ATÉ A FASE 20 -->
         <button class="btn-sub" id="btn-continue-game" style="background: rgba(0, 153, 255, 0.65);" onclick="handleYtAnswer('continuar')">▶ Continuar jogo</button>
       </div>
       <div id="yt-feedback-msg" style="margin-top: 5px; font-weight: bold; color: #ffcc00; text-shadow: 0 0 5px #000;"></div>
@@ -390,7 +391,7 @@
 
     // VARIÁVEIS DO SEMI-MESTRE
     let bossActive = false;
-    let bossState = "none";
+    let bossState = "none"; // 'quiz', 'walking', 'defeated'
     let currentBossChar = "A";
     let bossQuizIndex = 0;
     let bossQuizQuestions = [];
@@ -399,11 +400,6 @@
     // SISTEMA DE VIDAS E PONTUAÇÃO DE VIDAS EXTRAS
     let playerLives = 3;
     let nextExtraLifeScore = 15000;
-
-    // ITENS EXTRAS & NOVO SISTEMA DE ASA DELTA E VEÍCULOS
-    let hangGliderItem = null;
-    let groundVehicleItem = null;
-    let activeVehicleType = null; // 'hangGlider', 'car', 'motorcycle', 'plane'
 
     const portugueseQuestionsBank = [
       { q: "Qual das palavras abaixo possui um DÍGRAFO?", options: ["Chuva", "Prato", "Escola", "Pedra"], correct: 0 },
@@ -420,6 +416,7 @@
 
     function addScore(amount) {
       score += amount;
+      // VERIFICA VIDA EXTRA A CADA 15.000 PONTOS
       while (score >= nextExtraLifeScore) {
         playerLives++;
         nextExtraLifeScore += 15000;
@@ -441,13 +438,24 @@
       panelCreatorMenu.style.display = "none";
     }
 
-    function openYoutubeChannel() { window.open("https://www.youtube.com/@DoutorChacara", "_blank"); }
-    function openPixOverlay() { closeAllPanels(); panelPixOverlay.style.display = "flex"; }
+    function openYoutubeChannel() {
+      window.open("https://www.youtube.com/@DoutorChacara", "_blank");
+    }
+
+    function openPixOverlay() {
+      closeAllPanels();
+      panelPixOverlay.style.display = "flex";
+    }
+
     function copyPixKey() {
       navigator.clipboard.writeText("jhonemercadopago2023@gmail.com");
       alert("Chave Pix copiada com sucesso!");
     }
-    function openCommentsOverlay() { closeAllPanels(); panelCommentsOverlay.style.display = "flex"; }
+
+    function openCommentsOverlay() {
+      closeAllPanels();
+      panelCommentsOverlay.style.display = "flex";
+    }
 
     function loadAndRenderComments() {
       const stored = localStorage.getItem("dr_chacara_comments") || "[]";
@@ -566,19 +574,27 @@
     const keyBinds = { attack: "KeyA", jump: "KeyS", shield: "KeyD" };
     let listeningKeyAction = null;
 
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let audioCtx = null;
     let bgMusicTimer = null;
-    let bgMusicNoteIndex = 0;
 
-    // CORREÇÃO DA SINCRONIZAÇÃO DE ÁUDIO: Inicializa/resume diretamente a qualquer interação do usuário
-    function initOrResumeAudio() {
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return false;
+        audioCtx = new AudioCtx();
       }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+      return true;
     }
-    window.addEventListener('click', initOrResumeAudio);
-    window.addEventListener('touchstart', initOrResumeAudio);
-    window.addEventListener('keydown', initOrResumeAudio);
+
+    // Inicializa/retoma o áudio no próprio gesto do usuário, evitando o atraso
+    // causado pelas políticas de autoplay dos navegadores.
+    function unlockAudioFromUserGesture() {
+      ensureAudioContext();
+    }
+    let bgMusicNoteIndex = 0;
 
     const stageScales = [
       [261.63, 293.66, 329.63, 349.23, 392.00, 440.00],
@@ -590,10 +606,11 @@
 
     function startBackgroundMusic() {
       if (!isMusicEnabled || bgMusicTimer) return;
+      if (!ensureAudioContext()) return;
       
       bgMusicTimer = setInterval(() => {
         if (!isMusicEnabled || gameOver || !stageStarted) return;
-        initOrResumeAudio();
+        ensureAudioContext();
 
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -623,7 +640,7 @@
     }
 
     function playSound(type) {
-      initOrResumeAudio();
+      if (!ensureAudioContext()) return;
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.connect(gain);
@@ -758,23 +775,37 @@
       grounded: false, crouching: false, facing: 'right', aimingUp: false,
       attacking: false, attackTimer: 0, attackMaxTime: 12,
       hasGreenCoat: false, shieldPowerUp: false,
-      bigShieldActive: false
+      bigShieldActive: false,
+      hasHangGlider: false,
+      gliding: false,
+      glideFuel: 0,
+      glideMaxFuel: 900,
+      glideSpeed: 5.2
     };
 
     function triggerPlayerJump() {
-      initOrResumeAudio();
-      if ((player.grounded || activeVehicleType === 'hangGlider' || activeVehicleType === 'plane') && stageStarted && !gameOver) {
-        player.vy = activeVehicleType === 'hangGlider' ? -6 : -12;
+      if (player.grounded && stageStarted && !gameOver) {
+        player.vy = -12;
         player.grounded = false;
         playSound('jump');
       }
     }
 
     const gravity = 0.65;
+    // ALCANCE DO ESCUDO DE ATAQUE DIMINUÍDO PELA METADE (70px)
     const weapon = { x: 0, y: 0, length: 0, baseMaxLength: 70 };
 
     let notebookItem = null;
     let greenCoatItem = null;
+
+    // Brinde/veículo sorteado nas fases 1 a 20.
+    let bonusVehicle = null;
+    const bonusVehicleTypes = ['car', 'moto', 'plane'];
+
+    // Asa Delta disponível a partir da fase 6.
+    let hangGliderItem = null;
+    let bonusMessage = "";
+    let bonusMessageTimer = 0;
 
     const aerialSymbols = ['plane', 'helicopter', 'balloon', 'rocket', 'ufo_mini', 'bird', 'dragon', 'blimp'];
 
@@ -820,13 +851,17 @@
     function prepareStage() {
       enemies.length = 0;
       darts.length = 0;
+      hangGliderItem = null;
+      bonusVehicle = null;
+      bonusMessage = "";
+      bonusMessageTimer = 0;
+      player.hasHangGlider = false;
+      player.gliding = false;
+      player.glideFuel = 0;
       closeAllPanels();
       bossActive = false;
       bossState = "none";
       bossEnemy = null;
-      activeVehicleType = null;
-      hangGliderItem = null;
-      groundVehicleItem = null;
 
       const groundY = getGroundY();
 
@@ -911,16 +946,31 @@
         notebookItem = null;
       }
 
-      // ASA DELTA A PARTIR DA FASE 6
-      if (currentStage >= 6) {
-        hangGliderItem = { x: 250 + Math.random() * 300, y: 120, width: 35, height: 20, active: true };
+      // Brindes extras: em toda fase de 1 a 20 aparece aleatoriamente
+      // um carro, uma moto ou um avião.
+      if (currentStage >= 1 && currentStage <= 20) {
+        const type = bonusVehicleTypes[Math.floor(Math.random() * bonusVehicleTypes.length)];
+        bonusVehicle = {
+          type,
+          x: 180 + Math.random() * Math.max(80, canvas.width - 360),
+          y: type === 'plane' ? 150 + Math.random() * 100 : groundY - 34,
+          width: type === 'moto' ? 42 : 62,
+          height: type === 'plane' ? 28 : 30,
+          active: true,
+          float: Math.random() * Math.PI * 2
+        };
       }
 
-      // BRINDES EXTRAS E VARIAÇÃO DE VEÍCULOS ATÉ A FASE 20
-      if (currentStage <= 20) {
-        const vTypes = ['car', 'motorcycle', 'plane'];
-        const chosenType = vTypes[Math.floor(Math.random() * vTypes.length)];
-        groundVehicleItem = { x: 300 + Math.random() * 250, y: groundY - 30, width: 40, height: 25, type: chosenType, active: true };
+      // A partir da fase 6, a Asa Delta surge no céu para ser equipada.
+      if (currentStage >= 6) {
+        hangGliderItem = {
+          x: 260 + Math.random() * Math.max(80, canvas.width - 360),
+          y: 115 + Math.random() * 110,
+          width: 76,
+          height: 42,
+          active: true,
+          float: Math.random() * Math.PI * 2
+        };
       }
 
       const count = 4 + Math.floor(currentStage * 0.5);
@@ -949,8 +999,10 @@
     function startBossQuiz() {
       bossState = "quiz";
       bossQuizIndex = 0;
+      
       const shuffled = [...portugueseQuestionsBank].sort(() => 0.5 - Math.random());
       bossQuizQuestions = shuffled.slice(0, 5);
+      
       renderBossQuizQuestion();
     }
 
@@ -998,7 +1050,8 @@
     }
 
     function startStage() {
-      initOrResumeAudio();
+      // Este clique é um gesto válido do usuário: desbloqueia o áudio imediatamente.
+      unlockAudioFromUserGesture();
       closeAllPanels();
       
       if (bossActive) {
@@ -1034,7 +1087,10 @@
       }
     }, 1000);
 
-    function openKeyConfig() { closeAllPanels(); panelKeyConfig.style.display = "flex"; }
+    function openKeyConfig() {
+      closeAllPanels();
+      panelKeyConfig.style.display = "flex";
+    }
     function closeKeyConfig() { panelKeyConfig.style.display = "none"; }
     function listenKeyChange(action) {
       listeningKeyAction = action;
@@ -1043,7 +1099,8 @@
     }
 
     window.addEventListener("keydown", (e) => {
-      initOrResumeAudio();
+      // A primeira tecla do jogador também libera o AudioContext sem esperar outro frame.
+      unlockAudioFromUserGesture();
       if (listeningKeyAction) {
         keyBinds[listeningKeyAction] = e.code;
         document.getElementById(`bind-${listeningKeyAction}-btn`).innerText = e.key.toUpperCase();
@@ -1051,6 +1108,7 @@
         return;
       }
 
+      // COMANDO SECRETO DO CRIADOR: jhonny
       if (!creatorMenuActive && e.key && /^[a-zA-Z]$/.test(e.key)) {
         creatorCodeBuffer = (creatorCodeBuffer + e.key.toLowerCase()).slice(-6);
         if (creatorCodeBuffer === "jhonny") {
@@ -1072,6 +1130,8 @@
     function openYoutubePromo() {
       closeAllPanels();
       document.getElementById("yt-feedback-msg").innerText = "";
+
+      // OPÇÃO DE CONTINUAR SÓ APARECE ATÉ A FASE 20
       const btnContinue = document.getElementById("btn-continue-game");
       if (currentStage > 20) {
         btnContinue.style.display = "none";
@@ -1113,6 +1173,7 @@
       stopBackgroundMusic();
       stageStarted = false;
       closeAllPanels();
+      
       speakText("Parabéns! Você zerou a Fase 27! O Doutor Chácara agradece e te parabeniza por esta grande vitória!");
       panelVictory.style.display = "flex";
     }
@@ -1120,10 +1181,12 @@
     function saveVictoryScore() {
       const winnerNameInput = document.getElementById("winner-name");
       const name = winnerNameInput.value.trim() || "Campeão Absoluto";
+      
       const scores = getTopScores();
       scores.push({ name: `🏆 ${name}`, score: score + 10000 });
       scores.sort((a, b) => b.score - a.score);
       localStorage.setItem("dr_chacara_scores", JSON.stringify(scores));
+
       alert("Recorde imortalizado no placar para sempre!");
       resetGame();
     }
@@ -1149,6 +1212,7 @@
       scores.push({ name: name, score: score });
       scores.sort((a, b) => b.score - a.score);
       localStorage.setItem("dr_chacara_scores", JSON.stringify(scores));
+
       resetGame();
     }
 
@@ -1156,6 +1220,7 @@
       playerLives--;
 
       if (playerLives > 0) {
+        // VIDA DISPONÍVEL: VOLTA PARA A MESMA FASE EM QUE MORREU.
         playSound('hitWrong');
         speakText(`Você perdeu uma vida! Restam ${playerLives} vidas. Voltando para a Fase ${currentStage}.`);
 
@@ -1167,13 +1232,17 @@
 
         player.x = 50;
         player.y = getGroundY() - player.height;
-        player.vx = 0; player.vy = 0;
-        player.attacking = false; player.attackTimer = 0;
+        player.vx = 0;
+        player.vy = 0;
+        player.attacking = false;
+        player.attackTimer = 0;
 
+        // Recria somente a fase atual; a fase não é perdida.
         prepareStage();
         return;
       }
 
+      // GAME OVER DEFINITIVO QUANDO AS VIDAS ACABAM
       collisionAnimationActive = true;
       collisionAnimTimer = 0;
       mockingEnemy = enemyRef;
@@ -1208,7 +1277,7 @@
     let joyActive = false;
     let joyVector = { x: 0, y: 0 };
 
-    joyZone.addEventListener("pointerdown", (e) => { initOrResumeAudio(); joyActive = true; updateJoystick(e); });
+    joyZone.addEventListener("pointerdown", (e) => { unlockAudioFromUserGesture(); joyActive = true; updateJoystick(e); });
     window.addEventListener("pointermove", (e) => { if (joyActive) updateJoystick(e); });
     window.addEventListener("pointerup", () => {
       joyActive = false; joyVector = { x: 0, y: 0 };
@@ -1238,12 +1307,13 @@
 
     document.getElementById("touch-jump").addEventListener("pointerdown", (e) => {
       e.preventDefault();
+      unlockAudioFromUserGesture();
       triggerPlayerJump();
     });
 
     document.getElementById("touch-attack").addEventListener("pointerdown", (e) => {
       e.preventDefault();
-      initOrResumeAudio();
+      unlockAudioFromUserGesture();
       if (!player.attacking && stageStarted && !gameOver) {
         player.attacking = true; player.attackTimer = player.attackMaxTime;
         playSound('attack');
@@ -1253,18 +1323,24 @@
     const touchShieldBtn = document.getElementById("touch-shield");
     touchShieldBtn.addEventListener("pointerdown", (e) => {
       e.preventDefault();
-      initOrResumeAudio();
+      unlockAudioFromUserGesture();
       if (stageStarted && !gameOver) player.bigShieldActive = true;
     });
-    touchShieldBtn.addEventListener("pointerup", (e) => { e.preventDefault(); player.bigShieldActive = false; });
-    touchShieldBtn.addEventListener("pointerleave", (e) => { e.preventDefault(); player.bigShieldActive = false; });
+    touchShieldBtn.addEventListener("pointerup", (e) => {
+      e.preventDefault();
+      player.bigShieldActive = false;
+    });
+    touchShieldBtn.addEventListener("pointerleave", (e) => {
+      e.preventDefault();
+      player.bigShieldActive = false;
+    });
 
     function resetGame() {
       gameOver = false; score = 0; currentStage = 1; gameTimerSeconds = 0;
       playerLives = 3; nextExtraLifeScore = 15000;
       player.x = 50; player.y = getGroundY() - player.height; player.vx = 0; player.vy = 0;
       player.hasGreenCoat = false; player.shieldPowerUp = false; player.bigShieldActive = false;
-      activeVehicleType = null;
+      player.hasHangGlider = false; player.gliding = false; player.glideFuel = 0;
       prepareStage();
     }
 
@@ -1277,7 +1353,9 @@
       if (creatorMenuActive) return;
       creatorWasRunning = stageStarted && !gameOver && !isIntroPlaying && !collisionAnimationActive;
       creatorMenuActive = true;
-      keys[keyBinds.attack] = false; keys[keyBinds.jump] = false; keys[keyBinds.shield] = false;
+      keys[keyBinds.attack] = false;
+      keys[keyBinds.jump] = false;
+      keys[keyBinds.shield] = false;
       closeAllPanels();
       panelCreatorMenu.style.display = "flex";
       document.getElementById("creator-stage-input").value = "";
@@ -1310,9 +1388,15 @@
       }
 
       currentStage = requestedStage;
-      gameOver = false; stageStarted = false; isIntroPlaying = false; collisionAnimationActive = false;
+      gameOver = false;
+      stageStarted = false;
+      isIntroPlaying = false;
+      collisionAnimationActive = false;
       closeCreatorMenu();
-      player.x = 50; player.y = getGroundY() - player.height; player.vx = 0; player.vy = 0;
+      player.x = 50;
+      player.y = getGroundY() - player.height;
+      player.vx = 0;
+      player.vy = 0;
       prepareStage();
       speakText(`Fase ${currentStage}.`);
     }
@@ -1362,6 +1446,20 @@
         if (aerialVehicle.x > canvas.width + 100) aerialVehicle.x = -100;
       }
 
+      if (bonusVehicle && bonusVehicle.active) {
+        bonusVehicle.float += 0.035;
+        if (bonusVehicle.type === 'plane') {
+          bonusVehicle.x += 0.35;
+          if (bonusVehicle.x > canvas.width + 90) bonusVehicle.x = -90;
+          bonusVehicle.y += Math.sin(bonusVehicle.float) * 0.15;
+        }
+      }
+
+      if (hangGliderItem && hangGliderItem.active) {
+        hangGliderItem.float += 0.04;
+        hangGliderItem.y += Math.sin(hangGliderItem.float) * 0.12;
+      }
+
       if (isIntroPlaying) { updateIntro(); return; }
       if (gameOver || !stageStarted || collisionAnimationActive) return;
 
@@ -1370,27 +1468,34 @@
       const moveX = joyVector.x || (keys["ArrowRight"] ? 1 : keys["ArrowLeft"] ? -1 : 0);
       const moveY = joyVector.y || (keys["ArrowDown"] ? 1 : keys["ArrowUp"] ? -1 : 0);
 
+      // Asa Delta: controle vertical/horizontal pelo joystick/setas.
+      if (player.hasHangGlider && (keys["Space"] || keys["KeyW"] || moveY < -0.15)) {
+        player.gliding = true;
+      }
+      if (player.gliding) {
+        if (!player.hasHangGlider || player.glideFuel <= 0) {
+          player.gliding = false;
+        } else {
+          player.vx = moveX * player.glideSpeed;
+          player.vy = moveY * 3.2;
+          if (Math.abs(moveY) < 0.15) player.vy = -0.8;
+          player.glideFuel--;
+          player.grounded = false;
+        }
+      }
+
       player.aimingUp = moveY < -0.4;
       player.crouching = moveY > 0.4 && player.grounded;
 
-      let speedFactor = activeVehicleType ? 1.6 : 1.0;
-
       if (Math.abs(moveX) > 0.2 && !player.crouching) {
-        player.vx = moveX * player.speed * speedFactor;
+        player.vx = moveX * player.speed;
         player.facing = moveX > 0 ? 'right' : 'left';
         walkCycle += 0.22;
       } else {
         walkCycle = 0;
       }
 
-      // CONTROLE DE VOO COM A ASA DELTA E AVIÃO
-      if (activeVehicleType === 'hangGlider' || activeVehicleType === 'plane') {
-        if (moveY < -0.2) player.vy = -3.5;
-        else if (moveY > 0.2) player.vy = 3.5;
-        else player.vy = 0.5; // Planeio leve
-      }
-
-      if (keys[keyBinds.jump] && (player.grounded || activeVehicleType === 'hangGlider' || activeVehicleType === 'plane')) {
+      if (keys[keyBinds.jump] && player.grounded && !player.gliding) {
         triggerPlayerJump();
       }
 
@@ -1399,11 +1504,14 @@
         playSound('attack');
       }
 
-      player.vx *= player.friction; player.x += player.vx;
-      if (activeVehicleType !== 'hangGlider' && activeVehicleType !== 'plane') {
+      player.vx *= player.gliding ? 0.96 : player.friction;
+      player.x += player.vx;
+      if (!player.gliding) {
         player.vy += gravity;
+        player.y += player.vy;
+      } else {
+        player.y += player.vy;
       }
-      player.y += player.vy;
 
       const pCenterX = player.x + player.width / 2;
       const isOverPit = pitHole.active && (pCenterX > pitHole.x && pCenterX < pitHole.x + pitHole.width);
@@ -1413,18 +1521,16 @@
           player.y = groundY - player.height; player.vy = 0; player.grounded = true;
         }
       } else {
-        if (activeVehicleType !== 'hangGlider' && activeVehicleType !== 'plane') {
-          player.grounded = false;
-          if (player.y > canvas.height) {
-            triggerGameOverSequence(null, "Você caiu no buraco!");
-            return;
-          }
+        player.grounded = false;
+        if (player.y > canvas.height) {
+          triggerGameOverSequence(null, "Você caiu no buraco!");
+          return;
         }
       }
 
       if (player.x < 0) player.x = 0;
 
-      // COLISÃO COM O MESTRE
+      // ATUALIZAÇÃO DO SEMI-MESTRE EM COMBATE
       if (bossActive && bossState === "walking" && bossEnemy && bossEnemy.alive) {
         bossEnemy.x -= bossEnemy.speed;
 
@@ -1435,12 +1541,20 @@
             pBox.top < bossBox.bottom && pBox.bottom > bossBox.top) {
           
           if (player.bigShieldActive) {
-            bossEnemy.alive = false; bossState = "defeated";
-            playSound('powerup'); addScore(2000);
-            stageStarted = false; stopBackgroundMusic();
+            bossEnemy.alive = false;
+            bossState = "defeated";
+            playSound('powerup');
+            addScore(2000);
+
+            // PAUSA O JOGO, FALA A MENSAGEM DO MESTRE E DEPOIS EXIBE O MENU
+            stageStarted = false;
+            stopBackgroundMusic();
 
             const victoryMsg = "Você venceu, parabéns! Mas tem meu mestre à frente e ele não é fácil, boa sorte!";
-            speakText(victoryMsg, () => { openYoutubePromo(); });
+            speakText(victoryMsg, () => {
+              openYoutubePromo();
+            });
+
           } else {
             triggerGameOverSequence(bossEnemy, `O Semi-Mestre Letra ${currentBossChar} pegou você! Use o ESCUDO!`);
           }
@@ -1448,53 +1562,73 @@
         return;
       }
 
-      // COLETA DE BRINDES EXTRAS
+      // EQUIPAMENTO ASA DELTA
+      if (hangGliderItem && hangGliderItem.active) {
+        const gliderBox = {
+          left: hangGliderItem.x, right: hangGliderItem.x + hangGliderItem.width,
+          top: hangGliderItem.y, bottom: hangGliderItem.y + hangGliderItem.height
+        };
+        if (player.x < gliderBox.right && player.x + player.width > gliderBox.left &&
+            player.y < gliderBox.bottom && player.y + player.height > gliderBox.top) {
+          hangGliderItem.active = false;
+          player.hasHangGlider = true;
+          player.glideFuel = player.glideMaxFuel;
+          player.gliding = true;
+          player.vy = -1.2;
+          bonusMessage = "🪂 ASA DELTA EQUIPADA! Use ↑↓←→ ou joystick para voar.";
+          bonusMessageTimer = 240;
+          playSound('powerup');
+          speakText("Asa Delta equipada! Agora você pode voar. Durante o voo, destruir letras não dá pontos.");
+        }
+      }
+
+      // BRINDE EXTRA / VEÍCULO
+      if (bonusVehicle && bonusVehicle.active) {
+        const vehicleBox = {
+          left: bonusVehicle.x, right: bonusVehicle.x + bonusVehicle.width,
+          top: bonusVehicle.y, bottom: bonusVehicle.y + bonusVehicle.height
+        };
+        if (player.x < vehicleBox.right && player.x + player.width > vehicleBox.left &&
+            player.y < vehicleBox.bottom && player.y + player.height > vehicleBox.top) {
+          bonusVehicle.active = false;
+          bonusMessage = `🎁 BRINDE: ${bonusVehicle.type === 'car' ? 'CARRO' : bonusVehicle.type === 'moto' ? 'MOTO' : 'AVIÃO'}!`;
+          bonusMessageTimer = 180;
+          playSound('powerup');
+        }
+      }
+
+      // ITEM ESPECIAL QUE DEIXA O ESCUDO AMARELO
       if (notebookItem && notebookItem.active) {
         if (player.x < notebookItem.x + notebookItem.width && player.x + player.width > notebookItem.x &&
             player.y < notebookItem.y + notebookItem.height && player.y + player.height > notebookItem.y) {
-          notebookItem.active = false; player.shieldPowerUp = true; playSound('powerup');
+          notebookItem.active = false;
+          player.shieldPowerUp = true;
+          playSound('powerup');
         }
       }
 
       if (greenCoatItem && greenCoatItem.active) {
         if (player.x < greenCoatItem.x + greenCoatItem.width && player.x + player.width > greenCoatItem.x &&
             player.y < greenCoatItem.y + greenCoatItem.height && player.y + player.height > greenCoatItem.y) {
-          greenCoatItem.active = false; player.hasGreenCoat = true; playSound('powerup');
-        }
-      }
-
-      // EQUIPA ASA DELTA
-      if (hangGliderItem && hangGliderItem.active) {
-        if (player.x < hangGliderItem.x + hangGliderItem.width && player.x + player.width > hangGliderItem.x &&
-            player.y < hangGliderItem.y + hangGliderItem.height && player.y + player.height > hangGliderItem.y) {
-          hangGliderItem.active = false;
-          activeVehicleType = 'hangGlider';
+          greenCoatItem.active = false;
+          player.hasGreenCoat = true;
           playSound('powerup');
-          speakText("Asa Delta equipada! Voe para destruir as letras.");
-        }
-      }
-
-      // EQUIPA VEÍCULOS TERRESTRES/AÉREOS
-      if (groundVehicleItem && groundVehicleItem.active) {
-        if (player.x < groundVehicleItem.x + groundVehicleItem.width && player.x + player.width > groundVehicleItem.x &&
-            player.y < groundVehicleItem.y + groundVehicleItem.height && player.y + player.height > groundVehicleItem.y) {
-          groundVehicleItem.active = false;
-          activeVehicleType = groundVehicleItem.type;
-          playSound('powerup');
-          speakText("Veículo equipado!");
         }
       }
 
       if (player.x + player.width >= canvas.width) {
         if (currentStage < maxStages) {
-          stageStarted = false; stopBackgroundMusic(); openYoutubePromo();
+          stageStarted = false;
+          stopBackgroundMusic();
+          openYoutubePromo();
         } else {
           showVictoryOverlay();
         }
       }
 
-      if (player.attacking && !isIntroPlaying) {
+      if (player.attacking) {
         player.attackTimer--;
+        // ITEM ESPECIAL AUMENTA METADE DO ALCANCE ATUAL (1.5x)
         const maxLen = player.shieldPowerUp ? weapon.baseMaxLength * 1.5 : weapon.baseMaxLength;
         const progress = 1 - (player.attackTimer / player.attackMaxTime);
         weapon.length = Math.sin(progress * Math.PI) * maxLen;
@@ -1526,7 +1660,8 @@
             darts.push({
               x: enemy.x + (dirX === -1 ? -10 : enemy.width + 10),
               y: enemy.y + enemy.height / 2,
-              vx: dirX * 6, active: true
+              vx: dirX * 6,
+              active: true
             });
             playSound('dart');
           }
@@ -1539,10 +1674,8 @@
             if (enemy.isTarget) {
               enemy.expression = 'sad';
               playSound('hitTarget');
-              // AO VOAR COM A ASA DELTA, NENHUMA PONTUAÇÃO É SOMADA
-              if (activeVehicleType !== 'hangGlider') {
-                addScore(500);
-              }
+              // Em voo com a Asa Delta, destruir letras não soma pontuação.
+              if (!player.gliding) addScore(500);
               setTimeout(() => { enemy.alive = false; }, 120);
             } else {
               enemy.expression = 'sad';
@@ -1560,9 +1693,12 @@
             playerBox.top < enemyBox.bottom && playerBox.bottom > enemyBox.top) {
           
           if (player.bigShieldActive) {
-            enemy.x += 100; playSound('block');
+            enemy.x += 100;
+            playSound('block');
           } else if (player.hasGreenCoat) {
-            player.hasGreenCoat = false; enemy.x += 70; playSound('powerup');
+            player.hasGreenCoat = false;
+            enemy.x += 70;
+            playSound('powerup');
           } else {
             enemy.expression = 'happy';
             triggerGameOverSequence(enemy, "A letra encostou em você!");
@@ -1580,19 +1716,24 @@
 
         if (distToPlayer < player.width) {
           if (player.bigShieldActive) {
-            dart.active = false; playSound('block'); return;
+            dart.active = false;
+            playSound('block');
+            return;
           }
 
           if (player.attacking) {
             const distToWeapon = Math.hypot(dart.x - weapon.x, dart.y - weapon.y);
             if (distToWeapon < 40) {
-              dart.active = false; playSound('block'); return;
+              dart.active = false;
+              playSound('block');
+              return;
             }
           }
 
           dart.active = false;
           if (player.hasGreenCoat) {
-            player.hasGreenCoat = false; playSound('powerup');
+            player.hasGreenCoat = false;
+            playSound('powerup');
           } else {
             triggerGameOverSequence(null, "Você foi atingido pelo dardo da letra roxa!");
           }
@@ -1631,25 +1772,32 @@
       ctx.restore();
     }
 
-    // RELÓGIO ANALÓGICO INTEGRADO AO SOL (Aponta exatamente para a hora do dispositivo)
     function drawAnimatedSunWithClock(x, y, radius) {
       ctx.save();
       ctx.translate(x, y);
 
+      // Halo externo forte para o relógio ficar visível em qualquer fundo.
       const halo = ctx.createRadialGradient(0, 0, radius * 0.5, 0, 0, radius * 1.8);
       halo.addColorStop(0, "rgba(255, 215, 0, 0.30)");
       halo.addColorStop(0.55, "rgba(255, 180, 0, 0.12)");
       halo.addColorStop(1, "rgba(255, 180, 0, 0)");
       ctx.fillStyle = halo;
-      ctx.beginPath(); ctx.arc(0, 0, radius * 1.8, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, 0, radius * 1.8, 0, Math.PI * 2);
+      ctx.fill();
 
       const pulse = Math.sin(sunAngle * 2) * 2;
 
+      // Sol bem destacado.
       ctx.fillStyle = "#ffd43b";
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(0, 0, radius + pulse, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, radius + pulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
 
+      // Raios grossos e luminosos.
       ctx.strokeStyle = "#ffea70";
       ctx.lineWidth = 3;
       for (let i = 0; i < 12; i++) {
@@ -1660,13 +1808,17 @@
         ctx.stroke();
       }
 
-      // Mostrador completo do relógio analógico
+      // Mostrador branco para alto contraste.
       const clockRadius = radius * 0.76;
       ctx.fillStyle = "rgba(255,255,255,0.96)";
       ctx.strokeStyle = "#3a2a00";
       ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(0, 0, clockRadius, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, clockRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
 
+      // Marcações das horas.
       ctx.strokeStyle = "#222";
       ctx.lineWidth = 2;
       for (let h = 0; h < 12; h++) {
@@ -1679,36 +1831,42 @@
         ctx.stroke();
       }
 
-      // HORA ATUAL DO DISPOSITIVO
       const now = new Date();
       const hrs = now.getHours() % 12;
       const mins = now.getMinutes();
       const secs = now.getSeconds();
 
+      // Ponteiros grandes e fáceis de enxergar.
       const hourAngle = ((hrs + mins / 60) * Math.PI) / 6;
       ctx.strokeStyle = "#111";
       ctx.lineWidth = 5;
       ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(0, 0);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
       ctx.lineTo(Math.sin(hourAngle) * (clockRadius * 0.45), -Math.cos(hourAngle) * (clockRadius * 0.45));
       ctx.stroke();
 
       const minAngle = ((mins + secs / 60) * Math.PI) / 30;
       ctx.lineWidth = 3.5;
-      ctx.beginPath(); ctx.moveTo(0, 0);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
       ctx.lineTo(Math.sin(minAngle) * (clockRadius * 0.68), -Math.cos(minAngle) * (clockRadius * 0.68));
       ctx.stroke();
 
       const secAngle = (secs * Math.PI) / 30;
       ctx.strokeStyle = "#e6003c";
       ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(0, 0);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
       ctx.lineTo(Math.sin(secAngle) * (clockRadius * 0.82), -Math.cos(secAngle) * (clockRadius * 0.82));
       ctx.stroke();
 
       ctx.fillStyle = "#111";
-      ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, 0, 4, 0, Math.PI * 2);
+      ctx.fill();
 
+      // Identificação do relógio.
       ctx.fillStyle = "#111";
       ctx.font = "bold 10px 'Segoe UI'";
       ctx.textAlign = "center";
@@ -1736,18 +1894,103 @@
       } else {
         ctx.fillStyle = roadColors.main;
         ctx.fillRect(0, groundY, pitHole.x, canvas.height - groundY);
+
         ctx.fillRect(pitHole.x + pitHole.width, groundY, canvas.width - (pitHole.x + pitHole.width), canvas.height - groundY);
 
         ctx.fillStyle = roadColors.accent;
-        for (let x = 10; x < pitHole.x - 10; x += 30) ctx.fillRect(x, groundY + 4, 14, 3);
-        for (let x = pitHole.x + pitHole.width + 10; x < canvas.width; x += 30) ctx.fillRect(x, groundY + 4, 14, 3);
+        for (let x = 10; x < pitHole.x - 10; x += 30) {
+          ctx.fillRect(x, groundY + 4, 14, 3);
+        }
+        for (let x = pitHole.x + pitHole.width + 10; x < canvas.width; x += 30) {
+          ctx.fillRect(x, groundY + 4, 14, 3);
+        }
 
         ctx.fillStyle = "#080503";
         ctx.fillRect(pitHole.x, groundY, pitHole.width, canvas.height - groundY);
+
         ctx.fillStyle = "#221105";
         ctx.fillRect(pitHole.x - 3, groundY, 3, canvas.height - groundY);
         ctx.fillRect(pitHole.x + pitHole.width, groundY, 3, canvas.height - groundY);
       }
+    }
+
+
+    function drawBonusVehicle(v) {
+      ctx.save();
+      ctx.translate(v.x, v.y);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#111";
+
+      if (v.type === 'car') {
+        ctx.fillStyle = "#e53935";
+        ctx.beginPath();
+        ctx.roundRect(2, 9, 58, 18, 6);
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#90caf9";
+        ctx.beginPath();
+        ctx.moveTo(15, 9); ctx.lineTo(23, 1); ctx.lineTo(43, 1); ctx.lineTo(51, 9);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#111";
+        ctx.beginPath(); ctx.arc(15, 28, 5, 0, Math.PI*2); ctx.arc(47, 28, 5, 0, Math.PI*2); ctx.fill();
+      } else if (v.type === 'moto') {
+        ctx.strokeStyle = "#ffcc00";
+        ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.moveTo(8, 24); ctx.lineTo(34, 24); ctx.lineTo(39, 8); ctx.stroke();
+        ctx.fillStyle = "#111";
+        ctx.beginPath(); ctx.arc(8, 27, 7, 0, Math.PI*2); ctx.arc(38, 27, 7, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#ffcc00";
+        ctx.fillRect(24, 9, 14, 5);
+      } else {
+        ctx.fillStyle = "#1976d2";
+        ctx.beginPath();
+        ctx.moveTo(0, 15); ctx.lineTo(45, 8); ctx.lineTo(62, 14); ctx.lineTo(45, 20); ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#64b5f6";
+        ctx.beginPath(); ctx.moveTo(20, 12); ctx.lineTo(31, 0); ctx.lineTo(39, 10); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(20, 18); ctx.lineTo(31, 30); ctx.lineTo(39, 20); ctx.closePath(); ctx.fill(); ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawHangGlider(g) {
+      ctx.save();
+      ctx.translate(g.x, g.y);
+      ctx.strokeStyle = "#111";
+      ctx.lineWidth = 2;
+      ctx.fillStyle = "#ff9800";
+      ctx.beginPath();
+      ctx.moveTo(0, 22); ctx.lineTo(38, 0); ctx.lineTo(76, 22); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#ffeb3b";
+      ctx.beginPath();
+      ctx.moveTo(12, 20); ctx.lineTo(38, 5); ctx.lineTo(64, 20); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(38, 5); ctx.lineTo(38, 31); ctx.stroke();
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("ASA DELTA", 38, 40);
+      ctx.restore();
+    }
+
+    function drawEquippedHangGlider(x, y, facing) {
+      ctx.save();
+      ctx.translate(x + player.width/2, y + 8);
+      if (facing === 'left') ctx.scale(-1, 1);
+      ctx.globalAlpha = 0.88;
+      ctx.strokeStyle = "#111";
+      ctx.lineWidth = 2;
+      ctx.fillStyle = "#ff9800";
+      ctx.beginPath();
+      ctx.moveTo(-42, -5); ctx.lineTo(0, -28); ctx.lineTo(42, -5); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#ffeb3b";
+      ctx.beginPath();
+      ctx.moveTo(-28, -7); ctx.lineTo(0, -22); ctx.lineTo(28, -7); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -22); ctx.lineTo(0, 4); ctx.stroke();
+      ctx.restore();
     }
 
     function draw() {
@@ -1767,6 +2010,9 @@
 
       if (currentStage > 1) drawAerialVehicle(aerialVehicle);
 
+      if (bonusVehicle && bonusVehicle.active) drawBonusVehicle(bonusVehicle);
+      if (hangGliderItem && hangGliderItem.active) drawHangGlider(hangGliderItem);
+
       drawDirtRoad();
 
       if (notebookItem && notebookItem.active) {
@@ -1777,25 +2023,6 @@
       if (greenCoatItem && greenCoatItem.active) {
         ctx.fillStyle = "#00ff66"; ctx.fillRect(greenCoatItem.x, greenCoatItem.y, greenCoatItem.width, greenCoatItem.height);
         ctx.fillStyle = "#000"; ctx.font = "bold 10px sans-serif"; ctx.fillText("🥼", greenCoatItem.x + 4, greenCoatItem.y + 15);
-      }
-
-      // DESENHO DA ASA DELTA NO CÉU
-      if (hangGliderItem && hangGliderItem.active) {
-        ctx.fillStyle = "#ffcc00";
-        ctx.beginPath();
-        ctx.moveTo(hangGliderItem.x, hangGliderItem.y);
-        ctx.lineTo(hangGliderItem.x + hangGliderItem.width, hangGliderItem.y + 10);
-        ctx.lineTo(hangGliderItem.x, hangGliderItem.y + hangGliderItem.height);
-        ctx.closePath();
-        ctx.fill();
-        ctx.fillStyle = "#fff"; ctx.font = "bold 10px sans-serif"; ctx.fillText("🪂", hangGliderItem.x + 10, hangGliderItem.y + 14);
-      }
-
-      // DESENHO DE VEÍCULOS NO CENÁRIO
-      if (groundVehicleItem && groundVehicleItem.active) {
-        ctx.fillStyle = "#ff5722"; ctx.fillRect(groundVehicleItem.x, groundVehicleItem.y, groundVehicleItem.width, groundVehicleItem.height);
-        const vIcon = groundVehicleItem.type === 'car' ? "🚗" : groundVehicleItem.type === 'motorcycle' ? "🏍️" : "✈️";
-        ctx.fillStyle = "#fff"; ctx.font = "bold 14px sans-serif"; ctx.fillText(vIcon, groundVehicleItem.x + 10, groundVehicleItem.y + 18);
       }
 
       if (isIntroPlaying) {
@@ -1814,14 +2041,8 @@
       } else {
         drawDrChacaraSide(player.x, player.y, player.facing, player.crouching);
 
-        if (activeVehicleType === 'hangGlider') {
-          ctx.fillStyle = "#ffcc00";
-          ctx.beginPath();
-          ctx.moveTo(player.x - 10, player.y);
-          ctx.lineTo(player.x + player.width + 10, player.y);
-          ctx.lineTo(player.x + player.width / 2, player.y - 20);
-          ctx.closePath();
-          ctx.fill();
+        if (player.gliding) {
+          drawEquippedHangGlider(player.x, player.y, player.facing);
         }
 
         if (player.bigShieldActive) {
@@ -1853,6 +2074,29 @@
       ctx.fillStyle = "#ffffff"; ctx.font = "bold 15px 'Segoe UI'"; ctx.textAlign = "left";
       ctx.fillText(`${currentRule.title}`, 20, 32);
       ctx.fillText(`PONTOS: ${score}  |  VIDAS: ❤️ x${playerLives}`, canvas.width - 270, 32);
+
+      if (bonusMessageTimer > 0) {
+        bonusMessageTimer--;
+        ctx.fillStyle = "rgba(0,0,0,0.72)";
+        ctx.fillRect(canvas.width / 2 - 250, 45, 500, 34);
+        ctx.fillStyle = "#ffcc00";
+        ctx.font = "bold 14px 'Segoe UI'";
+        ctx.textAlign = "center";
+        ctx.fillText(bonusMessage, canvas.width / 2, 67);
+      }
+
+      if (player.hasHangGlider) {
+        ctx.fillStyle = player.gliding ? "#00ffcc" : "#ffffff";
+        ctx.font = "bold 12px 'Segoe UI'";
+        ctx.textAlign = "left";
+        ctx.fillText(`🪂 ASA DELTA ${player.gliding ? "VOANDO" : "PRONTA"} | ENERGIA: ${Math.ceil(player.glideFuel / player.glideMaxFuel * 100)}%`, 18, 52);
+        if (player.gliding) {
+          ctx.fillStyle = "#111";
+          ctx.fillRect(18, 58, 150, 6);
+          ctx.fillStyle = "#00ffcc";
+          ctx.fillRect(18, 58, 150 * Math.max(0, player.glideFuel / player.glideMaxFuel), 6);
+        }
+      }
 
       // INDICAÇÃO DA VERSÃO 1.16
       ctx.fillStyle = "rgba(0, 255, 204, 0.7)";
