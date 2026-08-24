@@ -1,2213 +1,578 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Doutor Chácara - Alfabetização Arcade Mobile v1.14</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
-    html, body {
-      width: 100vw; height: 100vh; background-color: #000; color: #fff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      text-align: center; overflow: hidden; user-select: none;
-    }
-    
-    #game-container {
-      position: relative; width: 100vw; height: 100vh;
-      display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000;
-    }
-    #gameCanvas {
-      background: #000; width: 100vw; height: 100vh; object-fit: fill; display: block;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Doutor Chácara - Arcade Mobile v2.5</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body { background-color: #111; font-family: 'Courier New', Courier, monospace; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+        
+        /* Ajuste de Tela Responsiva Sem Cortar Imagem */
+        #game-container { 
+            position: relative; 
+            width: 100vw; 
+            height: 56.25vw; /* Proporção 16:9 */
+            max-width: 800px; 
+            max-height: 450px; 
+            background: #000; 
+            overflow: hidden; 
+            border: 2px solid #fff; 
+            box-shadow: 0 0 20px rgba(255,255,255,0.2); 
+        }
+        canvas { display: block; width: 100%; height: 100%; object-fit: contain; background: linear-gradient(to bottom, #1a0033, #000000); }
+        
+        .ui-panel { position: absolute; top: 8px; left: 10px; right: 10px; display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; text-shadow: 2px 2px #000; z-index: 10; pointer-events: none; }
+        .btn-ui { background: #333; color: #fff; border: 1px solid #fff; padding: 4px 8px; cursor: pointer; pointer-events: auto; font-family: inherit; font-size: 11px; }
+        .btn-ui:active { background: #555; }
+        
+        /* Controles Virtuais Touch */
+        #touch-controls { position: absolute; bottom: 8px; left: 10px; right: 10px; height: 90px; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
+        .joystick-zone { width: 80px; height: 80px; background: rgba(255,255,255,0.1); border: 2px dashed rgba(255,255,255,0.4); border-radius: 50%; position: relative; }
+        .joystick-knob { width: 32px; height: 32px; background: rgba(255,255,255,0.8); border-radius: 50%; position: absolute; top: 22px; left: 22px; }
+        .action-buttons { display: flex; gap: 8px; }
+        .btn-action { width: 48px; height: 48px; border-radius: 50%; border: 2px solid #fff; font-weight: bold; font-size: 11px; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px #000; }
+        .btn-action:active { transform: translateY(2px); box-shadow: 0 0 #000; }
+        #btn-jump { background: #2196F3; }
+        #btn-attack { background: #4CAF50; }
+        #btn-special { background: #FF9800; }
 
-    /* CONTROLES VIRTUAIS TOUCH TRANSPARENTES */
-    .touch-controls {
-      position: absolute; bottom: 65px; left: 0; width: 100%;
-      display: flex; justify-content: space-between; align-items: flex-end;
-      padding: 0 30px; pointer-events: none; z-index: 5;
-    }
-    
-    #joystick-zone {
-      width: 120px; height: 120px; background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(0, 255, 204, 0.3); border-radius: 50%; position: relative;
-      pointer-events: auto; touch-action: none;
-    }
-    #joystick-stick {
-      width: 50px; height: 50px; background: rgba(0, 255, 204, 0.4); border-radius: 50%;
-      position: absolute; top: 35px; left: 35px;
-      box-shadow: 0 0 8px rgba(0, 255, 204, 0.5); pointer-events: none;
-    }
-
-    .action-buttons { display: flex; gap: 10px; pointer-events: auto; }
-    .btn-action {
-      width: 60px; height: 60px; border-radius: 50%; font-size: 0.75rem; font-weight: bold;
-      border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 0 8px rgba(255,255,255,0.2);
-      display: flex; justify-content: center; align-items: center; color: #fff;
-      opacity: 0.75; cursor: pointer;
-    }
-    .btn-jump { background: rgba(0, 136, 255, 0.4); }
-    .btn-attack { background: rgba(255, 0, 85, 0.4); }
-    .btn-shield { background: rgba(255, 140, 0, 0.4); border-color: rgba(255, 140, 0, 0.6); }
-
-    #btn-fullscreen {
-      position: absolute; top: 15px; right: 15px; background: rgba(0, 255, 204, 0.08);
-      border: 1px solid rgba(0, 255, 204, 0.3); color: #00ffcc; padding: 6px 12px; border-radius: 20px;
-      font-size: 0.75rem; font-weight: bold; cursor: pointer; z-index: 10;
-      backdrop-filter: blur(4px);
-    }
-    
-    #btn-config-keys {
-      position: absolute; top: 15px; left: 15px; background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.3); color: #fff; padding: 6px 12px; border-radius: 20px;
-      font-size: 0.75rem; cursor: pointer; z-index: 10;
-      backdrop-filter: blur(4px);
-    }
-
-    /* BARRA DE FERRAMENTAS INFERIOR SUPER TRANSPARENTE */
-    .bottom-bar {
-      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 8px; background: rgba(10, 10, 18, 0.25);
-      backdrop-filter: blur(5px); padding: 5px 10px; border-radius: 20px;
-      border: 1px solid rgba(0, 255, 204, 0.25); z-index: 15; max-width: 95vw; overflow-x: auto;
-    }
-
-    .btn-tool {
-      background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 5px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;
-      cursor: pointer; display: flex; align-items: center; gap: 5px; white-space: nowrap;
-      transition: all 0.2s ease;
-    }
-    .btn-tool:hover { background: rgba(0, 255, 204, 0.2); border-color: #00ffcc; }
-    .btn-tool.recording { background: rgba(255, 0, 85, 0.6); border-color: #ff0055; animation: pulse 1s infinite; }
-    .btn-tool.off { background: rgba(100, 100, 100, 0.3); opacity: 0.5; }
-
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-
-    /* PAINÉIS OVERLAY SOBREPOSIÇÃO SUPER TRANSPARENTES */
-    .overlay-panel {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: rgba(10, 10, 18, 0.85); 
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(0, 255, 204, 0.4);
-      border-radius: 20px; padding: 20px; box-shadow: 0 0 25px rgba(0, 255, 204, 0.2);
-      z-index: 2000; display: none; flex-direction: column; align-items: center; gap: 12px;
-      width: 90%; max-width: 480px; color: #fff;
-    }
-
-    .overlay-panel h2 { color: #00ffcc; font-size: 1.3rem; text-shadow: 0 0 6px #000; }
-    .overlay-panel p { font-size: 0.9rem; line-height: 1.3; text-shadow: 0 0 6px #000; }
-    
-    .btn-main {
-      background: rgba(0, 255, 204, 0.65); color: #000; font-size: 0.95rem; font-weight: bold;
-      padding: 8px 20px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.4); cursor: pointer;
-      box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); margin: 3px;
-      width: 100%; max-width: 320px; backdrop-filter: blur(4px);
-    }
-
-    .btn-sub {
-      background: rgba(255, 0, 85, 0.65); color: #fff; font-size: 0.9rem; font-weight: bold;
-      padding: 8px 18px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.4); cursor: pointer;
-      box-shadow: 0 0 8px rgba(255, 0, 85, 0.3); margin: 3px;
-      width: 100%; max-width: 320px; backdrop-filter: blur(4px);
-    }
-
-    .btn-back {
-      background: rgba(255, 204, 0, 0.7); color: #000; font-size: 0.9rem; font-weight: bold;
-      padding: 8px 18px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.4); cursor: pointer;
-      box-shadow: 0 0 10px rgba(255, 204, 0, 0.4); margin-top: 8px; width: 100%; max-width: 320px;
-      backdrop-filter: blur(4px);
-    }
-
-    .btn-option {
-      background: rgba(0, 150, 255, 0.6); color: #fff; font-size: 0.85rem; font-weight: bold;
-      padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(0, 255, 204, 0.5); cursor: pointer;
-      width: 100%; max-width: 380px; text-align: left; transition: background 0.2s;
-    }
-    .btn-option:hover { background: rgba(0, 255, 204, 0.8); color: #000; }
-
-    .btn-group { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
-
-    input[type="text"], textarea {
-      padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(0, 255, 204, 0.5);
-      background: rgba(0, 0, 0, 0.4); color: #fff; font-size: 0.9rem; text-align: center; width: 90%;
-      backdrop-filter: blur(4px);
-    }
-
-    textarea { text-align: left; resize: none; height: 55px; }
-
-    /* MENU LATERAL DE COMENTÁRIOS AO VIVO (SUPER TRANSPARENTE) */
-    .instant-comments-box {
-      position: absolute; top: 55px; right: 15px; width: 210px; max-height: 170px;
-      background: rgba(0, 0, 0, 0.12); backdrop-filter: blur(4px);
-      border: 1px solid rgba(0, 255, 204, 0.25); border-radius: 12px;
-      padding: 8px; z-index: 12; display: flex; flex-direction: column; text-align: left;
-    }
-    .instant-comments-header { font-size: 0.7rem; font-weight: bold; color: #00ffcc; margin-bottom: 4px; border-bottom: 1px solid rgba(0,255,204,0.2); padding-bottom: 2px; text-shadow: 0 0 4px #000; }
-    .instant-comments-list { overflow-y: auto; max-height: 130px; font-size: 0.7rem; display: flex; flex-direction: column; gap: 4px; }
-    .instant-item { background: rgba(0, 0, 0, 0.15); padding: 4px 6px; border-radius: 6px; word-break: break-word; text-shadow: 0 0 3px #000; }
-    .instant-item strong { color: #ffcc00; }
-
-    .leaderboard-list {
-      width: 100%; max-height: 110px; overflow-y: auto; text-align: left;
-      font-family: monospace; font-size: 0.8rem; background: rgba(0,0,0,0.3);
-      padding: 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
-    }
-    .leaderboard-item { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dashed rgba(255,255,255,0.2); }
-
-    .key-bind-row { display: flex; justify-content: space-between; width: 100%; align-items: center; padding: 4px 0; font-size: 0.85rem; }
-    .key-bind-btn { background: rgba(0, 0, 0, 0.4); border: 1px solid #00ffcc; color: #00ffcc; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
-    
-    .pix-box {
-      background: rgba(0, 255, 204, 0.08); border: 1px dashed rgba(0, 255, 204, 0.5);
-      padding: 8px; border-radius: 10px; word-break: break-all; font-weight: bold;
-      color: #00ffcc; margin: 4px 0; width: 100%; font-size: 0.8rem;
-    }
-
-    video { width: 100%; border-radius: 12px; border: 1px solid #00ffcc; margin-top: 5px; }
-  </style>
+        /* Modais */
+        .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 30; padding: 15px; text-align: center; }
+        .hidden { display: none !important; }
+        .modal input { padding: 8px; font-size: 16px; text-align: center; margin: 10px 0; font-family: inherit; }
+        .modal button { padding: 8px 16px; font-size: 13px; cursor: pointer; background: #fff; color: #000; border: none; font-weight: bold; margin-top: 5px; }
+    </style>
 </head>
 <body>
 
-  <div id="game-container">
-    <button id="btn-fullscreen" onclick="toggleFullScreen()">TELA CHEIA ⛶</button>
-    <button id="btn-config-keys" onclick="openKeyConfig()">⚙️ CONTROLES</button>
+<div id="game-container">
+    <canvas id="gameCanvas" width="800" height="450"></canvas>
 
-    <canvas id="gameCanvas"></canvas>
-
-    <!-- MENU DE COMENTÁRIOS INSTANTÂNEOS NO CANTO DA TELA -->
-    <div class="instant-comments-box">
-      <div class="instant-comments-header">💬 COMENTÁRIOS AO VIVO</div>
-      <div class="instant-comments-list" id="instant-comments-list"></div>
-    </div>
-
-    <!-- BARRA INFERIOR DE RECURSOS E AÇÕES -->
-    <div class="bottom-bar">
-      <button class="btn-tool" id="btn-record" onclick="toggleRecordGame()">🎥 Gravar Jogo</button>
-      <button class="btn-tool" onclick="takeScreenshot()">📸 Print</button>
-      <button class="btn-tool" onclick="openYoutubeChannel()">🔴 YouTube</button>
-      <button class="btn-tool" onclick="openPixOverlay()">⚡ Pix</button>
-      <button class="btn-tool" onclick="openCommentsOverlay()">💬 Comentários</button>
-      <button class="btn-tool" id="btn-toggle-music" onclick="toggleMusic()">🎵 Música: ON</button>
-      <button class="btn-tool" id="btn-toggle-voice" onclick="toggleVoice()">🔊 Voz: ON</button>
-    </div>
-
-    <!-- PAINEL OVERLAY: PIX -->
-    <div id="panel-pix-overlay" class="overlay-panel">
-      <h2>APOIE O JOGO COM PIX ⚡</h2>
-      <p>Sua ajuda garante novos conteúdos e melhorias para o jogo!</p>
-      <div class="pix-box" id="pixKey">jhonemercadopago2023@gmail.com</div>
-      <button class="btn-main" onclick="copyPixKey()">COPIAR CHAVE PIX 📋</button>
-      <button class="btn-back" onclick="closeAllPanels()">◀ VOLTAR AO JOGO</button>
-    </div>
-
-    <!-- PAINEL OVERLAY: DEIXAR COMENTÁRIO -->
-    <div id="panel-comments-overlay" class="overlay-panel">
-      <h2>DEIXE SEU COMENTÁRIO 💬</h2>
-      <p>Envie sua mensagem para aparecer no jogo!</p>
-      <input type="text" id="comm-author" placeholder="Seu Nome" maxlength="15">
-      <textarea id="comm-text" placeholder="Escreva seu comentário..." maxlength="120"></textarea>
-      <button class="btn-main" onclick="saveNewComment()">ENVIAR COMENTÁRIO 📝</button>
-      <button class="btn-back" onclick="closeAllPanels()">◀ VOLTAR AO JOGO</button>
-    </div>
-
-    <!-- PAINEL INICIAR FASE / TRANSIÇÃO -->
-    <div id="panel-stage-start" class="overlay-panel">
-      <h2 id="stage-title">FASE 1</h2>
-      <p id="stage-instruction">Destrua os alvos solicitados!</p>
-      <div id="stage-score-info"></div>
-      <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
-    </div>
-
-    <!-- PAINEL QUIZ SEMI-MESTRE (DIÁLOGO) -->
-    <div id="panel-boss-quiz" class="overlay-panel">
-      <h2 id="quiz-boss-name" style="color: #ff0055;">SEMI-MESTRE INSETO</h2>
-      <p id="quiz-progress-text" style="color: #ffcc00; font-weight: bold;">Pergunta 1 de 5</p>
-      <p id="quiz-question-text" style="font-size: 1rem; font-weight: bold; margin: 5px 0;"></p>
-      <div class="btn-group" id="quiz-options-container"></div>
-    </div>
-
-    <!-- PAINEL INTERAÇÃO YOUTUBE (TRANSIÇÃO DE FASE) -->
-    <div id="panel-youtube-promo" class="overlay-panel">
-      <h2>FASE CONCLUÍDA! 🎉</h2>
-      <p>Apoie o canal do Doutor Chácara para continuar:</p>
-      <div class="btn-group">
-        <button class="btn-main" style="background: rgba(255, 0, 0, 0.65); color:#fff;" onclick="handleYtAnswer('inscrever')">🔴 Se inscreva no canal Doutor Chácara</button>
-        <button class="btn-main" onclick="handleYtAnswer('sim')">👍 Já é inscrito</button>
-        <!-- A OPÇÃO DE CONTINUAR SÓ APARECE ATÉ A FASE 20 -->
-        <button class="btn-sub" id="btn-continue-game" style="background: rgba(0, 153, 255, 0.65);" onclick="handleYtAnswer('continuar')">▶ Continuar jogo</button>
-      </div>
-      <div id="yt-feedback-msg" style="margin-top: 5px; font-weight: bold; color: #ffcc00; text-shadow: 0 0 5px #000;"></div>
-    </div>
-
-    <!-- PAINEL PAUSA YOUTUBE RETORNO -->
-    <div id="panel-yt-return" class="overlay-panel">
-      <h2>JOGO PAUSADO ⏸️</h2>
-      <p>O jogo está pausado enquanto você visita o canal!</p>
-      <button class="btn-main" onclick="resumeGameFromYt()">CONTINUAR JOGO ▶</button>
-    </div>
-
-    <!-- PAINEL CONFIGURAÇÃO COMPLETA DE CONTROLES -->
-    <div id="panel-key-config" class="overlay-panel">
-      <h2>⚙️ CONFIGURAÇÃO DE CONTROLES</h2>
-      <p style="color:#00ffcc;font-weight:bold">PC • TECLADO • JOYSTICK/GAMEPAD • TOUCH</p>
-      <div class="btn-group" style="margin-bottom:6px">
-        <button class="btn-sub" onclick="applyControlPreset('classic')">⌨️ CLÁSSICO</button>
-        <button class="btn-sub" onclick="applyControlPreset('wasd')">⌨️ WASD</button>
-        <button class="btn-sub" onclick="applyControlPreset('arrows')">⌨️ SETAS</button>
-        <button class="btn-sub" onclick="resetControlSettings()">↺ PADRÃO</button>
-      </div>
-      <div class="key-bind-row"><span>Esquerda:</span><button class="key-bind-btn" id="bind-left-btn" onclick="listenKeyChange('left')">←</button></div>
-      <div class="key-bind-row"><span>Direita:</span><button class="key-bind-btn" id="bind-right-btn" onclick="listenKeyChange('right')">→</button></div>
-      <div class="key-bind-row"><span>Cima:</span><button class="key-bind-btn" id="bind-up-btn" onclick="listenKeyChange('up')">↑</button></div>
-      <div class="key-bind-row"><span>Baixo:</span><button class="key-bind-btn" id="bind-down-btn" onclick="listenKeyChange('down')">↓</button></div>
-      <div class="key-bind-row"><span>Ataque:</span><button class="key-bind-btn" id="bind-attack-btn" onclick="listenKeyChange('attack')">A</button></div>
-      <div class="key-bind-row"><span>Pulo:</span><button class="key-bind-btn" id="bind-jump-btn" onclick="listenKeyChange('jump')">S</button></div>
-      <div class="key-bind-row"><span>Super Escudo:</span><button class="key-bind-btn" id="bind-shield-btn" onclick="listenKeyChange('shield')">D</button></div>
-      <div class="btn-group" style="margin:4px 0"><button class="btn-sub" onclick="clearKeyBinding('attack')">🗑️ Limpar ataque</button><button class="btn-sub" onclick="clearKeyBinding('jump')">🗑️ Limpar pulo</button><button class="btn-sub" onclick="clearKeyBinding('shield')">🗑️ Limpar escudo</button></div>
-      <hr style="width:100%;border-color:rgba(0,255,204,.25);margin:5px 0">
-      <h3 style="margin:4px 0;color:#ffcc00">🎮 CONFIGURAR JOYSTICK / GAMEPAD</h3>
-      <p style="font-size:.75rem;margin:2px 0;color:#ddd">Conecte o controle USB ou Bluetooth e clique em <b>CAPTURAR</b>. Depois pressione o botão desejado.</p>
-      <div class="key-bind-row"><span>Movimento:</span><b id="pad-move-label">Analógico esquerdo</b><button class="key-bind-btn" onclick="detectGamepad()">🔎 DETECTAR</button></div>
-      <div class="key-bind-row"><span>Pulo:</span><button class="key-bind-btn" id="pad-jump-btn" onclick="listenGamepadChange('jump')">CAPTURAR</button></div>
-      <div class="key-bind-row"><span>Ataque:</span><button class="key-bind-btn" id="pad-attack-btn" onclick="listenGamepadChange('attack')">CAPTURAR</button></div>
-      <div class="key-bind-row"><span>Super Escudo:</span><button class="key-bind-btn" id="pad-shield-btn" onclick="listenGamepadChange('shield')">CAPTURAR</button></div>
-      <div class="key-bind-row"><span>Voltar/Cancelar:</span><button class="key-bind-btn" id="pad-back-btn" onclick="listenGamepadChange('back')">CAPTURAR</button></div>
-      <div class="key-bind-row"><span>🎮 Vibração:</span><input id="pad-rumble" type="checkbox" checked></div>
-      <div class="key-bind-row"><span>🎮 Usar gamepad:</span><input id="pad-enabled" type="checkbox" checked></div>
-      <hr style="width:100%;border-color:rgba(0,255,204,.25);margin:5px 0">
-      <div class="key-bind-row"><span>🎮 Sensibilidade do joystick:</span><input id="joy-sensitivity" type="range" min="0.5" max="2" step="0.1" value="1" style="width:120px"></div>
-      <div class="key-bind-row"><span>🎮 Zona morta:</span><input id="joy-deadzone" type="range" min="0.05" max="0.5" step="0.05" value="0.2" style="width:120px"></div>
-      <div class="key-bind-row"><span>🔄 Inverter eixo vertical:</span><input id="joy-invert-y" type="checkbox"></div>
-      <div class="key-bind-row"><span>🔘 Mostrar controles touch:</span><input id="touch-visible" type="checkbox" checked></div>
-      <div class="btn-group">
-        <button class="btn-sub" onclick="testGamepad()">🎮 TESTAR JOYSTICK</button>
-        <button class="btn-main" onclick="saveControlSettings()">💾 SALVAR CONFIGURAÇÃO</button>
-      </div>
-      <div id="gamepad-status" style="font-size:.75rem;color:#ffcc00;margin:4px 0">Nenhum joystick detectado.</div>
-      <button class="btn-main" onclick="closeKeyConfig()">SALVAR E FECHAR</button>
-    </div>
-
-    <!-- PAINEL VITÓRIA FINAL & VÍDEO DO DOUTOR CHÁCARA NA FASE 26 -->
-    <div id="panel-victory" class="overlay-panel">
-      <h2 style="color: #00ffcc;">PARABÉNS! VOCÊ ZEROU A FASE 26! 🏆</h2>
-      <p>Mensagem especial do Doutor Chácara:</p>
-      <video id="victory-video" controls autoplay>
-        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
-        Seu navegador não suporta vídeos HTML5.
-      </video>
-      <p>Digite seu nome para gravar seu recorde no placar para sempre:</p>
-      <input type="text" id="winner-name" placeholder="Seu Nome de Campeão" maxlength="15">
-      <button class="btn-main" onclick="saveVictoryScore()">GRAVAR NO PLACAR PARA SEMPRE 🏆</button>
-    </div>
-
-    <!-- PAINEL GAME OVER & REGISTRO DE NOME -->
-    <div id="panel-game-over" class="overlay-panel">
-      <h2 style="color: #ff0055;">GAME OVER</h2>
-      <p id="game-over-reason">Você perdeu a fase!</p>
-      <p>Sua pontuação: <strong id="final-score">0</strong></p>
-      <input type="text" id="player-name" placeholder="Digite seu nome" maxlength="12">
-      <button class="btn-main" id="btn-save-score">SALVAR RECORD 🔄</button>
-      
-      <h3 style="margin-top: 5px; color: #ffcc00; font-size: 0.85rem;">🏆 PLACAR PERMANENTE DE RECORDES</h3>
-      <div class="leaderboard-list" id="leaderboard-list"></div>
-    </div>
-
-    <div class="touch-controls">
-      <div id="joystick-zone">
-        <div id="joystick-stick"></div>
-      </div>
-
-      <div class="action-buttons">
-        <div class="btn-action btn-jump" id="touch-jump">PULO</div>
-        <div class="btn-action btn-attack" id="touch-attack">ATAQUE</div>
-        <div class="btn-action btn-shield" id="touch-shield">ESCUDO</div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
-    
-    const bgImageDefault = new Image();
-    bgImageDefault.src = "fundo.jpg.jpg";
-
-    const bgImageTiger = new Image();
-    bgImageTiger.src = "https://images.unsplash.com/photo-1561731216-c3a4d99437d5?auto=format&fit=crop&w=1200&q=80";
-
-    let bgImageCurrent = bgImageDefault;
-
-    const gamingBackgrounds = [
-      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80"
-    ];
-
-    const panelStageStart = document.getElementById("panel-stage-start");
-    const panelGameOver = document.getElementById("panel-game-over");
-    const panelVictory = document.getElementById("panel-victory");
-    const panelYtPromo = document.getElementById("panel-youtube-promo");
-    const panelYtReturn = document.getElementById("panel-yt-return");
-    const panelKeyConfig = document.getElementById("panel-key-config");
-    const panelPixOverlay = document.getElementById("panel-pix-overlay");
-    const panelCommentsOverlay = document.getElementById("panel-comments-overlay");
-    const panelBossQuiz = document.getElementById("panel-boss-quiz");
-    
-    const stageTitle = document.getElementById("stage-title");
-    const stageInstruction = document.getElementById("stage-instruction");
-    const stageScoreInfo = document.getElementById("stage-score-info");
-    const finalScoreTxt = document.getElementById("final-score");
-    const playerNameInput = document.getElementById("player-name");
-    const leaderboardList = document.getElementById("leaderboard-list");
-    const btnStartAction = document.getElementById("btn-start-action");
-    const btnSaveScore = document.getElementById("btn-save-score");
-    const instantCommentsList = document.getElementById("instant-comments-list");
-
-    let mediaRecorder = null;
-    let recordedChunks = [];
-    let isRecording = false;
-    let isMusicEnabled = true;
-    let isVoiceEnabled = true;
-
-    // VARIÁVEIS DO SEMI-MESTRE
-    let bossActive = false;
-    let bossState = "none"; // 'quiz', 'walking', 'defeated'
-    let currentBossChar = "A";
-    let bossQuizIndex = 0;
-    let bossQuizQuestions = [];
-    let bossEnemy = null;
-
-    // SISTEMA DE VIDAS E PONTUAÇÃO DE VIDAS EXTRAS
-    let playerLives = 3;
-    let nextExtraLifeScore = 10000;
-
-    const portugueseQuestionsBank = [
-      { q: "Qual das palavras abaixo possui um DÍGRAFO?", options: ["Chuva", "Prato", "Escola", "Pedra"], correct: 0 },
-      { q: "Assinale a alternativa que contém apenas VOGAIS:", options: ["A, E, I, O, U", "A, B, C, D, E", "B, C, D, F, G", "A, E, I, F, U"], correct: 0 },
-      { q: "Qual palavra é uma PROPAROXÍTONA?", options: ["Lâmpada", "Café", "Mesa", "Computador"], correct: 0 },
-      { q: "Qual das palavras contém um ENCONTRO VOCÁLICO?", options: ["Peixe", "Gato", "Cachorro", "Livro"], correct: 0 },
-      { q: "Em 'O menino correu rápido', qual palavra é um ADJETIVO?", options: ["Rápido", "Menino", "Correu", "O"], correct: 0 },
-      { q: "A sílaba tônica da palavra 'CAFÉ' fica na última sílaba. Ela é:", options: ["Oxítona", "Paroxítona", "Proparoxítona", "Monossílaba"], correct: 0 },
-      { q: "Qual é o PLURAL correto da palavra 'Cão'?", options: ["Cães", "Cãos", "Cãoses", "Cãis"], correct: 0 },
-      { q: "Qual palavra está grafada CORRETAMENTE?", options: ["Exceção", "Eseção", "Exseção", "Exceçào"], correct: 0 },
-      { q: "Quantas sílabas tem a palavra 'ALFABETIZAÇÃO'?", options: ["6 sílabas", "5 sílabas", "4 sílabas", "7 sílabas"], correct: 0 },
-      { q: "Qual das palavras abaixo é um SUBSTANTIVO PROPRIO?", options: ["Brasil", "cidade", "menino", "país"], correct: 0 }
-    ];
-
-    function addScore(amount) {
-      score += amount;
-      // VERIFICA VIDA EXTRA A CADA 10.000 PONTOS
-      while (score >= nextExtraLifeScore) {
-        playerLives++;
-        nextExtraLifeScore += 10000;
-        playSound('powerup');
-        speakText("Vida extra!");
-      }
-    }
-
-    function closeAllPanels() {
-      panelStageStart.style.display = "none";
-      panelGameOver.style.display = "none";
-      panelVictory.style.display = "none";
-      panelYtPromo.style.display = "none";
-      panelYtReturn.style.display = "none";
-      panelKeyConfig.style.display = "none";
-      panelPixOverlay.style.display = "none";
-      panelCommentsOverlay.style.display = "none";
-      panelBossQuiz.style.display = "none";
-    }
-
-    function openYoutubeChannel() {
-      window.open("https://www.youtube.com/@DoutorChacara", "_blank");
-    }
-
-    function openPixOverlay() {
-      closeAllPanels();
-      panelPixOverlay.style.display = "flex";
-    }
-
-    function copyPixKey() {
-      navigator.clipboard.writeText("jhonemercadopago2023@gmail.com");
-      alert("Chave Pix copiada com sucesso!");
-    }
-
-    function openCommentsOverlay() {
-      closeAllPanels();
-      panelCommentsOverlay.style.display = "flex";
-    }
-
-    function loadAndRenderComments() {
-      const stored = localStorage.getItem("dr_chacara_comments") || "[]";
-      const comments = JSON.parse(stored);
-      if (comments.length === 0) {
-        instantCommentsList.innerHTML = `<div class="instant-item">Nenhum comentário enviado ainda.</div>`;
-        return;
-      }
-      instantCommentsList.innerHTML = comments.map(c => `
-        <div class="instant-item">
-          <strong>${c.author}:</strong> ${c.text}
+    <!-- UI Topo -->
+    <div class="ui-panel">
+        <div>
+            <div>FASE: <span id="ui-stage">1</span> | PONTOS: <span id="ui-score">0</span></div>
+            <div>VIDAS: <span id="ui-lives">❤️❤️❤️</span> | IMUNE: <span id="ui-school-items">0/3</span></div>
         </div>
-      `).join('');
-    }
-
-    function saveNewComment() {
-      const authorInput = document.getElementById("comm-author");
-      const textInput = document.getElementById("comm-text");
-      const author = authorInput.value.trim() || "Anônimo";
-      const text = textInput.value.trim();
-
-      if (!text) { alert("Digite sua mensagem antes de enviar!"); return; }
-
-      const stored = localStorage.getItem("dr_chacara_comments") || "[]";
-      const comments = JSON.parse(stored);
-      comments.unshift({ author, text });
-      localStorage.setItem("dr_chacara_comments", JSON.stringify(comments.slice(0, 30)));
-
-      textInput.value = "";
-      alert("Comentário enviado e adicionado ao jogo!");
-      loadAndRenderComments();
-      closeAllPanels();
-    }
-
-    window.addEventListener("storage", loadAndRenderComments);
-    loadAndRenderComments();
-
-    function takeScreenshot() {
-      const dataURL = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.download = `doutor-chacara-print-${Date.now()}.png`;
-      link.href = dataURL;
-      link.click();
-    }
-
-    function toggleRecordGame() {
-      const btn = document.getElementById("btn-record");
-      if (!isRecording) {
-        startRecording();
-        btn.innerText = "⏹️ Parar Gravação";
-        btn.classList.add("recording");
-      } else {
-        stopRecording();
-        btn.innerText = "🎥 Gravar Jogo";
-        btn.classList.remove("recording");
-      }
-    }
-
-    function startRecording() {
-      recordedChunks = [];
-      const stream = canvas.captureStream(30);
-      mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
-
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) recordedChunks.push(e.data);
-      };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunks, { type: "video/webm" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `doutor-chacara-gameplay-${Date.now()}.webm`;
-        a.click();
-        URL.revokeObjectURL(url);
-      };
-
-      mediaRecorder.start();
-      isRecording = true;
-    }
-
-    function stopRecording() {
-      if (mediaRecorder && isRecording) {
-        mediaRecorder.stop();
-        isRecording = false;
-      }
-    }
-
-    function toggleMusic() {
-      isMusicEnabled = !isMusicEnabled;
-      const btn = document.getElementById("btn-toggle-music");
-      if (isMusicEnabled) {
-        btn.innerText = "🎵 Música: ON";
-        btn.classList.remove("off");
-        startBackgroundMusic();
-      } else {
-        btn.innerText = "🔇 Música: OFF";
-        btn.classList.add("off");
-        stopBackgroundMusic();
-      }
-    }
-
-    function toggleVoice() {
-      isVoiceEnabled = !isVoiceEnabled;
-      const btn = document.getElementById("btn-toggle-voice");
-      if (isVoiceEnabled) {
-        btn.innerText = "🔊 Voz: ON";
-        btn.classList.remove("off");
-      } else {
-        btn.innerText = "🔇 Voz: OFF";
-        btn.classList.add("off");
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-      }
-    }
-
-    const defaultKeyBinds = { left:"ArrowLeft", right:"ArrowRight", up:"ArrowUp", down:"ArrowDown", attack:"KeyA", jump:"KeyS", shield:"KeyD" };
-    const keyBinds = {...defaultKeyBinds};
-    let controlSettings = { sensitivity:1, deadzone:0.2, invertY:false, touchVisible:true, padRumble:true, padEnabled:true };
-    try { Object.assign(keyBinds, JSON.parse(localStorage.getItem('dcKeyBinds') || '{}')); Object.assign(controlSettings, JSON.parse(localStorage.getItem('dcControlSettings') || '{}')); } catch(e) {}
-    let listeningKeyAction = null;
-
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    let bgMusicTimer = null;
-    let bgMusicNoteIndex = 0;
-
-    const stageScales = [
-      [261.63, 293.66, 329.63, 349.23, 392.00, 440.00],
-      [293.66, 329.63, 369.99, 392.00, 440.00, 493.88],
-      [329.63, 369.99, 392.00, 440.00, 493.88, 523.25],
-      [349.23, 392.00, 440.00, 466.16, 523.25, 587.33],
-      [392.00, 440.00, 493.88, 523.25, 587.33, 659.25]
-    ];
-
-    function startBackgroundMusic() {
-      if (!isMusicEnabled || bgMusicTimer) return;
-      
-      bgMusicTimer = setInterval(() => {
-        if (!isMusicEnabled || gameOver || !stageStarted) return;
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = (currentStage % 2 === 0) ? 'triangle' : 'sine';
-        
-        const scale = stageScales[(currentStage - 1) % stageScales.length];
-        const note = scale[bgMusicNoteIndex % scale.length];
-        bgMusicNoteIndex++;
-
-        osc.frequency.setValueAtTime(note, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.002, audioCtx.currentTime + 0.35);
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.35);
-      }, 350);
-    }
-
-    function stopBackgroundMusic() {
-      if (bgMusicTimer) {
-        clearInterval(bgMusicTimer);
-        bgMusicTimer = null;
-      }
-    }
-
-    function playSound(type) {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      if (type === 'jump') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(750, audioCtx.currentTime + 0.3);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-      } else if (type === 'attack') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-      } else if (type === 'hitTarget') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.25);
-        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.25);
-      } else if (type === 'hitWrong') {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-      } else if (type === 'powerup') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.2);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-      } else if (type === 'ufo') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 1.5);
-        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
-        osc.start(); osc.stop(audioCtx.currentTime + 1.5);
-      } else if (type === 'dart') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(300, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-      } else if (type === 'block') {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-      }
-    }
-
-    function speakText(text, onEndCallback) {
-      if (!isVoiceEnabled) {
-        if (onEndCallback) setTimeout(onEndCallback, 3000);
-        return;
-      }
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'pt-BR';
-        utterance.rate = 1.0;
-        if (onEndCallback) {
-          utterance.onend = onEndCallback;
-        }
-        window.speechSynthesis.speak(utterance);
-      } else if (onEndCallback) {
-        setTimeout(onEndCallback, 3000);
-      }
-    }
-
-    function toggleFullScreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        document.exitFullscreen().catch(() => {});
-      }
-    }
-
-    // VARIÁVEIS DE JOGO
-    let currentStage = 1;
-    // O jogo agora possui 26 fases de desafios com insetos.
-    const maxStages = 26;
-    let score = 0;
-    let gameOver = false;
-    let stageStarted = false;
-    let stageMissionText = "";
-    let walkCycle = 0;
-    let sunAngle = 0;
-    let gameTimerSeconds = 0;
-
-    // ESTRADA DE TERRA E BURACO
-    let roadColors = { main: "#8B4513", accent: "#5C2E0B", edge: "#2e7d32" };
-    let pitHole = { x: 0, width: 0, active: false };
-
-    let collisionAnimationActive = false;
-    let collisionAnimTimer = 0;
-    let playerSpeechBubble = "";
-    let enemySpeechBubble = "";
-    let mockingEnemy = null;
-
-    const positiveFrases = [
-      "Vou ficar mais atento!",
-      "Cada erro é um aprendizado!",
-      "Não desisto, vou conseguir!",
-      "Atenção dobrada na próxima!",
-      "A prática leva à perfeição!"
-    ];
-
-    let isIntroPlaying = false;
-    let ufoState = { x: -100, y: 50, beamOpacity: 0, playerY: -100, step: 0 };
-
-    function getGroundY() {
-      return canvas.height - 80;
-    }
-
-    // PERSONAGEM
-    const player = {
-      x: 50, y: 280, width: 33, height: 71.5,
-      vx: 0, vy: 0, speed: 4.5, friction: 0.82,
-      grounded: false, crouching: false, facing: 'right', aimingUp: false,
-      attacking: false, attackTimer: 0, attackMaxTime: 12,
-      hasGreenCoat: false, shieldPowerUp: false,
-      bigShieldActive: false
-    };
-
-    function triggerPlayerJump() {
-      if (player.grounded && stageStarted && !gameOver) {
-        player.vy = -12;
-        player.grounded = false;
-        playSound('jump');
-      }
-    }
-
-    const gravity = 0.65;
-    // ALCANCE DO ESCUDO DE ATAQUE DIMINUÍDO PELA METADE (70px)
-    const weapon = { x: 0, y: 0, length: 0, baseMaxLength: 70 };
-
-    let notebookItem = null;
-    let greenCoatItem = null;
-
-    const aerialSymbols = ['plane', 'helicopter', 'balloon', 'rocket', 'ufo_mini', 'bird', 'dragon', 'blimp'];
-
-    // DARDOS DISPARADOS
-    const darts = [];
-
-    // INIMIGOS DA CHÁCARA
-    // Cada fase recebe uma combinação diferente. A fase 26 reúne todos.
-    const insectCatalog = [
-      { id: "formiga", name: "Formiga" },
-      { id: "aranha", name: "Aranha" },
-      { id: "gafanhoto", name: "Gafanhoto" },
-      { id: "besouro", name: "Besouro" },
-      { id: "joaninha", name: "Joaninha" },
-      { id: "abelha", name: "Abelha" },
-      { id: "vespa", name: "Vespa" },
-      { id: "mosca", name: "Mosca" },
-      { id: "mosquito", name: "Mosquito" },
-      { id: "borboleta", name: "Borboleta" },
-      { id: "mariposa", name: "Mariposa" },
-      { id: "grilo", name: "Grilo" },
-      { id: "libelula", name: "Libélula" },
-      { id: "louva", name: "Louva-a-deus" },
-      { id: "lagarta", name: "Lagarta" },
-      { id: "cupim", name: "Cupim" },
-      { id: "percevejo", name: "Percevejo" },
-      { id: "cigarra", name: "Cigarra" },
-      { id: "gorgulho", name: "Gorgulho" },
-      { id: "pulgão", name: "Pulgão" },
-      { id: "vaga-lume", name: "Vaga-lume" },
-      { id: "tesourinha", name: "Tesourinha" },
-      { id: "barata", name: "Barata" },
-      { id: "paquinha", name: "Paquinha" },
-      { id: "tanajura", name: "Tanajura" },
-      { id: "pernilongo", name: "Pernilongo" }
-    ];
-
-    const stageInsectSets = [
-      ["formiga","aranha","gafanhoto"],
-      ["besouro","joaninha","abelha"],
-      ["vespa","mosca","mosquito"],
-      ["borboleta","mariposa","grilo"],
-      ["libelula","louva","lagarta"],
-      ["cupim","percevejo","cigarra"],
-      ["gorgulho","pulgão","vaga-lume"],
-      ["tesourinha","barata","paquinha"],
-      ["tanajura","pernilongo","formiga"],
-      ["aranha","besouro","vespa"],
-      ["gafanhoto","joaninha","grilo"],
-      ["abelha","borboleta","libelula"],
-      ["mosca","mariposa","louva"],
-      ["mosquito","lagarta","cupim"],
-      ["percevejo","cigarra","gorgulho"],
-      ["pulgão","vaga-lume","tesourinha"],
-      ["barata","paquinha","tanajura"],
-      ["pernilongo","formiga","besouro"],
-      ["aranha","gafanhoto","abelha"],
-      ["vespa","joaninha","mosca"],
-      ["mosquito","borboleta","grilo"],
-      ["mariposa","libelula","louva"],
-      ["lagarta","cupim","percevejo"],
-      ["cigarra","gorgulho","pulgão"],
-      ["vaga-lume","tesourinha","barata"]
-    ];
-
-    function getInsectById(id) {
-      return insectCatalog.find(insect => insect.id === id) || insectCatalog[0];
-    }
-
-    function getInsectsForStage(stage) {
-      if (stage === maxStages) return [...insectCatalog];
-      return stageInsectSets[(stage - 1) % stageInsectSets.length].map(getInsectById);
-    }
-
-    function getRuleForStage(stage) {
-      const insects = getInsectsForStage(stage);
-      const names = insects.map(i => i.name).join(", ");
-      return {
-        title: `FASE ${stage}: INSETOS DA CHÁCARA`,
-        instruction: stage === maxStages
-          ? "DESAFIO FINAL: enfrente todos os insetos da chácara! Se um inimigo tocar no Doutor Chácara, você perde uma vida."
-          : `Enfrente: ${names}. Destrua os insetos e avance! Se um inseto tocar no Doutor Chácara, você perde uma vida.`,
-        insects
-      };
-    }
-
-    const enemies = [];
-    let aerialVehicle = { x: -100, y: 80, speed: 1.5, type: 'plane' };
-
-    function prepareStage() {
-      enemies.length = 0;
-      darts.length = 0;
-      closeAllPanels();
-      bossActive = false;
-      bossState = "none";
-      bossEnemy = null;
-
-      const groundY = getGroundY();
-
-      // SEMI-MESTRE: um inseto da própria fase, com exatamente 4x o tamanho do personagem.
-      if (currentStage % 5 === 0 && currentStage < maxStages) {
-        bossActive = true;
-
-        const bossPool = getInsectsForStage(currentStage);
-        const bossInsect = bossPool[Math.floor(Math.random() * bossPool.length)];
-        currentBossChar = bossInsect.name;
-
-        stageTitle.innerText = `FASE ${currentStage}: SEMI-MESTRE ${bossInsect.name.toUpperCase()}`;
-        stageInstruction.innerText =
-          `O Semi-Mestre é um ${bossInsect.name}. Ele tem 4x o tamanho do Doutor Chácara! Responda às perguntas e use o ESCUDO para derrotá-lo.`;
-
-        const topRecord = getTopScores()[0] || { name: 'Ninguém', score: 0 };
-        stageScoreInfo.innerHTML = `Pontuação Atual: <strong>${score}</strong> | Vidas: <strong>❤️ x${playerLives}</strong><br>Recorde do Jogo: <strong>${topRecord.score}</strong> (${topRecord.name})`;
-        panelStageStart.style.display = "flex";
-
-        bossEnemy = {
-          x: canvas.width - 190,
-          y: groundY - (player.height * 4),
-          width: player.width * 4,
-          height: player.height * 4,
-          insect: bossInsect,
-          speed: 2.2 + currentStage * 0.03,
-          alive: true,
-          expression: 'normal'
-        };
-        return;
-      }
-
-      const currentRule = getRuleForStage(currentStage);
-      stageMissionText = currentRule.instruction;
-      stageStarted = false;
-
-      if (currentStage === maxStages) {
-        bgImageCurrent = bgImageTiger;
-      } else if (currentStage % 2 === 0) {
-        bgImageCurrent = bgImageDefault;
-      } else {
-        const randomImgUrl = gamingBackgrounds[Math.floor((currentStage - 1) / 2) % gamingBackgrounds.length];
-        bgImageCurrent = new Image();
-        bgImageCurrent.src = randomImgUrl;
-      }
-
-      const mainEarthColors = ["#8B4513", "#A0522D", "#6B4226", "#B8860B", "#795548", "#5D4037"];
-      const accentEarthColors = ["#5C2E0B", "#5C3A21", "#4A2E1B", "#8B6508", "#4E342E", "#3E2723"];
-      const edgeGrassColors = ["#2e7d32", "#388e3c", "#1b5e20", "#43a047", "#2e7d32", "#1b5e20"];
-
-      const colorIdx = (currentStage - 1) % mainEarthColors.length;
-      roadColors = {
-        main: mainEarthColors[colorIdx],
-        accent: accentEarthColors[colorIdx],
-        edge: edgeGrassColors[colorIdx]
-      };
-
-      if (currentStage % 2 !== 0) {
-        pitHole = {
-          x: 320 + Math.random() * 160,
-          width: 80 + Math.random() * 40,
-          active: true
-        };
-      } else {
-        pitHole = { x: 0, width: 0, active: false };
-      }
-
-      stageTitle.innerText = currentRule.title;
-      stageInstruction.innerText = currentRule.instruction;
-
-      const topRecord = getTopScores()[0] || { name: 'Ninguém', score: 0 };
-      stageScoreInfo.innerHTML = `Pontuação Atual: <strong>${score}</strong> | Vidas: <strong>❤️ x${playerLives}</strong><br>Recorde do Jogo: <strong>${topRecord.score}</strong> (${topRecord.name})`;
-      panelStageStart.style.display = "flex";
-
-      if (currentStage > 1) {
-        const symbolType = aerialSymbols[(currentStage - 2) % aerialSymbols.length];
-        aerialVehicle = { x: -80, y: 60 + Math.random() * 40, speed: 1.2 + Math.random() * 0.8, type: symbolType };
-      }
-
-      if (Math.random() > 0.3) {
-        notebookItem = { x: 200 + Math.random() * 400, y: groundY - 25, width: 20, height: 20, active: true };
-      } else {
-        notebookItem = null;
-      }
-
-      const insects = getInsectsForStage(currentStage);
-      const count = currentStage === maxStages ? insectCatalog.length : Math.min(4 + Math.floor(currentStage * 0.5), 18);
-
-      for (let i = 0; i < count; i++) {
-        const insect = insects[i % insects.length];
-        let spawnX = 450 + i * 150 + Math.random() * 30;
-
-        if (pitHole.active && spawnX > pitHole.x - 30 && spawnX < pitHole.x + pitHole.width + 30) {
-          spawnX += pitHole.width + 40;
-        }
-
-        const isPurpleSpecial = (currentStage >= 4 && i === 0);
-
-        enemies.push({
-          x: spawnX,
-          y: groundY - 55,
-          width: 40,
-          height: 55,
-          speed: 1.4 + (currentStage * 0.1),
-          alive: true,
-          insect,
-          dir: -1,
-          expression: 'normal',
-          mockOffset: 0,
-          isPurple: isPurpleSpecial,
-          shootCooldown: Math.floor(Math.random() * 100) + 100
-        });
-      }
-    }
-
-
-    function startBossQuiz() {
-      bossState = "quiz";
-      bossQuizIndex = 0;
-      
-      const shuffled = [...portugueseQuestionsBank].sort(() => 0.5 - Math.random());
-      bossQuizQuestions = shuffled.slice(0, 5);
-      
-      renderBossQuizQuestion();
-    }
-
-    function renderBossQuizQuestion() {
-      if (bossQuizIndex >= 5) {
-        closeAllPanels();
-        bossState = "walking";
-        stageStarted = true;
-        startBackgroundMusic();
-        speakText(`Muito bem! Agora use seu escudo para rebater o Semi-Mestre ${currentBossChar}!`);
-        return;
-      }
-
-      closeAllPanels();
-      const q = bossQuizQuestions[bossQuizIndex];
-      document.getElementById("quiz-boss-name").innerText = `SEMI-MESTRE ${currentBossChar}`;
-      document.getElementById("quiz-progress-text").innerText = `Pergunta ${bossQuizIndex + 1} de 5`;
-      document.getElementById("quiz-question-text").innerText = q.q;
-
-      const optsContainer = document.getElementById("quiz-options-container");
-      optsContainer.innerHTML = "";
-
-      q.options.forEach((optText, idx) => {
-        const btn = document.createElement("button");
-        btn.className = "btn-option";
-        btn.innerText = `${String.fromCharCode(65 + idx)}) ${optText}`;
-        btn.onclick = () => handleQuizAnswer(idx === q.correct);
-        optsContainer.appendChild(btn);
-      });
-
-      panelBossQuiz.style.display = "flex";
-      speakText(`Pergunta ${bossQuizIndex + 1}: ${q.q}`);
-    }
-
-    function handleQuizAnswer(isCorrect) {
-      if (isCorrect) {
-        playSound('powerup');
-        addScore(200);
-        bossQuizIndex++;
-        renderBossQuizQuestion();
-      } else {
-        closeAllPanels();
-        triggerGameOverSequence(bossEnemy, `Você errou a pergunta do Semi-Mestre ${currentBossChar}!`);
-      }
-    }
-
-    function startStage() {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      closeAllPanels();
-      
-      if (bossActive) {
-        startBossQuiz();
-        return;
-      }
-
-      const groundY = getGroundY();
-
-      if (currentStage === 1) {
-        isIntroPlaying = true;
-        ufoState = { x: -100, y: 80, beamOpacity: 0, playerY: 80, step: 0 };
-        playSound('ufo');
-        speakText("Doutor Chácara foi trazido pelo Disco Voador. Prepare-se!");
-      } else {
-        stageStarted = true;
-        startBackgroundMusic();
-        const currentRule = getRuleForStage(currentStage);
-        speakText(`${currentRule.title}. ${currentRule.instruction}`);
-      }
-    }
-
-    btnStartAction.addEventListener("click", startStage);
-    btnSaveScore.addEventListener("click", saveScoreAndRestart);
-
-    setInterval(() => {
-      if (stageStarted && !gameOver && !isIntroPlaying) {
-        gameTimerSeconds++;
-        const groundY = getGroundY();
-        if (gameTimerSeconds % 300 === 0 && !bossActive) {
-          greenCoatItem = { x: 300 + Math.random() * 200, y: groundY - 25, width: 22, height: 22, active: true };
-        }
-      }
-    }, 1000);
-
-    function openKeyConfig() { closeAllPanels(); panelKeyConfig.style.display = "flex"; updateControlButtons(); testGamepad(); }
-    function closeKeyConfig() { saveControlSettings(); panelKeyConfig.style.display = "none"; }
-    function listenKeyChange(action) { listeningKeyAction=action; const btn=document.getElementById(`bind-${action}-btn`); if(btn) btn.innerText="PRESSIONE UMA TECLA..."; }
-    function clearKeyBinding(action){ keyBinds[action]=null; updateControlButtons(); saveControlSettings(); }
-    let listeningPadAction=null;
-    let lastPadButtons=[];
-    const defaultPadBinds={jump:0,attack:2,shield:1,back:9};
-    const padBinds={...defaultPadBinds};
-    try{Object.assign(padBinds,JSON.parse(localStorage.getItem('dcPadBinds')||'{}'));}catch(e){}
-    function detectGamepad(){
-      const pads=navigator.getGamepads?navigator.getGamepads():[];
-      const pad=[...pads].find(Boolean);
-      document.getElementById('gamepad-status').innerText=pad?`🎮 Controle encontrado: ${pad.id}`:'❌ Nenhum controle encontrado. Conecte USB/Bluetooth e pressione um botão.';
-      if(pad) activeGamepadIndex=pad.index;
-      updatePadButtons();
-    }
-    function listenGamepadChange(action){
-      if(!navigator.getGamepads){alert('Seu navegador não oferece suporte a Gamepad API.');return;}
-      listeningPadAction=action;
-      const id=action==='back'?'pad-back-btn':`pad-${action}-btn`;
-      document.getElementById(id).innerText='PRESSIONE UM BOTÃO...';
-      detectGamepad();
-    }
-    function updatePadButtons(){
-      ['jump','attack','shield','back'].forEach(a=>{const b=document.getElementById(`pad-${a}-btn`);if(b&&!listeningPadAction)b.innerText=`BOTÃO ${padBinds[a]}`;});
-      const r=document.getElementById('pad-rumble'), en=document.getElementById('pad-enabled');
-      if(r)r.checked=controlSettings.padRumble!==false; if(en)en.checked=controlSettings.padEnabled!==false;
-    }
-    function savePadSettings(){
-      controlSettings.padRumble=document.getElementById('pad-rumble').checked;
-      controlSettings.padEnabled=document.getElementById('pad-enabled').checked;
-      localStorage.setItem('dcPadBinds',JSON.stringify(padBinds));
-      saveControlSettings();
-    }
-
-    window.addEventListener("keydown", (e) => {
-      if (listeningKeyAction) {
-        e.preventDefault();
-        if (e.code === 'Escape') { listeningKeyAction=null; updateControlButtons(); return; }
-        keyBinds[listeningKeyAction]=e.code;
-        listeningKeyAction=null; updateControlButtons(); saveControlSettings(); return;
-      }
-      if ([keyBinds.left,keyBinds.right,keyBinds.up,keyBinds.down,'Space'].includes(e.code)) e.preventDefault();
-      keys[e.code]=true;
-    });
-
-    function openYoutubePromo() {
-      closeAllPanels();
-      document.getElementById("yt-feedback-msg").innerText = "";
-
-      // OPÇÃO DE CONTINUAR SÓ APARECE ATÉ A FASE 20
-      const btnContinue = document.getElementById("btn-continue-game");
-      if (currentStage > 20) {
-        btnContinue.style.display = "none";
-      } else {
-        btnContinue.style.display = "inline-block";
-      }
-
-      panelYtPromo.style.display = "flex";
-      speakText("Se inscreva no canal do Doutor Chácara!");
-    }
-
-    function handleYtAnswer(option) {
-      const msgBox = document.getElementById("yt-feedback-msg");
-      if (option === 'inscrever') {
-        window.open("https://www.youtube.com/@DoutorChacara", "_blank");
-        closeAllPanels();
-        panelYtReturn.style.display = "flex";
-      } else if (option === 'sim') {
-        msgBox.innerText = "Muito obrigado por fazer parte do nosso canal! 💙";
-        speakText("Muito obrigado por fazer parte do nosso canal!");
-        setTimeout(() => { closeAllPanels(); advanceToNextStage(); }, 1500);
-      } else if (option === 'continuar') {
-        closeAllPanels();
-        advanceToNextStage();
-      }
-    }
-
-    function resumeGameFromYt() {
-      closeAllPanels();
-      advanceToNextStage();
-    }
-
-    function advanceToNextStage() {
-      currentStage++; player.x = 20;
-      prepareStage();
-    }
-
-    function showVictoryOverlay() {
-      stopBackgroundMusic();
-      stageStarted = false;
-      closeAllPanels();
-      
-      speakText("Parabéns! Você zerou a Fase 26! O Doutor Chácara agradece e te parabeniza por esta grande vitória!");
-      panelVictory.style.display = "flex";
-    }
-
-    function saveVictoryScore() {
-      const winnerNameInput = document.getElementById("winner-name");
-      const name = winnerNameInput.value.trim() || "Campeão Absoluto";
-      
-      const scores = getTopScores();
-      scores.push({ name: `🏆 ${name}`, score: score + 10000 });
-      scores.sort((a, b) => b.score - a.score);
-      localStorage.setItem("dr_chacara_scores", JSON.stringify(scores));
-
-      alert("Recorde imortalizado no placar para sempre!");
-      resetGame();
-    }
-
-    function getTopScores() {
-      const data = localStorage.getItem("dr_chacara_scores");
-      return data ? JSON.parse(data) : [];
-    }
-
-    function renderLeaderboard() {
-      const scores = getTopScores();
-      leaderboardList.innerHTML = scores.map((s, i) => `
-        <div class="leaderboard-item">
-          <span>#${i+1} ${s.name}</span>
-          <span>${s.score} pts</span>
+        <div>
+            <button class="btn-ui" id="btn-config">⚙️ CONTROLES (PC)</button>
         </div>
-      `).join('') || '<div>Nenhum recorde ainda!</div>';
+    </div>
+
+    <!-- Controles Touch -->
+    <div id="touch-controls">
+        <div class="joystick-zone" id="joystick-zone">
+            <div class="joystick-knob" id="joystick-knob"></div>
+        </div>
+        <div class="action-buttons">
+            <div class="btn-action" id="btn-attack">ESC.U</div>
+            <div class="btn-action" id="btn-special">REL.I</div>
+            <div class="btn-action" id="btn-jump">PULO</div>
+        </div>
+    </div>
+
+    <!-- Modal Reconfiguração de Teclas -->
+    <div id="modal-keybinds" class="modal hidden">
+        <h2>Configurar Teclas (PC)</h2>
+        <p style="margin: 8px 0; font-size: 11px;">Clique no botão e pressione a nova tecla:</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+            <button id="rebind-left">Esquerda: A</button>
+            <button id="rebind-right">Direita: D</button>
+            <button id="rebind-jump">Pulo: ESPAÇO</button>
+            <button id="rebind-attack">Escudo U: U</button>
+            <button id="rebind-special">Relógio I: I</button>
+        </div>
+        <button id="btn-save-keybinds" style="background: #4CAF50; color: white;">SALVAR AJUSTES</button>
+        <button id="btn-close-keybinds">CANCELAR</button>
+    </div>
+
+    <!-- Modal Selection / Cheats -->
+    <div id="modal-cheat" class="modal hidden">
+        <h2>Menu de Seleção de Fases</h2>
+        <p>Digite a fase desejada (1 a 25):</p>
+        <input type="number" id="cheat-stage-input" min="1" max="25" value="1">
+        <button id="btn-apply-cheat">IR PARA FASE</button>
+        <button id="btn-close-cheat" style="background:#888;">CANCELAR</button>
+    </div>
+
+    <!-- Modal Game Over / Vitoria -->
+    <div id="modal-gameover" class="modal hidden">
+        <h1 id="go-title">GAME OVER</h1>
+        <p id="go-message">Tente novamente!</p>
+        <button id="btn-restart">JOGAR NOVAMENTE</button>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const state = {
+    score: 0,
+    lives: 3,
+    stage: 1,
+    schoolItems: 0,
+    isImmune: false,
+    immunityTimer: 0,
+    isGameOver: false,
+    isPaused: false,
+    cheatBuffer: "",
+    keyMap: {
+        left: 'KeyA',
+        right: 'KeyD',
+        jump: 'Space',
+        attack: 'KeyU',
+        special: 'KeyI'
     }
+};
 
-    function saveScoreAndRestart() {
-      const name = playerNameInput.value.trim() || "Jogador";
-      const scores = getTopScores();
-      scores.push({ name: name, score: score });
-      scores.sort((a, b) => b.score - a.score);
-      localStorage.setItem("dr_chacara_scores", JSON.stringify(scores));
-
-      resetGame();
+// Carregar Configurações Salvas
+function loadSettings() {
+    const savedKeys = localStorage.getItem('dc_keybinds');
+    if (savedKeys) {
+        try { state.keyMap = JSON.parse(savedKeys); updateKeybindButtonsUI(); } catch(e){}
     }
+}
 
-    function triggerGameOverSequence(enemyRef, reason) {
-      playerLives--;
+function saveSettings() {
+    localStorage.setItem('dc_keybinds', JSON.stringify(state.keyMap));
+    alert('Ajustes salvos com sucesso!');
+    document.getElementById('modal-keybinds').classList.add('hidden');
+}
 
-      if (playerLives > 0) {
-        // PERDEU UMA VIDA, MAS RESSUSCITA NA FASE ATUAL
-        playSound('hitWrong');
-        speakText(`Você perdeu uma vida! Restam ${playerLives} vidas.`);
-        player.x = 50;
-        player.y = getGroundY() - player.height;
-        player.vx = 0; player.vy = 0;
+// Input Handling
+const keys = {};
+window.addEventListener('keydown', e => {
+    if (listeningRebind) {
+        state.keyMap[listeningRebind] = e.code;
+        listeningRebind = null;
+        updateKeybindButtonsUI();
         return;
-      }
-
-      // GAME OVER DEFINITIVO QUANDO AS VIDAS ACABAM
-      collisionAnimationActive = true;
-      collisionAnimTimer = 0;
-      mockingEnemy = enemyRef;
-      
-      playerSpeechBubble = positiveFrases[Math.floor(Math.random() * positiveFrases.length)];
-      enemySpeechBubble = enemyRef ? "Você não consegue me vencer! Kkkk" : "Cuidado com o perigo!";
-      
-      playSound('hitWrong');
-      speakText(playerSpeechBubble);
-
-      let animInterval = setInterval(() => {
-        collisionAnimTimer += 0.2;
-        if (mockingEnemy) mockingEnemy.mockOffset = Math.sin(collisionAnimTimer * 5) * 8;
-        
-        if (collisionAnimTimer >= 3.5) {
-          clearInterval(animInterval);
-          collisionAnimationActive = false;
-          gameOver = true;
-          stopBackgroundMusic();
-          closeAllPanels();
-          document.getElementById("game-over-reason").innerText = reason;
-          finalScoreTxt.innerText = score;
-          renderLeaderboard();
-          panelGameOver.style.display = "flex";
-        }
-      }, 50);
     }
-
-    const joyZone = document.getElementById("joystick-zone");
-    const joyStick = document.getElementById("joystick-stick");
-    let joyActive = false;
-    let joyVector = { x: 0, y: 0 };
-
-    joyZone.addEventListener("pointerdown", (e) => { joyActive = true; updateJoystick(e); });
-    window.addEventListener("pointermove", (e) => { if (joyActive) updateJoystick(e); });
-    window.addEventListener("pointerup", () => {
-      joyActive = false; joyVector = { x: 0, y: 0 };
-      joyStick.style.top = "35px"; joyStick.style.left = "35px";
-    });
-
-    function updateJoystick(e) {
-      const rect = joyZone.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      let dx = e.clientX - centerX;
-      let dy = e.clientY - centerY;
-      const dist = Math.hypot(dx, dy);
-      const maxDist = 40;
-      if (dist > maxDist) { dx = (dx / dist) * maxDist; dy = (dy / dist) * maxDist; }
-      joyStick.style.left = `${35 + dx}px`; joyStick.style.top = `${35 + dy}px`;
-      joyVector.x = dx / maxDist; joyVector.y = dy / maxDist;
+    keys[e.code] = true;
+    
+    state.cheatBuffer += e.key.toLowerCase();
+    if (state.cheatBuffer.length > 20) state.cheatBuffer = state.cheatBuffer.slice(-20);
+    if (state.cheatBuffer.includes('fasedoutor')) {
+        state.cheatBuffer = "";
+        document.getElementById('modal-cheat').classList.remove('hidden');
     }
+});
+window.addEventListener('keyup', e => { keys[e.code] = false; });
 
-    function updateControlButtons() {
-      const labels = {left:'←',right:'→',up:'↑',down:'↓',attack:'A',jump:'S',shield:'D'};
-      Object.keys(labels).forEach(a => { const b=document.getElementById(`bind-${a}-btn`); if(b) b.innerText=labels[a] && keyBinds[a] ? formatKey(keyBinds[a]) : labels[a]; });
-      document.getElementById('joy-sensitivity').value=controlSettings.sensitivity;
-      document.getElementById('joy-deadzone').value=controlSettings.deadzone;
-      document.getElementById('joy-invert-y').checked=controlSettings.invertY;
-      document.getElementById('touch-visible').checked=controlSettings.touchVisible;
-      const pr=document.getElementById('pad-rumble'), pe=document.getElementById('pad-enabled'); if(pr)pr.checked=controlSettings.padRumble!==false; if(pe)pe.checked=controlSettings.padEnabled!==false;
-      document.querySelector('.touch-controls').style.display=controlSettings.touchVisible?'flex':'none';
-      updatePadButtons();
-    }
-    function formatKey(code) { const m={ArrowLeft:'←',ArrowRight:'→',ArrowUp:'↑',ArrowDown:'↓',Space:'ESPAÇO'}; return m[code] || code.replace('Key','').replace('Digit',''); }
-    function saveControlSettings() {
-      controlSettings.sensitivity=parseFloat(document.getElementById('joy-sensitivity').value);
-      controlSettings.deadzone=parseFloat(document.getElementById('joy-deadzone').value);
-      controlSettings.invertY=document.getElementById('joy-invert-y').checked;
-      controlSettings.touchVisible=document.getElementById('touch-visible').checked;
-      localStorage.setItem('dcKeyBinds',JSON.stringify(keyBinds));
-      localStorage.setItem('dcControlSettings',JSON.stringify(controlSettings));
-      updateControlButtons();
-    }
-    function resetControlSettings() { Object.assign(keyBinds,defaultKeyBinds); Object.assign(padBinds,defaultPadBinds); controlSettings={sensitivity:1,deadzone:.2,invertY:false,touchVisible:true,padRumble:true,padEnabled:true}; saveControlSettings(); localStorage.setItem('dcPadBinds',JSON.stringify(padBinds)); updatePadButtons(); }
-    function applyControlPreset(type) {
-      if(type==='wasd') Object.assign(keyBinds,{left:'KeyA',right:'KeyD',up:'KeyW',down:'KeyS'});
-      else if(type==='arrows') Object.assign(keyBinds,{left:'ArrowLeft',right:'ArrowRight',up:'ArrowUp',down:'ArrowDown'});
-      else Object.assign(keyBinds,defaultKeyBinds);
-      updateControlButtons(); saveControlSettings();
-    }
-    function testGamepad() {
-      const pads=navigator.getGamepads?navigator.getGamepads():[];
-      const pad=[...pads].find(Boolean);
-      document.getElementById('gamepad-status').innerText=pad?`🎮 Joystick conectado: ${pad.id}`:'❌ Nenhum joystick encontrado. Conecte o controle e pressione um botão.';
-    }
-    let activeGamepadIndex=null;
-    window.addEventListener('gamepadconnected',e=>{activeGamepadIndex=e.gamepad.index; testGamepad();});
-    window.addEventListener('gamepaddisconnected',()=>{activeGamepadIndex=null;testGamepad();});
-    function pollGamepad(){
-      if(navigator.getGamepads && controlSettings.padEnabled!==false){
-        const pads=navigator.getGamepads(); const pad=activeGamepadIndex!=null?pads[activeGamepadIndex]:[...pads].find(Boolean);
-        if(pad){
-          const dz=controlSettings.deadzone; let x=pad.axes[0]||0,y=pad.axes[1]||0;
-          if(Math.abs(x)<dz)x=0;if(Math.abs(y)<dz)y=0; joyVector.x=x;joyVector.y=y;
-          const pressed=pad.buttons.map(b=>!!b.pressed);
-          if(listeningPadAction){
-            const idx=pressed.findIndex((v,i)=>v && !lastPadButtons[i]);
-            if(idx>=0){ padBinds[listeningPadAction]=idx; listeningPadAction=null; updatePadButtons(); savePadSettings(); playSound('powerup'); }
-          } else {
-            if(pressed[padBinds.jump] && !lastPadButtons[padBinds.jump]) triggerPlayerJump();
-            if(pressed[padBinds.attack] && !lastPadButtons[padBinds.attack] && !player.attacking){player.attacking=true;player.attackTimer=player.attackMaxTime;playSound('attack');}
-            player.bigShieldActive=!!pressed[padBinds.shield];
-            if(pressed[padBinds.back] && !lastPadButtons[padBinds.back]){ if(panelKeyConfig.style.display==='flex') closeKeyConfig(); }
-          }
-          lastPadButtons=pressed;
-        }
-      }
-      requestAnimationFrame(pollGamepad);
-    }
-    pollGamepad();
-    setTimeout(detectGamepad,300);
+// Player
+const player = {
+    x: 50,
+    y: 300,
+    width: 40,
+    height: 50,
+    vx: 0,
+    vy: 0,
+    speed: 5,
+    jumpPower: -12,
+    grounded: false,
+    shieldActive: false,
+    shieldTimer: 0,
+    
+    update() {
+        if (state.isPaused) return;
 
+        let moveX = 0;
+        if (keys[state.keyMap.left]) moveX = -1;
+        if (keys[state.keyMap.right]) moveX = 1;
+        if (touchMoveX !== 0) moveX = touchMoveX;
 
-    document.getElementById("touch-jump").addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      triggerPlayerJump();
-    });
+        this.vx = moveX * this.speed;
 
-    document.getElementById("touch-attack").addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      if (!player.attacking && stageStarted && !gameOver) {
-        player.attacking = true; player.attackTimer = player.attackMaxTime;
-        playSound('attack');
-      }
-    });
-
-    const touchShieldBtn = document.getElementById("touch-shield");
-    touchShieldBtn.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      if (stageStarted && !gameOver) player.bigShieldActive = true;
-    });
-    touchShieldBtn.addEventListener("pointerup", (e) => {
-      e.preventDefault();
-      player.bigShieldActive = false;
-    });
-    touchShieldBtn.addEventListener("pointerleave", (e) => {
-      e.preventDefault();
-      player.bigShieldActive = false;
-    });
-
-    function resetGame() {
-      gameOver = false; score = 0; currentStage = 1; gameTimerSeconds = 0;
-      playerLives = 3; nextExtraLifeScore = 10000;
-      player.x = 50; player.y = getGroundY() - player.height; player.vx = 0; player.vy = 0;
-      player.hasGreenCoat = false; player.shieldPowerUp = false; player.bigShieldActive = false;
-      prepareStage();
-    }
-
-    const keys = {};
-    window.addEventListener("keyup", (e) => { keys[e.code] = false; });
-
-    function updateIntro() {
-      if (!isIntroPlaying) return;
-      const groundY = getGroundY();
-
-      if (ufoState.step === 0) {
-        ufoState.x += 3;
-        if (ufoState.x >= 100) ufoState.step = 1;
-      } else if (ufoState.step === 1) {
-        ufoState.beamOpacity += 0.05;
-        if (ufoState.beamOpacity >= 1) ufoState.step = 2;
-      } else if (ufoState.step === 2) {
-        ufoState.playerY += 2.5;
-        if (ufoState.playerY >= groundY - player.height) {
-          ufoState.playerY = groundY - player.height;
-          ufoState.step = 3;
-        }
-      } else if (ufoState.step === 3) {
-        ufoState.beamOpacity -= 0.05;
-        if (ufoState.beamOpacity <= 0) {
-          ufoState.x += 4;
-          if (ufoState.x > canvas.width + 100) {
-            isIntroPlaying = false;
-            stageStarted = true;
-            startBackgroundMusic();
-            player.x = 100; player.y = groundY - player.height;
-            const currentRule = getRuleForStage(currentStage);
-            speakText(`${currentRule.title}. ${currentRule.instruction}`);
-          }
-        }
-      }
-    }
-
-    function update() {
-      sunAngle += 0.01;
-      const groundY = getGroundY();
-
-      if (currentStage > 1) {
-        aerialVehicle.x += aerialVehicle.speed;
-        if (aerialVehicle.x > canvas.width + 100) aerialVehicle.x = -100;
-      }
-
-      if (isIntroPlaying) { updateIntro(); return; }
-      if (gameOver || !stageStarted || collisionAnimationActive) return;
-
-      player.bigShieldActive = !!keys[keyBinds.shield];
-
-      const moveX = Math.abs(joyVector.x) > controlSettings.deadzone ? joyVector.x * controlSettings.sensitivity : (keys[keyBinds.right] ? 1 : keys[keyBinds.left] ? -1 : 0);
-      const rawJoyY = controlSettings.invertY ? -joyVector.y : joyVector.y;
-      const moveY = Math.abs(rawJoyY) > controlSettings.deadzone ? rawJoyY * controlSettings.sensitivity : (keys[keyBinds.down] ? 1 : keys[keyBinds.up] ? -1 : 0);
-
-      player.aimingUp = moveY < -0.4;
-      player.crouching = moveY > 0.4 && player.grounded;
-
-      if (Math.abs(moveX) > 0.2 && !player.crouching) {
-        player.vx = moveX * player.speed;
-        player.facing = moveX > 0 ? 'right' : 'left';
-        walkCycle += 0.22;
-      } else {
-        walkCycle = 0;
-      }
-
-      if (keys[keyBinds.jump] && player.grounded) {
-        triggerPlayerJump();
-      }
-
-      if (keys[keyBinds.attack] && !player.attacking) {
-        player.attacking = true; player.attackTimer = player.attackMaxTime;
-        playSound('attack');
-      }
-
-      player.vx *= player.friction; player.x += player.vx;
-      player.vy += gravity; player.y += player.vy;
-
-      const pCenterX = player.x + player.width / 2;
-      const isOverPit = pitHole.active && (pCenterX > pitHole.x && pCenterX < pitHole.x + pitHole.width);
-
-      if (!isOverPit) {
-        if (player.y + player.height >= groundY) {
-          player.y = groundY - player.height; player.vy = 0; player.grounded = true;
-        }
-      } else {
-        player.grounded = false;
-        if (player.y > canvas.height) {
-          triggerGameOverSequence(null, "Você caiu no buraco!");
-          return;
-        }
-      }
-
-      if (player.x < 0) player.x = 0;
-
-      // ATUALIZAÇÃO DO SEMI-MESTRE EM COMBATE
-      if (bossActive && bossState === "walking" && bossEnemy && bossEnemy.alive) {
-        bossEnemy.x -= bossEnemy.speed;
-
-        const bossBox = { left: bossEnemy.x, right: bossEnemy.x + bossEnemy.width, top: bossEnemy.y, bottom: bossEnemy.y + bossEnemy.height };
-        const pBox = { left: player.x, right: player.x + player.width, top: player.y, bottom: player.y + player.height };
-
-        if (pBox.left < bossBox.right && pBox.right > bossBox.left &&
-            pBox.top < bossBox.bottom && pBox.bottom > bossBox.top) {
-          
-          if (player.bigShieldActive) {
-            bossEnemy.alive = false;
-            bossState = "defeated";
-            playSound('powerup');
-            addScore(2000);
-
-            // PAUSA O JOGO, FALA A MENSAGEM DO MESTRE E DEPOIS EXIBE O MENU
-            stageStarted = false;
-            stopBackgroundMusic();
-
-            const victoryMsg = "Você venceu, parabéns! Mas tem meu mestre à frente e ele não é fácil, boa sorte!";
-            speakText(victoryMsg, () => {
-              openYoutubePromo();
-            });
-
-          } else {
-            loseLife(`O Semi-Mestre ${currentBossChar} encostou em você! Você perdeu uma vida.`);
-            bossEnemy.x += 140;
-          }
-        }
-        return;
-      }
-
-      // ITEM ESPECIAL QUE DEIXA O ESCUDO AMARELO
-      if (notebookItem && notebookItem.active) {
-        if (player.x < notebookItem.x + notebookItem.width && player.x + player.width > notebookItem.x &&
-            player.y < notebookItem.y + notebookItem.height && player.y + player.height > notebookItem.y) {
-          notebookItem.active = false;
-          player.shieldPowerUp = true;
-          playSound('powerup');
-        }
-      }
-
-      if (greenCoatItem && greenCoatItem.active) {
-        if (player.x < greenCoatItem.x + greenCoatItem.width && player.x + player.width > greenCoatItem.x &&
-            player.y < greenCoatItem.y + greenCoatItem.height && player.y + player.height > greenCoatItem.y) {
-          greenCoatItem.active = false;
-          player.hasGreenCoat = true;
-          playSound('powerup');
-        }
-      }
-
-      if (player.x + player.width >= canvas.width) {
-        if (currentStage < maxStages) {
-          stageStarted = false;
-          stopBackgroundMusic();
-          openYoutubePromo();
-        } else {
-          showVictoryOverlay();
-        }
-      }
-
-      if (player.attacking) {
-        player.attackTimer--;
-        // ITEM ESPECIAL AUMENTA METADE DO ALCANCE ATUAL (1.5x)
-        const maxLen = player.shieldPowerUp ? weapon.baseMaxLength * 1.5 : weapon.baseMaxLength;
-        const progress = 1 - (player.attackTimer / player.attackMaxTime);
-        weapon.length = Math.sin(progress * Math.PI) * maxLen;
-
-        if (player.aimingUp) {
-          weapon.x = player.x + player.width / 2; weapon.y = player.y - weapon.length;
-        } else if (player.crouching) {
-          weapon.y = player.y + player.height - 20;
-          weapon.x = (player.facing === 'right') ? player.x + player.width + weapon.length : player.x - weapon.length;
-        } else {
-          weapon.y = player.y + 25;
-          weapon.x = (player.facing === 'right') ? player.x + player.width + weapon.length : player.x - weapon.length;
+        if ((keys[state.keyMap.jump] || touchJump) && this.grounded) {
+            this.vy = this.jumpPower;
+            this.grounded = false;
+            touchJump = false;
         }
 
-        if (player.attackTimer <= 0) player.attacking = false;
-      }
-
-      enemies.forEach(enemy => {
-        if (!enemy.alive) return;
-
-        enemy.x += enemy.speed * enemy.dir;
-        if (enemy.x < -50) enemy.x = canvas.width + 50;
-
-        if (enemy.isPurple) {
-          enemy.shootCooldown--;
-          if (enemy.shootCooldown <= 0) {
-            enemy.shootCooldown = 150 + Math.random() * 80;
-            const dirX = (player.x + player.width/2) < enemy.x ? -1 : 1;
-            darts.push({
-              x: enemy.x + (dirX === -1 ? -10 : enemy.width + 10),
-              y: enemy.y + enemy.height / 2,
-              vx: dirX * 6,
-              active: true
-            });
-            playSound('dart');
-          }
+        if ((keys[state.keyMap.attack] || touchAttack) && !this.shieldActive) {
+            this.activateShield('U');
+            touchAttack = false;
+        }
+        if ((keys[state.keyMap.special] || touchSpecial) && !this.shieldActive) {
+            this.activateShield('I');
+            touchSpecial = false;
         }
 
-        // ATAQUE: qualquer inseto pode ser destruído.
-        if (player.attacking) {
-          const hit = (enemy.x < weapon.x + 25 && enemy.x + enemy.width > weapon.x - 25 &&
-                       enemy.y < weapon.y + 25 && enemy.y + enemy.height > weapon.y - 25);
-          if (hit) {
-            enemy.expression = 'sad';
-            playSound('hitTarget');
-            addScore(500);
-            setTimeout(() => { enemy.alive = false; }, 120);
-          }
+        this.vy += 0.6;
+        this.x += this.vx;
+        this.y += this.vy;
+
+        const groundY = 380;
+        if (this.y + this.height >= groundY) {
+            this.y = groundY - this.height;
+            this.vy = 0;
+            this.grounded = true;
         }
 
-        // COLISÃO: qualquer inimigo que tocar no Doutor Chácara tira uma vida.
-        const padding = 5;
-        const playerBox = {
-          left: player.x + padding,
-          right: player.x + player.width - padding,
-          top: player.y + padding,
-          bottom: player.y + player.height
-        };
-        const enemyBox = {
-          left: enemy.x + padding,
-          right: enemy.x + enemy.width - padding,
-          top: enemy.y + padding,
-          bottom: enemy.y + enemy.height
-        };
+        if (this.x < 0) this.x = 0;
+        if (this.x + this.width > canvas.width) this.x = canvas.width - this.width;
 
-        if (enemy.alive &&
-            playerBox.left < enemyBox.right && playerBox.right > enemyBox.left &&
-            playerBox.top < enemyBox.bottom && playerBox.bottom > enemyBox.top) {
-          enemy.expression = 'happy';
-          triggerGameOverSequence(
-            enemy,
-            `O ${enemy.insect.name} encostou no Doutor Chácara! Você perdeu uma vida.`
-          );
-          return;
-        }
-      });
-
-      darts.forEach(dart => {
-        if (!dart.active) return;
-        dart.x += dart.vx;
-
-        const pCenterX = player.x + player.width / 2;
-        const pCenterY = player.y + player.height / 2;
-        const distToPlayer = Math.hypot(dart.x - pCenterX, dart.y - pCenterY);
-
-        if (distToPlayer < player.width) {
-          if (player.bigShieldActive) {
-            dart.active = false;
-            playSound('block');
-            return;
-          }
-
-          if (player.attacking) {
-            const distToWeapon = Math.hypot(dart.x - weapon.x, dart.y - weapon.y);
-            if (distToWeapon < 40) {
-              dart.active = false;
-              playSound('block');
-              return;
-            }
-          }
-
-          dart.active = false;
-          if (player.hasGreenCoat) {
-            player.hasGreenCoat = false;
-            playSound('powerup');
-          } else {
-            triggerGameOverSequence(null, "Você foi atingido pelo dardo do inseto especial!");
-          }
+        if (this.shieldTimer > 0) {
+            this.shieldTimer--;
+            if (this.shieldTimer <= 0) this.shieldActive = false;
         }
 
-        if (dart.x < -50 || dart.x > canvas.width + 50) dart.active = false;
-      });
-    }
-
-    function loseLife(reason) {
-      if (collisionAnimationActive || gameOver) return;
-      playerLives = Math.max(0, playerLives - 1);
-      playSound('hitTarget');
-      player.x = Math.max(40, player.x - 90);
-      player.vx = 0; player.vy = -5;
-      if (playerLives <= 0) {
-        triggerGameOverSequence(null, reason + " Fim das vidas!");
-      } else {
-        speakText(reason + ` Restam ${playerLives} vidas.`);
-      }
-    }
-
-    function drawSpeechBubble(x, y, text, scaleFactor) {
-      ctx.save();
-      ctx.translate(x, y);
-
-      ctx.font = "bold 11px 'Segoe UI'";
-      const textWidth = ctx.measureText(text).width;
-      const bw = Math.max(textWidth + 16, 90) * scaleFactor;
-      const bh = 38 * scaleFactor;
-
-      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-      ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 1.5;
-
-      ctx.beginPath();
-      ctx.roundRect(-bw / 2, -bh - 12, bw, bh, 8);
-      ctx.fill(); ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(-4, -12); ctx.lineTo(0, 0); ctx.lineTo(4, -12);
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = "#000000";
-      ctx.font = `bold ${9 * scaleFactor}px 'Segoe UI'`;
-      ctx.textAlign = "center";
-      ctx.fillText(text, 0, -bh / 2 - 8);
-
-      ctx.restore();
-    }
-
-    function drawAnimatedSunWithClock(x, y, radius) {
-      ctx.save();
-      ctx.translate(x, y);
-
-      ctx.strokeStyle = "rgba(255, 204, 0, 0.4)";
-      ctx.lineWidth = 2;
-      const numRays = 12;
-      for (let i = 0; i < numRays; i++) {
-        const angle = sunAngle + (i * Math.PI * 2) / numRays;
-        ctx.beginPath();
-        ctx.moveTo(Math.cos(angle) * (radius + 4), Math.sin(angle) * (radius + 4));
-        ctx.lineTo(Math.cos(angle) * (radius + 16), Math.sin(angle) * (radius + 16));
-        ctx.stroke();
-      }
-
-      const pulse = Math.sin(sunAngle * 3) * 2;
-      ctx.fillStyle = "rgba(255, 204, 0, 0.75)";
-      ctx.beginPath();
-      ctx.arc(0, 0, radius + pulse, 0, Math.PI * 2);
-      ctx.fill();
-
-      const clockRadius = radius * 0.82;
-      ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(0, 0, clockRadius, 0, Math.PI * 2);
-      ctx.stroke();
-
-      for (let h = 0; h < 12; h++) {
-        const hAngle = (h * Math.PI) / 6;
-        const x1 = Math.sin(hAngle) * (clockRadius - 3);
-        const y1 = -Math.cos(hAngle) * (clockRadius - 3);
-        const x2 = Math.sin(hAngle) * (clockRadius - 7);
-        const y2 = -Math.cos(hAngle) * (clockRadius - 7);
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-      }
-
-      const now = new Date();
-      const hrs = now.getHours() % 12;
-      const mins = now.getMinutes();
-      const secs = now.getSeconds();
-
-      const hourAngle = ((hrs + mins / 60) * Math.PI) / 6;
-      ctx.strokeStyle = "rgba(20, 20, 20, 0.8)";
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(Math.sin(hourAngle) * (clockRadius * 0.45), -Math.cos(hourAngle) * (clockRadius * 0.45));
-      ctx.stroke();
-
-      const minAngle = ((mins + secs / 60) * Math.PI) / 30;
-      ctx.strokeStyle = "rgba(30, 30, 30, 0.75)";
-      ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(Math.sin(minAngle) * (clockRadius * 0.68), -Math.cos(minAngle) * (clockRadius * 0.68));
-      ctx.stroke();
-
-      const secAngle = (secs * Math.PI) / 30;
-      ctx.strokeStyle = "rgba(255, 0, 85, 0.85)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(Math.sin(secAngle) * (clockRadius * 0.82), -Math.cos(secAngle) * (clockRadius * 0.82));
-      ctx.stroke();
-
-      ctx.fillStyle = "#000";
-      ctx.beginPath();
-      ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.restore();
-    }
-
-    function drawAerialVehicle(vehicle) {
-      ctx.save();
-      ctx.translate(vehicle.x, vehicle.y);
-      ctx.fillStyle = "#ffffff";
-      ctx.strokeStyle = "#00ffcc";
-      ctx.lineWidth = 1.5;
-
-      if (vehicle.type === 'plane') {
-        ctx.beginPath(); ctx.ellipse(0, 0, 20, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillRect(-4, -14, 6, 28); ctx.fillRect(-18, -8, 5, 10);
-      } else if (vehicle.type === 'helicopter') {
-        ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillRect(-16, -2, 14, 3);
-        const prop = Math.sin(Date.now() * 0.05) * 16; ctx.strokeRect(-prop, -13, prop * 2, 2);
-      } else if (vehicle.type === 'balloon') {
-        ctx.beginPath(); ctx.arc(0, -8, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#ff0055"; ctx.fillRect(-3, 8, 6, 6);
-      } else if (vehicle.type === 'rocket') {
-        ctx.beginPath(); ctx.ellipse(0, 0, 16, 5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#ffcc00"; ctx.fillRect(-20, -2, 6, 4);
-      }
-
-      ctx.restore();
-    }
-
-    function drawShieldWeapon(x, y) {
-      ctx.save();
-      ctx.translate(x, y);
-
-      const w = player.shieldPowerUp ? 42 : 32;
-      const h = player.shieldPowerUp ? 50 : 38;
-      ctx.fillStyle = player.shieldPowerUp ? "#ffcc00" : "#00ffcc";
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2;
-
-      ctx.beginPath();
-      ctx.moveTo(-w/2, -h/2);
-      ctx.lineTo(w/2, -h/2);
-      ctx.lineTo(w/2, 0);
-      ctx.quadraticCurveTo(w/2, h/2, 0, h/2 + 5);
-      ctx.quadraticCurveTo(-w/2, h/2, -w/2, 0);
-      ctx.closePath();
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = "#000000";
-      ctx.font = "bold 9px 'Segoe UI'";
-      ctx.textAlign = "center";
-      ctx.fillText("Dr.", 0, -5);
-      ctx.font = "bold 8px 'Segoe UI'";
-      ctx.fillText("Chácara", 0, 6);
-
-      ctx.restore();
-    }
-
-    function drawBigShield(centerX, centerY) {
-      ctx.save();
-      ctx.translate(centerX, centerY);
-
-      const radius = 55;
-      
-      ctx.fillStyle = "rgba(255, 140, 0, 0.25)";
-      ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.strokeStyle = "rgba(255, 140, 0, 0.8)";
-      ctx.lineWidth = 3.5;
-      ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.fillStyle = "#ff8c00";
-      ctx.shadowColor = "#ff4500";
-      ctx.shadowBlur = 8;
-      ctx.font = "bold 15px 'Segoe UI'";
-      ctx.textAlign = "center";
-      ctx.fillText("Dr. Chácara", 0, 5);
-
-      ctx.restore();
-    }
-
-    function drawDrChacaraSide(x, y, facing, crouching) {
-      ctx.save();
-      ctx.translate(x + player.width / 2, y);
-      if (facing === 'left') ctx.scale(-1, 1);
-
-      const leg1Angle = Math.sin(walkCycle) * 0.6;
-      const leg2Angle = Math.sin(walkCycle + Math.PI) * 0.6;
-      const arm1Angle = Math.sin(walkCycle + Math.PI) * 0.5;
-      const arm2Angle = Math.sin(walkCycle) * 0.5;
-
-      const h = crouching ? 50 : 71.5;
-
-      ctx.save();
-      ctx.translate(-3, h - 28);
-      ctx.rotate(leg2Angle);
-      ctx.strokeStyle = "#12121a"; ctx.lineWidth = 5.5; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 14); ctx.stroke();
-      
-      ctx.translate(0, 14);
-      const knee2Angle = Math.max(0, -leg2Angle * 0.8);
-      ctx.rotate(knee2Angle);
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(2, 12); ctx.stroke();
-      
-      ctx.fillStyle = "#1a1a1a";
-      ctx.fillRect(-1, 10, 9, 4);
-      ctx.restore();
-
-      ctx.save();
-      ctx.translate(-2, crouching ? 20 : 24);
-      ctx.rotate(arm2Angle);
-      ctx.strokeStyle = "#f3c099"; ctx.lineWidth = 4.5;
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-2, 14); ctx.stroke();
-      ctx.restore();
-
-      ctx.fillStyle = "#0066cc";
-      ctx.fillRect(-8, crouching ? 18 : 22, 16, 24);
-
-      ctx.fillStyle = player.hasGreenCoat ? "#00ff66" : "#ffffff";
-      ctx.fillRect(-10, crouching ? 12 : 18, 20, crouching ? 20 : 28);
-
-      ctx.fillStyle = "#f3c099"; ctx.fillRect(-3, 0, 16, 18);
-      ctx.fillStyle = "#111111"; ctx.fillRect(-5, -1, 18, 4);
-      ctx.fillStyle = "#5A5A66"; ctx.fillRect(-6, -7, 20, 7);
-      
-      ctx.strokeStyle = "#000"; ctx.lineWidth = 1.8; ctx.strokeRect(3, 3, 7, 6);
-      ctx.beginPath(); ctx.moveTo(-3, 5); ctx.lineTo(3, 5); ctx.stroke();
-
-      ctx.save();
-      ctx.translate(3, h - 28);
-      ctx.rotate(leg1Angle);
-      ctx.strokeStyle = "#1a1a24"; ctx.lineWidth = 6; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 14); ctx.stroke();
-      
-      ctx.translate(0, 14);
-      const knee1Angle = Math.max(0, -leg1Angle * 0.8);
-      ctx.rotate(knee1Angle);
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(2, 12); ctx.stroke();
-      
-      ctx.fillStyle = "#0a0a0a";
-      ctx.fillRect(-1, 10, 10, 4.5);
-      ctx.restore();
-
-      ctx.save();
-      ctx.translate(3, crouching ? 20 : 24);
-      ctx.rotate(arm1Angle);
-      ctx.strokeStyle = "#f3c099"; ctx.lineWidth = 5; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(3, 14); ctx.stroke();
-      ctx.restore();
-
-      ctx.restore();
-    }
-
-    // Desenha insetos em estilo arcade diretamente no Canvas.
-    // Não usa letras nem imagens externas, então os inimigos continuam visíveis mesmo offline.
-    function drawInsectGraphic(insectId, scale = 1, expression = 'normal') {
-      const colors = {
-        formiga: "#2b2118", aranha: "#171717", gafanhoto: "#67a82f",
-        besouro: "#263238", joaninha: "#d62828", abelha: "#f5c400",
-        vespa: "#e0a800", mosca: "#59636e", mosquito: "#65727d",
-        borboleta: "#9b59b6", mariposa: "#8d6e63", grilo: "#4d7c32",
-        libelula: "#3fa7d6", louva: "#4f9d69", lagarta: "#5cae3d",
-        cupim: "#b9824b", percevejo: "#6b4f3a", cigarra: "#5d4037",
-        gorgulho: "#4e342e", "pulgão": "#7e57c2", "vaga-lume": "#b7d93d",
-        tesourinha: "#704214", barata: "#5b4636", paquinha: "#8d6e63",
-        tanajura: "#3b2a20", pernilongo: "#4b5963"
-      };
-
-      const body = colors[insectId] || "#3a3a3a";
-      const isSpider = insectId === "aranha";
-      const hasWings = ["abelha","vespa","mosca","mosquito","borboleta","mariposa","libelula","vaga-lume","cigarra"].includes(insectId);
-      const isCaterpillar = insectId === "lagarta";
-      const legCount = isSpider ? 8 : 6;
-
-      ctx.save();
-      ctx.scale(scale, scale);
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-
-      // Pernas
-      ctx.strokeStyle = body;
-      ctx.lineWidth = isSpider ? 2.5 : 2.2;
-      for (let i = 0; i < legCount / 2; i++) {
-        const yy = -18 + i * 7;
-        const sway = Math.sin(Date.now() * 0.012 + i) * 2;
-        ctx.beginPath();
-        ctx.moveTo(-6, yy);
-        ctx.lineTo(-17 - sway, yy + (i % 2 ? 6 : -2));
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(6, yy);
-        ctx.lineTo(17 + sway, yy + (i % 2 ? 6 : -2));
-        ctx.stroke();
-      }
-
-      // Asas
-      if (hasWings) {
-        ctx.fillStyle = "rgba(220,245,255,0.55)";
-        ctx.strokeStyle = "rgba(255,255,255,0.8)";
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.ellipse(-9, -16, 9, 14, -0.45, 0, Math.PI * 2);
-        ctx.ellipse(9, -16, 9, 14, 0.45, 0, Math.PI * 2);
-        ctx.fill(); ctx.stroke();
-      }
-
-      if (isCaterpillar) {
-        for (let i = 0; i < 5; i++) {
-          ctx.fillStyle = i % 2 ? "#79c84b" : body;
-          ctx.beginPath();
-          ctx.arc(-12 + i * 6, 7, 6.5, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = "#24451a";
-          ctx.stroke();
+        if (state.immunityTimer > 0) {
+            state.immunityTimer--;
+            if (state.immunityTimer <= 0) state.isImmune = false;
         }
-      } else {
-        // Corpo e cabeça
-        ctx.fillStyle = body;
-        ctx.strokeStyle = "#111";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.ellipse(0, 4, 10, 18, 0, 0, Math.PI * 2);
-        ctx.fill(); ctx.stroke();
+    },
 
-        ctx.beginPath();
-        ctx.arc(0, -15, 7.5, 0, Math.PI * 2);
-        ctx.fill(); ctx.stroke();
-
-        // Detalhes específicos
-        if (insectId === "joaninha") {
-          ctx.fillStyle = "#111";
-          ctx.beginPath(); ctx.arc(-3, 2, 2, 0, Math.PI*2); ctx.arc(4, 7, 2, 0, Math.PI*2); ctx.fill();
-          ctx.strokeStyle = "#111"; ctx.beginPath(); ctx.moveTo(0,-12); ctx.lineTo(0,17); ctx.stroke();
-        } else if (insectId === "abelha" || insectId === "vespa") {
-          ctx.strokeStyle = "#191919"; ctx.lineWidth = 3;
-          ctx.beginPath(); ctx.moveTo(-8,-1); ctx.lineTo(8,-1); ctx.moveTo(-9,6); ctx.lineTo(9,6); ctx.stroke();
-        } else if (insectId === "besouro" || insectId === "gorgulho") {
-          ctx.strokeStyle = "#a8b0b5"; ctx.lineWidth = 1;
-          ctx.beginPath(); ctx.moveTo(0,-10); ctx.lineTo(0,19); ctx.stroke();
-        } else if (insectId === "louva") {
-          ctx.strokeStyle = "#2d6e39"; ctx.lineWidth = 3;
-          ctx.beginPath(); ctx.moveTo(-5,-2); ctx.lineTo(-16,-10); ctx.moveTo(5,-2); ctx.lineTo(16,-10); ctx.stroke();
+    activateShield(type) {
+        this.shieldActive = true;
+        this.shieldType = type;
+        this.shieldTimer = 60;
+        if (type === 'I') {
+            enemies.forEach(e => e.frozenTimer = 120);
+            if (activeBoss) activeBoss.frozenTimer = 120;
         }
-      }
+    },
 
-      // Antenas
-      ctx.strokeStyle = body;
-      ctx.lineWidth = 1.7;
-      ctx.beginPath();
-      ctx.moveTo(-3,-21); ctx.quadraticCurveTo(-9,-29,-13,-25);
-      ctx.moveTo(3,-21); ctx.quadraticCurveTo(9,-29,13,-25);
-      ctx.stroke();
-
-      // Olhos
-      ctx.fillStyle = "#fff";
-      ctx.beginPath(); ctx.arc(-2.7,-16,2,0,Math.PI*2); ctx.arc(2.7,-16,2,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle = "#000";
-      ctx.beginPath(); ctx.arc(-2.7,-16,0.9,0,Math.PI*2); ctx.arc(2.7,-16,0.9,0,Math.PI*2); ctx.fill();
-
-      if (expression === 'happy') {
-        ctx.fillStyle = "#fff"; ctx.font = "bold 8px Arial"; ctx.textAlign = "center"; ctx.fillText("!", 18, -25);
-      } else if (expression === 'sad') {
-        ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.arc(0,-9,4,0.2,Math.PI-0.2); ctx.stroke();
-      }
-
-      ctx.restore();
-    }
-
-    function drawInsectEnemy(enemy) {
-      if (!enemy.alive) return;
-      const scaleX = enemy.width / 33;
-      const scaleY = enemy.height / 71.5;
-      ctx.save();
-      ctx.translate(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2 + (enemy.mockOffset || 0));
-      ctx.scale(scaleX, scaleY);
-      drawInsectGraphic(enemy.insect.id, 1, enemy.expression);
-      ctx.restore();
-    }
-
-    function drawBossEnemy(boss) {
-      if (!boss || !boss.alive) return;
-      ctx.save();
-      // O desenho-base tem o mesmo tamanho lógico do personagem; escala 4x.
-      ctx.translate(boss.x + boss.width / 2, boss.y + boss.height / 2);
-      ctx.scale(4, 4);
-      drawInsectGraphic(boss.insect.id, 1, boss.expression);
-      ctx.restore();
-
-      // Coroa/identificação do Semi-Mestre
-      ctx.save();
-      ctx.translate(boss.x + boss.width / 2, boss.y - 8);
-      ctx.fillStyle = "#ffcc00";
-      ctx.strokeStyle = "#5a3d00";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(-24, 0); ctx.lineTo(-15, -18); ctx.lineTo(0, -4); ctx.lineTo(15, -18); ctx.lineTo(24, 0);
-      ctx.closePath();
-      ctx.fill(); ctx.stroke();
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold 12px 'Segoe UI'";
-      ctx.textAlign = "center";
-      ctx.fillText("SEMI-MESTRE", 0, -24);
-      ctx.restore();
-    }
-
-    function drawDarts() {
-      darts.forEach(dart => {
-        if (!dart.active) return;
+    draw() {
         ctx.save();
-        ctx.translate(dart.x, dart.y);
-        ctx.fillStyle = "#a020f0";
-        ctx.strokeStyle = "#ff00ff";
-        ctx.lineWidth = 1.5;
+        if (state.isImmune && Math.floor(Date.now() / 100) % 2 === 0) ctx.globalAlpha = 0.5;
 
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(dart.vx > 0 ? 14 : -14, -3);
-        ctx.lineTo(dart.vx > 0 ? 14 : -14, 3);
-        ctx.closePath();
-        ctx.fill(); ctx.stroke();
+        // Doutor Chácara
+        ctx.fillStyle = '#ffcc99'; ctx.fillRect(this.x + 10, this.y, 20, 15);
+        ctx.fillStyle = '#003366'; ctx.fillRect(this.x + 5, this.y + 15, 30, 25);
+        ctx.fillStyle = '#000'; ctx.fillRect(this.x + 5, this.y + 40, 10, 10); ctx.fillRect(this.x + 25, this.y + 40, 10, 10);
 
+        if (this.shieldActive) {
+            ctx.strokeStyle = this.shieldType === 'U' ? '#00ffff' : '#ffff00';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(this.x + this.width/2, this.y + this.height/2, 35, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 16px Courier';
+            ctx.fillText(this.shieldType, this.x + 15, this.y - 10);
+        }
         ctx.restore();
-      });
+    }
+};
+
+// Boss (Semi-Mestre Inseto) e Projéteis
+let activeBoss = null;
+let projectiles = [];
+
+class SemiBoss {
+    constructor(stage) {
+        this.x = 650;
+        this.y = 280;
+        this.width = 70;
+        this.height = 70;
+        this.stage = stage;
+        this.hp = 5 + (stage / 5) * 3;
+        this.maxHp = this.hp;
+        this.attackTimer = 0;
+        this.frozenTimer = 0;
+        
+        // Definição do Tipo de Inseto por Fase
+        const types = {
+            5: { name: 'Libélula Gigante', color: '#00e5ff', speed: 4, icon: '🛸' },
+            10: { name: 'Besouro Blindado', color: '#795548', speed: 6, icon: '🪲' },
+            15: { name: 'Vespa Flamejante', color: '#ffc107', speed: 8, icon: '🐝' },
+            20: { name: 'Louva-a-Deus', color: '#4caf50', speed: 10, icon: '🦗' },
+            25: { name: 'Rainha Inseto', color: '#e91e63', speed: 12, icon: '👑' }
+        };
+        this.info = types[stage] || types[5];
     }
 
-    function drawDirtRoad() {
-      const groundY = getGroundY();
-
-      ctx.fillStyle = roadColors.edge;
-      ctx.fillRect(0, groundY - 5, canvas.width, 8);
-
-      if (!pitHole.active) {
-        ctx.fillStyle = roadColors.main;
-        ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
-
-        ctx.fillStyle = roadColors.accent;
-        for (let x = 10; x < canvas.width; x += 30) {
-          const waveHeight = ((x * currentStage) % 7) + 2;
-          ctx.fillRect(x, groundY + waveHeight, 14, 3);
-          ctx.fillRect(x + 10, groundY + 22, 8, 3);
-        }
-      } else {
-        ctx.fillStyle = roadColors.main;
-        ctx.fillRect(0, groundY, pitHole.x, canvas.height - groundY);
-
-        ctx.fillRect(pitHole.x + pitHole.width, groundY, canvas.width - (pitHole.x + pitHole.width), canvas.height - groundY);
-
-        ctx.fillStyle = roadColors.accent;
-        for (let x = 10; x < pitHole.x - 10; x += 30) {
-          ctx.fillRect(x, groundY + 4, 14, 3);
-        }
-        for (let x = pitHole.x + pitHole.width + 10; x < canvas.width; x += 30) {
-          ctx.fillRect(x, groundY + 4, 14, 3);
+    update() {
+        if (this.frozenTimer > 0) {
+            this.frozenTimer--;
+            return;
         }
 
-        ctx.fillStyle = "#080503";
-        ctx.fillRect(pitHole.x, groundY, pitHole.width, canvas.height - groundY);
-
-        ctx.fillStyle = "#221105";
-        ctx.fillRect(pitHole.x - 3, groundY, 3, canvas.height - groundY);
-        ctx.fillRect(pitHole.x + pitHole.width, groundY, 3, canvas.height - groundY);
-      }
+        // Ataque contínuo de projéteis pelo chão
+        this.attackTimer++;
+        const attackInterval = Math.max(30, 120 - (this.stage * 3));
+        if (this.attackTimer >= attackInterval) {
+            this.attackTimer = 0;
+            // Disparar Projétil Rastejante de Inseto
+            projectiles.push(new Projectile(this.x, 355, this.info.speed, this.info.color, this.info.icon));
+        }
     }
 
-    function draw() {
-      const groundY = getGroundY();
+    draw() {
+        // Corpo do Inseto Semi-Mestre
+        ctx.fillStyle = this.frozenTimer > 0 ? '#88ffff' : this.info.color;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = '28px Courier';
+        ctx.fillText(this.info.icon, this.x + 18, this.y + 45);
 
-      if (bgImageCurrent.complete && bgImageCurrent.naturalWidth !== 0) {
-        ctx.drawImage(bgImageCurrent, 0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "rgba(10, 10, 18, 0.4)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      } else {
-        const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        grad.addColorStop(0, "#120826"); grad.addColorStop(0.6, "#7a223b"); grad.addColorStop(1, "#2e1200");
-        ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
+        // Barra de Vida do Semi-Mestre
+        ctx.fillStyle = '#555';
+        ctx.fillRect(this.x, this.y - 25, this.width, 8);
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(this.x, this.y - 25, (this.width * (this.hp / this.maxHp)), 8);
 
-      drawAnimatedSunWithClock(canvas.width - 110, 110, 36);
+        ctx.fillStyle = '#fff';
+        ctx.font = '10px Courier';
+        ctx.fillText(this.info.name, this.x, this.y - 30);
+    }
+}
 
-      if (currentStage > 1) drawAerialVehicle(aerialVehicle);
-
-      drawDirtRoad();
-
-      if (notebookItem && notebookItem.active) {
-        ctx.fillStyle = "#0088ff"; ctx.fillRect(notebookItem.x, notebookItem.y, notebookItem.width, notebookItem.height);
-        ctx.fillStyle = "#fff"; ctx.font = "bold 10px sans-serif"; ctx.fillText("📖", notebookItem.x + 3, notebookItem.y + 14);
-      }
-
-      if (greenCoatItem && greenCoatItem.active) {
-        ctx.fillStyle = "#00ff66"; ctx.fillRect(greenCoatItem.x, greenCoatItem.y, greenCoatItem.width, greenCoatItem.height);
-        ctx.fillStyle = "#000"; ctx.font = "bold 10px sans-serif"; ctx.fillText("🥼", greenCoatItem.x + 4, greenCoatItem.y + 15);
-      }
-
-      if (isIntroPlaying) {
-        if (ufoState.beamOpacity > 0) {
-          ctx.fillStyle = `rgba(0, 255, 204, ${ufoState.beamOpacity * 0.35})`;
-          ctx.beginPath();
-          ctx.moveTo(ufoState.x - 12, ufoState.y); ctx.lineTo(ufoState.x + 12, ufoState.y);
-          ctx.lineTo(ufoState.x + 35, groundY); ctx.lineTo(ufoState.x - 35, groundY);
-          ctx.closePath(); ctx.fill();
-        }
-
-        ctx.fillStyle = "#00ffcc"; ctx.beginPath(); ctx.ellipse(ufoState.x, ufoState.y, 30, 10, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(ufoState.x, ufoState.y - 5, 12, 0, Math.PI, true); ctx.fill();
-
-        drawDrChacaraSide(ufoState.x - player.width / 2, ufoState.playerY, 'right', false);
-      } else {
-        drawDrChacaraSide(player.x, player.y, player.facing, player.crouching);
-
-        if (player.bigShieldActive) {
-          drawBigShield(player.x + player.width / 2, player.y + player.height / 2);
-        }
-      }
-
-      if (player.attacking && !isIntroPlaying) {
-        ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 3; ctx.beginPath();
-        ctx.moveTo(player.x + player.width / 2, player.y + 25); ctx.lineTo(weapon.x, weapon.y); ctx.stroke();
-        drawShieldWeapon(weapon.x, weapon.y);
-      }
-
-      enemies.forEach(enemy => drawInsectEnemy(enemy));
-      drawDarts();
-
-      if (bossActive && bossEnemy) {
-        drawBossEnemy(bossEnemy);
-      }
-
-      if (collisionAnimationActive) {
-        drawSpeechBubble(player.x + player.width / 2, player.y - 20, playerSpeechBubble, 1.5);
-        if (mockingEnemy) {
-          drawSpeechBubble(mockingEnemy.x + mockingEnemy.width / 2, mockingEnemy.y - 20, enemySpeechBubble, 1.5);
-        }
-      }
-
-      const currentRule = getRuleForStage(currentStage);
-      ctx.fillStyle = "#ffffff"; ctx.font = "bold 15px 'Segoe UI'"; ctx.textAlign = "left";
-      ctx.fillText(`${currentRule.title}`, 20, 32);
-      ctx.fillText(`PONTOS: ${score}  |  VIDAS: ❤️ x${playerLives}`, canvas.width - 270, 32);
-
-      // INDICAÇÃO DA VERSÃO 1.14
-      ctx.fillStyle = "rgba(0, 255, 204, 0.7)";
-      ctx.font = "bold 11px monospace";
-      ctx.textAlign = "left";
-      ctx.fillText("Versão 2.0 - Insetos da Chácara", 12, canvas.height - 12);
+class Projectile {
+    constructor(x, y, speed, color, icon) {
+        this.x = x;
+        this.y = y;
+        this.width = 25;
+        this.height = 25;
+        this.speed = speed;
+        this.color = color;
+        this.icon = icon;
     }
 
-    function loop() { update(); draw(); requestAnimationFrame(loop); }
+    update() {
+        this.x -= this.speed; // Caminha Rastejando pelo Chão em direção ao jogador
+    }
+
+    draw() {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x + 12, this.y + 12, 12, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#000';
+        ctx.font = '12px Courier';
+        ctx.fillText(this.icon, this.x + 4, this.y + 16);
+    }
+}
+
+// Inimigos Comuns e Coletáveis
+let enemies = [];
+let collectibles = [];
+
+class Enemy {
+    constructor(x, y, word) {
+        this.x = x; this.y = y; this.width = 40; this.height = 40;
+        this.word = word; this.speed = 2; this.frozenTimer = 0;
+    }
+    update() {
+        if (this.frozenTimer > 0) { this.frozenTimer--; return; }
+        this.x -= this.speed;
+        if (this.x < -100) this.x = canvas.width + Math.random() * 200;
+    }
+    draw() {
+        ctx.fillStyle = this.frozenTimer > 0 ? '#88ffff' : '#cc0000';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.fillStyle = '#ffffff'; ctx.font = '10px Courier';
+        ctx.fillText(this.word, this.x - 5, this.y - 5);
+    }
+}
+
+class Item {
+    constructor(x, y) { this.x = x; this.y = y; this.collected = false; }
+    draw() {
+        if (this.collected) return;
+        ctx.fillStyle = '#ffeb3b';
+        ctx.beginPath(); ctx.arc(this.x, this.y, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#000'; ctx.font = '10px Courier'; ctx.fillText('📖', this.x - 6, this.y + 4);
+    }
+}
+
+function initStage(stageNum) {
+    state.stage = stageNum;
+    enemies = [];
+    collectibles = [];
+    projectiles = [];
+    activeBoss = null;
     
-    updateControlButtons();
-    prepareStage();
-    loop();
-  </script>
+    if ([5, 10, 15, 20, 25].includes(stageNum)) {
+        activeBoss = new SemiBoss(stageNum);
+    } else {
+        const words = ['ERRO', 'DUVIDA', 'IGNORANCIA', 'ATRASO'];
+        for(let i = 0; i < 3 + Math.floor(stageNum / 2); i++) {
+            enemies.push(new Enemy(600 + i * 250, 340, words[i % words.length]));
+        }
+        for(let i = 0; i < 3; i++) {
+            collectibles.push(new Item(300 + i * 200, 320));
+        }
+    }
+
+    document.getElementById('ui-stage').innerText = state.stage;
+}
+
+// Loop Principal do Jogo
+function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!state.isGameOver) {
+        player.update();
+        player.draw();
+
+        // Gerenciamento do Semi-Mestre
+        if (activeBoss) {
+            activeBoss.update();
+            activeBoss.draw();
+
+            // Atacar o Semi-Mestre com o Escudo
+            if (player.shieldActive && player.shieldType === 'U') {
+                if (Math.abs(player.x - activeBoss.x) < 60 && Math.abs(player.y - activeBoss.y) < 60) {
+                    activeBoss.hp -= 0.1;
+                    if (activeBoss.hp <= 0) {
+                        state.score += 1000;
+                        activeBoss = null;
+                        initStage(state.stage + 1);
+                    }
+                }
+            }
+        }
+
+        // Atualizar Projéteis de Insetos pelo Chão
+        projectiles.forEach((proj, pIndex) => {
+            proj.update();
+            proj.draw();
+
+            // Destruir projétil com escudo U
+            if (player.shieldActive && player.shieldType === 'U') {
+                if (Math.abs(player.x - proj.x) < 40 && Math.abs(player.y - proj.y) < 40) {
+                    projectiles.splice(pIndex, 1);
+                }
+            }
+
+            // Atingir o Doutor Chácara
+            if (!state.isImmune && Math.abs(player.x - proj.x) < 25 && Math.abs(player.y - proj.y) < 25) {
+                projectiles.splice(pIndex, 1);
+                takeDamage();
+            }
+        });
+
+        // Inimigos Comuns
+        enemies.forEach((enemy, index) => {
+            enemy.update();
+            enemy.draw();
+
+            if (player.shieldActive && player.shieldType === 'U') {
+                if (Math.abs(player.x - enemy.x) < 50 && Math.abs(player.y - enemy.y) < 50) {
+                    enemies.splice(index, 1);
+                    state.score += 100;
+                }
+            }
+
+            if (!state.isImmune && Math.abs(player.x - enemy.x) < 30 && Math.abs(player.y - enemy.y) < 30) {
+                takeDamage();
+            }
+        });
+
+        // Coletáveis
+        collectibles.forEach(item => {
+            item.draw();
+            if (!item.collected && Math.abs(player.x - item.x) < 30 && Math.abs(player.y - item.y) < 30) {
+                item.collected = true;
+                state.schoolItems++;
+                if (state.schoolItems >= 3) {
+                    state.isImmune = true;
+                    state.immunityTimer = 300;
+                    state.schoolItems = 0;
+                }
+            }
+        });
+
+        document.getElementById('ui-score').innerText = Math.floor(state.score);
+        document.getElementById('ui-school-items').innerText = `${state.schoolItems}/3`;
+
+        if (!activeBoss && enemies.length === 0 && ![5, 10, 15, 20, 25].includes(state.stage)) {
+            initStage(state.stage + 1);
+        }
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+function takeDamage() {
+    state.lives--;
+    updateLivesUI();
+    if (state.lives <= 0) {
+        state.isGameOver = true;
+        document.getElementById('modal-gameover').classList.remove('hidden');
+    } else {
+        state.isImmune = true;
+        state.immunityTimer = 120;
+    }
+}
+
+function updateLivesUI() {
+    let hearts = '';
+    for(let i=0; i<state.lives; i++) hearts += '❤️';
+    document.getElementById('ui-lives').innerText = hearts || '💀';
+}
+
+// CONTROLES TOUCH
+let touchMoveX = 0, touchJump = false, touchAttack = false, touchSpecial = false;
+const joystickZone = document.getElementById('joystick-zone');
+const joystickKnob = document.getElementById('joystick-knob');
+
+joystickZone.addEventListener('touchstart', handleJoystick);
+joystickZone.addEventListener('touchmove', handleJoystick);
+joystickZone.addEventListener('touchend', () => {
+    joystickKnob.style.top = '22px'; joystickKnob.style.left = '22px'; touchMoveX = 0;
+});
+
+function handleJoystick(e) {
+    e.preventDefault();
+    const rect = joystickZone.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left - 40;
+    touchMoveX = Math.max(-1, Math.min(1, x / 30));
+    joystickKnob.style.left = `${22 + touchMoveX * 20}px`;
+}
+
+document.getElementById('btn-jump').addEventListener('touchstart', (e) => { e.preventDefault(); touchJump = true; });
+document.getElementById('btn-attack').addEventListener('touchstart', (e) => { e.preventDefault(); touchAttack = true; });
+document.getElementById('btn-special').addEventListener('touchstart', (e) => { e.preventDefault(); touchSpecial = true; });
+
+// Reconfiguração de Teclas
+let listeningRebind = null;
+function updateKeybindButtonsUI() {
+    document.getElementById('rebind-left').innerText = `Esquerda: ${state.keyMap.left}`;
+    document.getElementById('rebind-right').innerText = `Direita: ${state.keyMap.right}`;
+    document.getElementById('rebind-jump').innerText = `Pulo: ${state.keyMap.jump}`;
+    document.getElementById('rebind-attack').innerText = `Escudo U: ${state.keyMap.attack}`;
+    document.getElementById('rebind-special').innerText = `Relógio I: ${state.keyMap.special}`;
+}
+
+['left','right','jump','attack','special'].forEach(action => {
+    document.getElementById(`rebind-${action}`).onclick = () => {
+        listeningRebind = action;
+        document.getElementById(`rebind-${action}`).innerText = 'Pressione Tecla...';
+    };
+});
+
+document.getElementById('btn-config').onclick = () => document.getElementById('modal-keybinds').classList.remove('hidden');
+document.getElementById('btn-close-keybinds').onclick = () => document.getElementById('modal-keybinds').classList.add('hidden');
+document.getElementById('btn-save-keybinds').onclick = saveSettings;
+
+document.getElementById('btn-apply-cheat').onclick = () => {
+    const stageInput = parseInt(document.getElementById('cheat-stage-input').value);
+    if (stageInput >= 1 && stageInput <= 25) {
+        initStage(stageInput);
+        document.getElementById('modal-cheat').classList.add('hidden');
+    }
+};
+document.getElementById('btn-close-cheat').onclick = () => document.getElementById('modal-cheat').classList.add('hidden');
+
+document.getElementById('btn-restart').onclick = () => {
+    state.lives = 3; state.score = 0; state.isGameOver = false;
+    updateLivesUI();
+    document.getElementById('modal-gameover').classList.add('hidden');
+    initStage(1);
+};
+
+// Inicialização
+loadSettings();
+initStage(1);
+gameLoop();
+</script>
 </body>
 </html>
