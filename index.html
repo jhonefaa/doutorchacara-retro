@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Doutor Chácara - Arcade Mobile v3.0 Online Multi-jogador</title>
-    <!-- PeerJS para Conexão Multiplayer Online Gratuita em Tempo Real -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <title>Doutor Chácara - Arcade Mobile v2.6 Multiplayer</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body { background-color: #111; font-family: 'Courier New', Courier, monospace; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
@@ -23,7 +21,7 @@
         }
         canvas { display: block; width: 100%; height: 100%; object-fit: contain; background: linear-gradient(to bottom, #1a0033, #000000); }
         
-        .ui-panel { position: absolute; top: 8px; left: 10px; right: 10px; display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; text-shadow: 2px 2px #000; z-index: 10; pointer-events: none; }
+        .ui-panel { position: absolute; top: 8px; left: 10px; right: 10px; display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; text-shadow: 2px 2px #000; z-index: 10; pointer-events: none; }
         .btn-ui { background: #333; color: #fff; border: 1px solid #fff; padding: 4px 8px; cursor: pointer; pointer-events: auto; font-family: inherit; font-size: 11px; }
         .btn-ui:active { background: #555; }
         
@@ -37,22 +35,47 @@
         #btn-attack { background: #4CAF50; }
         #btn-special { background: #FF9800; }
 
-        /* Modais */
-        .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 30; padding: 10px; text-align: center; box-sizing: border-box; }
+        /* Overlay do Chat ao Vivo Integrado */
+        #chat-container {
+            position: absolute;
+            bottom: 105px;
+            left: 10px;
+            width: 220px;
+            height: 90px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            z-index: 25;
+            pointer-events: auto;
+            border-radius: 4px;
+        }
+        #chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px;
+            font-size: 9px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            color: #fff;
+        }
+        #chat-input-box { display: flex; border-top: 1px solid rgba(255, 255, 255, 0.3); }
+        #chat-input { flex: 1; background: transparent; border: none; color: #fff; padding: 3px 5px; font-size: 9px; font-family: inherit; outline: none; }
+        #chat-send { background: #4CAF50; border: none; color: #fff; padding: 3px 6px; font-size: 9px; cursor: pointer; }
+
+        /* Modais Redimensionáveis e Proporcionais */
+        .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 30; padding: 10px; text-align: center; box-sizing: border-box; }
         .hidden { display: none !important; }
-        .modal input, .modal select { padding: 6px; font-size: 12px; text-align: center; margin: 4px 0; font-family: inherit; width: 80%; max-width: 250px; }
+        .modal input, .modal select { padding: 6px; font-size: 12px; text-align: center; margin: 4px 0; font-family: inherit; width: 80%; max-width: 250px; background: #222; color: #fff; border: 1px solid #fff; }
         .modal button { padding: 6px 12px; font-size: 11px; cursor: pointer; background: #fff; color: #000; border: none; font-weight: bold; margin-top: 4px; }
         
-        /* Chat Overlay */
-        #chat-container { position: absolute; bottom: 100px; left: 10px; width: 220px; height: 120px; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 5px; display: flex; flex-direction: column; z-index: 15; pointer-events: auto; }
-        #chat-messages { flex: 1; overflow-y: auto; padding: 4px; font-size: 10px; text-align: left; }
-        #chat-input-box { display: flex; border-top: 1px solid rgba(255,255,255,0.3); }
-        #chat-input { flex: 1; background: transparent; border: none; color: white; font-size: 10px; padding: 4px; outline: none; }
-        #chat-send { background: #2196F3; border: none; color: white; font-size: 10px; padding: 4px 8px; cursor: pointer; }
-        
-        .char-select-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; max-width: 300px; }
-        .char-card { border: 1px solid #fff; padding: 6px; cursor: pointer; border-radius: 4px; font-size: 10px; }
-        .char-card.selected { border: 2px solid #00ff00; background: rgba(0,255,0,0.2); }
+        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-width: 90%; max-height: 55%; overflow-y: auto; margin-bottom: 8px; width: 100%; }
+        .config-grid button, .config-grid select { width: 100%; font-size: 10px; padding: 6px; }
+
+        .char-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 90%; max-width: 380px; margin: 8px 0; }
+        .char-card { border: 2px solid #555; padding: 6px; cursor: pointer; background: #111; }
+        .char-card.selected { border-color: #00ffff; background: #222; }
     </style>
 </head>
 <body>
@@ -62,11 +85,11 @@
 
     <div class="ui-panel">
         <div>
-            <div>FASE: <span id="ui-stage">1</span> | PONTOS: <span id="ui-score">0</span></div>
-            <div>VIDAS: <span id="ui-lives">❤️❤️❤️</span> | ON: <span id="ui-online-count">1/6</span></div>
+            <div>FASE: <span id="ui-stage">1</span> | PONTOS: <span id="ui-score">0</span> v2.6 MP</div>
+            <div>VIDAS: <span id="ui-lives">❤️❤️❤️</span> | ON-LINE: <span id="ui-players-count">1/6</span></div>
         </div>
         <div>
-            <button class="btn-ui" id="btn-config">⚙️ MENU / PAUSE</button>
+            <button class="btn-ui" id="btn-config">⚙️ CONFIGURAÇÕES / PAUSE</button>
         </div>
     </div>
 
@@ -74,8 +97,8 @@
     <div id="chat-container">
         <div id="chat-messages"></div>
         <div id="chat-input-box">
-            <input type="text" id="chat-input" placeholder="Chat ao vivo..." maxlength="45">
-            <button id="chat-send">Enviar</button>
+            <input type="text" id="chat-input" placeholder="Chat ao vivo..." maxlength="40">
+            <button id="chat-send">></button>
         </div>
     </div>
 
@@ -90,254 +113,325 @@
         </div>
     </div>
 
-    <!-- Modal de Autenticação Obrigatória -->
+    <!-- Modal Cadastro / Login -->
     <div id="modal-auth" class="modal">
-        <h2>DOUTOR CHÁCARA MULTIPLAYER</h2>
-        <p style="font-size:11px; margin-bottom: 8px;">Cadastre-se ou Entre para Jogar Online</p>
-        <input type="text" id="auth-user" placeholder="Usuário">
-        <input type="password" id="auth-pass" placeholder="Senha">
-        <div>
-            <button id="btn-login" style="background:#4CAF50; color:white;">ENTRAR</button>
-            <button id="btn-register">CADASTRAR</button>
-        </div>
-        <p id="auth-status" style="color:#ff3333; font-size:10px; margin-top:5px;"></p>
+        <h2 style="color: #4CAF50; margin-bottom: 5px;">CADASTRO / LOGIN DE USUÁRIO</h2>
+        <p style="font-size: 10px; margin-bottom: 8px;">Apenas usuários cadastrados podem entrar no jogo online (Máx 6 Pessoas)</p>
+        <input type="text" id="auth-user" placeholder="Nome de Usuário" maxlength="12">
+        <input type="password" id="auth-pass" placeholder="Senha de Acesso">
+        <button id="btn-submit-auth" style="background:#4CAF50; color:#fff;">ENTRAR / CADASTRAR</button>
     </div>
 
-    <!-- Modal de Seleção de Personagem e Lobby Online -->
-    <div id="modal-lobby" class="modal hidden">
-        <h3>SELEÇÃO DE PERSONAGEM</h3>
-        <div class="char-select-grid" id="char-grid"></div>
-        
-        <h3>SALA MULTIPLAYER (MÁX 6)</h3>
-        <div>
-            <button id="btn-create-room" style="background:#2196F3; color:white;">CRIAR SALA</button>
-            <input type="text" id="join-room-id" placeholder="Código da Sala" style="width:120px;">
-            <button id="btn-join-room">ENTRAR NA SALA</button>
+    <!-- Modal Seleção de Personagens (Semelhante ao Doutor Chácara Original) -->
+    <div id="modal-char-select" class="modal hidden">
+        <h3 style="color:#00ffff;">SELEÇÃO DE PERSONAGEM</h3>
+        <p style="font-size: 10px;">Selecione quem você usará no jogo:</p>
+        <div class="char-grid" id="char-grid"></div>
+        <button id="btn-confirm-char" style="background:#4CAF50; color:#fff;">ENTRAR NA SALA MULTIPLAYER</button>
+    </div>
+
+    <!-- Modal Aguardando Equipe Passar de Fase -->
+    <div id="modal-stage-wait" class="modal hidden">
+        <h2 style="color: #00ffff;">FINAL DA FASE ALCANÇADO!</h2>
+        <p style="margin-top: 5px; font-size: 11px;">Aguardando todos os jogadores ativos chegarem no final para continuar...</p>
+        <h3 id="stage-wait-status" style="margin-top: 10px; color: #ff9800;">1 / 6 PRONTOS</h3>
+    </div>
+
+    <!-- Modal de Configurações Avançado / Pause -->
+    <div id="modal-keybinds" class="modal hidden">
+        <h3 style="margin-bottom: 5px; color: #4CAF50;">PAUSED - CONFIGURAÇÕES</h3>
+        <div class="config-grid">
+            <button id="rebind-left">Esquerda: A</button>
+            <button id="rebind-right">Direita: D</button>
+            <button id="rebind-jump">Pulo: ESPAÇO</button>
+            <button id="rebind-attack">Escudo U: U</button>
+            <button id="rebind-special">Relógio I: I</button>
+            
+            <select id="gamepad-select">
+                <option value="0">Gamepad / Joystick: Desativado</option>
+                <option value="1">Gamepad 1: Detectado</option>
+            </select>
+            
+            <select id="sens-select">
+                <option value="1">Sensibilidade Joystick: Normal</option>
+                <option value="1.5">Sensibilidade Joystick: Alta</option>
+            </select>
         </div>
-        <p id="lobby-room-info" style="font-size:10px; color:#00ff00; margin-top:5px;"></p>
-        <button id="btn-start-game" style="background:#4CAF50; color:white; margin-top:10px; display:none;">INICIAR JOGO</button>
+        <button id="btn-save-keybinds" style="background: #4CAF50; color: white;">SALVAR ALTERAÇÕES E CONTINUAR</button>
+    </div>
+
+    <div id="modal-cheat" class="modal hidden">
+        <h2>Menu de Seleção de Fases</h2>
+        <p>Digite a fase desejada (1 a 25):</p>
+        <input type="number" id="cheat-stage-input" min="1" max="25" value="1">
+        <button id="btn-apply-cheat">IR PARA FASE</button>
+        <button id="btn-close-cheat" style="background:#888;">CANCELAR</button>
     </div>
 
     <div id="modal-gameover" class="modal hidden">
         <h1 id="go-title">GAME OVER</h1>
         <p id="go-message">Tente novamente!</p>
-        <button id="btn-restart">REINICIAR FASE</button>
+        <button id="btn-restart">JOGAR NOVAMENTE</button>
     </div>
 </div>
 
 <script>
 /**
- * DOUTOR CHÁCARA - ONLINE MULTIPLAYER v3.0
+ * DOUTOR CHÁCARA - ARCADE MOBILE v2.6 MULTIPLAYER ONLINE (MÁX 6 JOGADORES)
  */
-
-// Configuração dos Personagens (Cores mantendo a semelhança ao Doutor Chácara original)
-const CHARACTERS = {
-    doc:    { name: "Dr. Chácara",  color: "#003366", skin: "#ffcc99" },
-    father: { name: "Pai (Violeta)", color: "#8a2be2", skin: "#ffcc99" },
-    sister: { name: "Irmã (Rosa)",   color: "#ff69b4", skin: "#ffcc99" },
-    son:    { name: "Filho (Verde)", color: "#2e8b57", skin: "#ffcc99" },
-    daughter:{ name: "Filha (Amarelo)",color:"#ffd700", skin: "#ffcc99" },
-    uncle:  { name: "Tio (Laranja)", color: "#ff4500", skin: "#ffcc99" }
-};
-
-let currentUser = null;
-let selectedCharKey = 'doc';
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+
+// Definição dos 6 Personagens (Mesma estrutura visual do original)
+const CHAR_DEFINITIONS = {
+    doc:      { name: 'Doutor Chácara', color: '#003366', head: '#ffcc99', extra: '' },
+    father:   { name: 'Pai do Doutor',  color: '#8a2be2', head: '#e0ac69', extra: '👴' }, // Violeta
+    sister:   { name: 'Irmã do Doutor', color: '#ff69b4', head: '#ffcc99', extra: '🎀' }, // Rosa
+    son:      { name: 'Filho',          color: '#2e7d32', head: '#ffcc99', extra: '🧢' }, // Verde
+    daughter: { name: 'Filha',          color: '#ef6c00', head: '#ffcc99', extra: '👧' }, // Laranja
+    uncle:    { name: 'Tio',            color: '#4e342e', head: '#d2b48c', extra: '👓' }  // Marrom
+};
 
 const state = {
     score: 0,
     lives: 3,
     stage: 1,
+    schoolItems: 0,
     isImmune: false,
     immunityTimer: 0,
     pinkShield: false,
     isGameOver: false,
     isPaused: false,
+    cheatBuffer: "",
     lastPinkButterflyScore: 0,
     lastSuperInsectScore: 0,
-    playersInExitZone: 0
-};
-
-// Estrutura de Rede / PeerJS Multiplayer
-let peer = null;
-let connections = [];
-let remotePlayers = {}; // Guarda dados dos outros até 5 jogadores
-let roomId = null;
-let isHost = false;
-
-// 1. AUTENTICAÇÃO
-document.getElementById('btn-register').onclick = () => {
-    const u = document.getElementById('auth-user').value.trim();
-    const p = document.getElementById('auth-pass').value.trim();
-    if (!u || !p) return showAuthStatus("Preencha usuário e senha!");
-    
-    if (localStorage.getItem(`user_${u}`)) {
-        showAuthStatus("Usuário já existe!");
-    } else {
-        localStorage.setItem(`user_${u}`, JSON.stringify({ password: p }));
-        showAuthStatus("Cadastrado com sucesso! Clique em Entrar.", "#00ff00");
+    gamepadSensitivity: 1,
+    keyMap: {
+        left: 'KeyA',
+        right: 'KeyD',
+        jump: 'Space',
+        attack: 'KeyU',
+        special: 'KeyI'
     }
 };
 
-document.getElementById('btn-login').onclick = () => {
-    const u = document.getElementById('auth-user').value.trim();
-    const p = document.getElementById('auth-pass').value.trim();
-    const data = localStorage.getItem(`user_${u}`);
-    if (!data) return showAuthStatus("Usuário não encontrado!");
-    
-    const parsed = JSON.parse(data);
-    if (parsed.password === p) {
-        currentUser = u;
-        document.getElementById('modal-auth').classList.add('hidden');
-        openLobby();
-    } else {
-        showAuthStatus("Senha incorreta!");
-    }
+// Estado da Rede e Personagens Online
+const net = {
+    user: null,
+    selectedChar: 'doc',
+    players: {},
+    stageReadySet: new Set(),
+    channel: null
 };
 
-function showAuthStatus(msg, color = "#ff3333") {
-    const el = document.getElementById('auth-status');
-    el.style.color = color;
-    el.innerText = msg;
-}
+// Autenticação / Cadastro
+document.getElementById('btn-submit-auth').onclick = () => {
+    const u = document.getElementById('auth-user').value.trim();
+    const p = document.getElementById('auth-pass').value.trim();
+    if (!u || !p) { alert('Informe usuário e senha!'); return; }
 
-// 2. LOBBY E PERSONAGENS
-function openLobby() {
-    document.getElementById('modal-lobby').classList.remove('hidden');
+    const db = JSON.parse(localStorage.getItem('dc_users_db') || '{}');
+    if (db[u] && db[u] !== p) {
+        alert('Senha incorreta para esta conta!');
+        return;
+    }
+    db[u] = p;
+    localStorage.setItem('dc_users_db', JSON.stringify(db));
+
+    net.user = u;
+    document.getElementById('modal-auth').classList.add('hidden');
+    buildCharGridUI();
+    document.getElementById('modal-char-select').classList.remove('hidden');
+};
+
+function buildCharGridUI() {
     const grid = document.getElementById('char-grid');
     grid.innerHTML = '';
-    
-    Object.keys(CHARACTERS).forEach(key => {
-        const char = CHARACTERS[key];
+    Object.keys(CHAR_DEFINITIONS).forEach(k => {
+        const c = CHAR_DEFINITIONS[k];
         const card = document.createElement('div');
-        card.className = `char-card ${key === selectedCharKey ? 'selected' : ''}`;
-        card.style.borderColor = char.color;
-        card.innerHTML = `<div style="width:20px;height:20px;background:${char.color};margin:0 auto 4px;"></div>${char.name}`;
+        card.className = `char-card ${k === net.selectedChar ? 'selected' : ''}`;
         card.onclick = () => {
-            document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.char-card').forEach(el => el.classList.remove('selected'));
             card.classList.add('selected');
-            selectedCharKey = key;
+            net.selectedChar = k;
         };
+        card.innerHTML = `
+            <div style="width:20px; height:25px; background:${c.color}; margin:0 auto 2px auto; border:1px solid #fff;"></div>
+            <div style="font-size:9px;">${c.name}</div>
+        `;
         grid.appendChild(card);
     });
 }
 
-// 3. SISTEMA ONLINE (PeerJS)
-function initPeer() {
-    peer = new Peer();
-    peer.on('open', id => {
-        if (isHost) {
-            roomId = id;
-            document.getElementById('lobby-room-info').innerText = `Código da Sala: ${roomId} (Envie aos amigos)`;
-            document.getElementById('btn-start-game').style.display = 'inline-block';
+document.getElementById('btn-confirm-char').onclick = () => {
+    document.getElementById('modal-char-select').classList.add('hidden');
+    connectMultiplayerRoom();
+};
+
+function connectMultiplayerRoom() {
+    net.channel = new BroadcastChannel('dc_v26_multiplayer_channel');
+
+    net.players[net.user] = {
+        id: net.user,
+        charKey: net.selectedChar,
+        x: player.x,
+        y: player.y,
+        shieldActive: false,
+        shieldType: 'U',
+        shieldRange: 35,
+        pinkShield: false,
+        reachedEnd: false
+    };
+
+    net.channel.onmessage = (e) => {
+        const d = e.data;
+        if (d.type === 'SYNC_PLAYER' && d.user !== net.user) {
+            net.players[d.user] = d.data;
+        } else if (d.type === 'CHAT') {
+            appendChatMessage(d.user, d.msg);
+        } else if (d.type === 'STAGE_READY') {
+            net.stageReadySet.add(d.user);
+            evalStageProgression();
+        } else if (d.type === 'NEXT_STAGE') {
+            state.stage = d.stage;
+            startNextStageLocal();
         }
-    });
+    };
 
-    peer.on('connection', conn => {
-        if (connections.length >= 5) { // Máximo de 6 jogadores (Host + 5)
-            conn.close();
-            return;
+    // Atualização constante (30fps)
+    setInterval(() => {
+        if (net.user && net.players[net.user]) {
+            net.players[net.user].x = player.x;
+            net.players[net.user].y = player.y;
+            net.players[net.user].shieldActive = player.shieldActive;
+            net.players[net.user].shieldType = player.shieldType;
+            net.players[net.user].shieldRange = player.shieldRange;
+            net.players[net.user].pinkShield = state.pinkShield;
+
+            net.channel.postMessage({
+                type: 'SYNC_PLAYER',
+                user: net.user,
+                data: net.players[net.user]
+            });
         }
-        setupConnection(conn);
-    });
+    }, 33);
+
+    appendChatMessage('SISTEMA', `${net.user} entrou na sala!`);
 }
 
-function setupConnection(conn) {
-    connections.push(conn);
-    updateOnlineCounter();
+// Chat ao Vivo
+const chatInput = document.getElementById('chat-input');
+const chatSend = document.getElementById('chat-send');
+const chatMessages = document.getElementById('chat-messages');
 
-    conn.on('data', data => {
-        handleNetworkData(data, conn);
-    });
+function sendChat() {
+    const txt = chatInput.value.trim();
+    if (txt && net.channel) {
+        net.channel.postMessage({ type: 'CHAT', user: net.user, msg: txt });
+        appendChatMessage(net.user, txt);
+        chatInput.value = '';
+    }
+}
+chatSend.onclick = sendChat;
+chatInput.onkeypress = (e) => { if (e.key === 'Enter') sendChat(); };
 
-    conn.on('close', () => {
-        connections = connections.filter(c => c !== conn);
-        delete remotePlayers[conn.peer];
-        updateOnlineCounter();
-    });
+function appendChatMessage(user, msg) {
+    const div = document.createElement('div');
+    div.innerHTML = `<b style="color:#00ffff;">${user}:</b> ${msg}`;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-document.getElementById('btn-create-room').onclick = () => {
-    isHost = true;
-    initPeer();
-};
-
-document.getElementById('btn-join-room').onclick = () => {
-    const inputId = document.getElementById('join-room-id').value.trim();
-    if (!inputId) return alert("Digite o código da sala!");
-    
-    isHost = false;
-    peer = new Peer();
-    peer.on('open', () => {
-        const conn = peer.connect(inputId);
-        setupConnection(conn);
-        document.getElementById('lobby-room-info').innerText = "Conectado à sala com sucesso!";
-        document.getElementById('modal-lobby').classList.add('hidden');
-    });
-};
-
-document.getElementById('btn-start-game').onclick = () => {
-    broadcast({ type: 'START_GAME' });
-    document.getElementById('modal-lobby').classList.add('hidden');
-};
-
-function updateOnlineCounter() {
-    document.getElementById('ui-online-count').innerText = `${connections.length + 1}/6`;
-}
-
-// Transmite dados para todos os conectados
-function broadcast(data) {
-    connections.forEach(conn => {
-        if (conn.open) conn.send(data);
-    });
-}
-
-function handleNetworkData(data, conn) {
-    if (data.type === 'START_GAME') {
-        document.getElementById('modal-lobby').classList.add('hidden');
-    } else if (data.type === 'PLAYER_SYNC') {
-        remotePlayers[conn.peer] = data.player;
-    } else if (data.type === 'CHAT') {
-        appendChatMessage(data.user, data.msg);
-    } else if (data.type === 'STAGE_ADVANCE') {
-        initStage(data.stage);
+function loadSettings() {
+    const savedKeys = localStorage.getItem('dc_keybinds_v26');
+    if (savedKeys) {
+        try { 
+            const data = JSON.parse(savedKeys);
+            state.keyMap = data.keyMap; 
+            state.gamepadSensitivity = data.sens || 1;
+            updateKeybindButtonsUI(); 
+        } catch(e){}
     }
 }
 
-// 4. CHAT EM TEMPO REAL
-document.getElementById('chat-send').onclick = sendChatMessage;
-document.getElementById('chat-input').addEventListener('keypress', e => {
-    if (e.key === 'Enter') sendChatMessage();
-});
-
-function sendChatMessage() {
-    const input = document.getElementById('chat-input');
-    const msg = input.value.trim();
-    if (!msg) return;
-
-    appendChatMessage(currentUser || "Eu", msg);
-    broadcast({ type: 'CHAT', user: currentUser || "Anônimo", msg: msg });
-    input.value = '';
+function saveSettings() {
+    const data = {
+        keyMap: state.keyMap,
+        sens: parseFloat(document.getElementById('sens-select').value)
+    };
+    state.gamepadSensitivity = data.sens;
+    localStorage.setItem('dc_keybinds_v26', JSON.stringify(data));
+    closeConfigMenu();
 }
 
-function appendChatMessage(user, msg) {
-    const chatMsgs = document.getElementById('chat-messages');
-    const div = document.createElement('div');
-    div.innerHTML = `<strong style="color:#2196F3;">${user}:</strong> ${msg}`;
-    chatMsgs.appendChild(div);
-    chatMsgs.scrollTop = chatMsgs.scrollHeight;
+function openConfigMenu() {
+    state.isPaused = true;
+    document.getElementById('modal-keybinds').classList.remove('hidden');
 }
 
-// 5. JOGADOR PRINCIPAL E LÓGICA DO JOGO
+function closeConfigMenu() {
+    state.isPaused = false;
+    document.getElementById('modal-keybinds').classList.hidden = true;
+    document.getElementById('modal-keybinds').classList.add('hidden');
+}
+
+// Suporte a Gamepad / Joystick
+function checkGamepadInput() {
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    if (!gamepads[0]) return { moveX: 0, jump: false, attack: false, special: false };
+
+    const gp = gamepads[0];
+    let moveX = 0;
+    if (gp.axes[0] < -0.3) moveX = -1 * state.gamepadSensitivity;
+    if (gp.axes[0] > 0.3) moveX = 1 * state.gamepadSensitivity;
+
+    return {
+        moveX: moveX,
+        jump: gp.buttons[0].pressed || gp.buttons[1].pressed,
+        attack: gp.buttons[2].pressed,
+        special: gp.buttons[3].pressed
+    };
+}
+
 const keys = {};
-window.addEventListener('keydown', e => { keys[e.code] = true; });
+let listeningRebind = null;
+
+window.addEventListener('keydown', e => {
+    if (listeningRebind) {
+        state.keyMap[listeningRebind] = e.code;
+        listeningRebind = null;
+        updateKeybindButtonsUI();
+        return;
+    }
+    keys[e.code] = true;
+    
+    state.cheatBuffer += e.key.toLowerCase();
+    if (state.cheatBuffer.length > 20) state.cheatBuffer = state.cheatBuffer.slice(-20);
+    if (state.cheatBuffer.includes('fasedoutor')) {
+        state.cheatBuffer = "";
+        document.getElementById('modal-cheat').classList.remove('hidden');
+    }
+});
 window.addEventListener('keyup', e => { keys[e.code] = false; });
 
+// Personagem Principal Local
 const player = {
-    x: 50, y: 300, width: 40, height: 50, vx: 0, vy: 0, speed: 5, jumpPower: -12, grounded: false,
-    shieldActive: false, shieldTimer: 0, shieldRange: 35, isCarriedAway: false,
+    x: 50,
+    y: 300,
+    width: 40,
+    height: 50,
+    vx: 0,
+    vy: 0,
+    speed: 5,
+    jumpPower: -12,
+    grounded: false,
+    shieldActive: false,
+    shieldTimer: 0,
+    shieldRange: 35,
+    isCarriedAway: false,
+    reachedEnd: false,
     
     update() {
         if (state.isPaused) return;
@@ -347,22 +441,29 @@ const player = {
             return;
         }
 
+        const gpInput = checkGamepadInput();
+
         let moveX = 0;
-        if (keys['KeyA'] || keys['ArrowLeft']) moveX = -1;
-        if (keys['KeyD'] || keys['ArrowRight']) moveX = 1;
+        if (keys[state.keyMap.left]) moveX = -1;
+        if (keys[state.keyMap.right]) moveX = 1;
         if (touchMoveX !== 0) moveX = touchMoveX;
+        if (gpInput.moveX !== 0) moveX = gpInput.moveX;
 
         this.vx = moveX * this.speed;
 
-        if ((keys['Space'] || touchJump) && this.grounded) {
+        if ((keys[state.keyMap.jump] || touchJump || gpInput.jump) && this.grounded) {
             this.vy = this.jumpPower;
             this.grounded = false;
             touchJump = false;
         }
 
-        if ((keys['KeyU'] || touchAttack) && !this.shieldActive) {
+        if ((keys[state.keyMap.attack] || touchAttack || gpInput.attack) && !this.shieldActive) {
             this.activateShield('U');
             touchAttack = false;
+        }
+        if ((keys[state.keyMap.special] || touchSpecial || gpInput.special) && !this.shieldActive) {
+            this.activateShield('I');
+            touchSpecial = false;
         }
 
         this.vy += 0.6;
@@ -381,102 +482,299 @@ const player = {
 
         if (this.shieldTimer > 0) {
             this.shieldTimer--;
-            if (this.shieldTimer <= 0) this.shieldActive = false;
+            if (this.shieldTimer <= 0) {
+                this.shieldActive = false;
+                this.shieldRange = 35;
+            }
         }
 
-        // Transmitir posição para a rede
-        if (peer && connections.length > 0) {
-            broadcast({
-                type: 'PLAYER_SYNC',
-                player: {
-                    x: this.x,
-                    y: this.y,
-                    charKey: selectedCharKey,
-                    user: currentUser,
-                    pinkShield: state.pinkShield
-                }
-            });
+        if (state.immunityTimer > 0) {
+            state.immunityTimer--;
+            if (state.immunityTimer <= 0) state.isImmune = false;
+        }
+
+        // Checagem de Fim de Fase para o Multiplayer
+        if (this.x >= 740 && !this.reachedEnd) {
+            this.reachedEnd = true;
+            if (net.players[net.user]) net.players[net.user].reachedEnd = true;
+            net.stageReadySet.add(net.user);
+            if (net.channel) net.channel.postMessage({ type: 'STAGE_READY', user: net.user });
+            evalStageProgression();
         }
     },
 
     activateShield(type) {
         this.shieldActive = true;
+        this.shieldType = type;
         this.shieldTimer = 60;
+
+        if (superInsect && type === 'U') {
+            this.shieldRange = 180;
+        } else {
+            this.shieldRange = 35;
+        }
+
+        if (type === 'I') {
+            enemies.forEach(e => e.frozenTimer = 120);
+            if (activeBoss) activeBoss.frozenTimer = 120;
+        }
     },
 
     draw() {
-        drawCharacterSprite(this.x, this.y, selectedCharKey, state.pinkShield, currentUser);
+        drawCharacterSprite(this.x, this.y, this.width, this.height, net.selectedChar, state.pinkShield, this.shieldActive, this.shieldType, this.shieldRange, net.user || 'Você', state.isImmune);
     }
 };
 
-// Renderização Unificada dos Personagens Semelhantes ao Doutor Chácara Original
-function drawCharacterSprite(x, y, charKey, isPink, name) {
-    ctx.save();
-    const char = CHARACTERS[charKey] || CHARACTERS.doc;
+// Função Geral para Desenhar o Personagem Base Original com Customizações
+function drawCharacterSprite(x, y, width, height, charKey, isPink, shieldActive, shieldType, shieldRange, nameLabel, isImmune) {
+    const def = CHAR_DEFINITIONS[charKey] || CHAR_DEFINITIONS.doc;
 
-    // Cabeça / Corpo
-    ctx.fillStyle = char.skin; 
+    ctx.save();
+    if (isImmune && Math.floor(Date.now() / 100) % 2 === 0) ctx.globalAlpha = 0.5;
+
+    // Cabeça original
+    ctx.fillStyle = def.head; 
     ctx.fillRect(x + 10, y, 20, 15);
-    
-    ctx.fillStyle = isPink ? '#ff007f' : char.color; 
+
+    // Detalhes/Acessório da Família
+    if (def.extra) {
+        ctx.fillStyle = '#fff';
+        ctx.font = '10px Courier';
+        ctx.fillText(def.extra, x + 12, y - 2);
+    }
+
+    // Corpo original
+    ctx.fillStyle = isPink ? '#ff007f' : def.color;
     ctx.fillRect(x + 5, y + 15, 30, 25);
-    
-    // Pés
+
+    // Pés originais
     ctx.fillStyle = '#000'; 
     ctx.fillRect(x + 5, y + 40, 10, 10); 
     ctx.fillRect(x + 25, y + 40, 10, 10);
 
-    // Nome acima do Personagem
-    if (name) {
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '10px Courier';
-        ctx.textAlign = 'center';
-        ctx.fillText(name, x + 20, y - 5);
+    // Escudo
+    if (shieldActive) {
+        ctx.strokeStyle = shieldType === 'U' ? '#00ffff' : '#ffff00';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(x + width/2, y + height/2, shieldRange, 0, Math.PI * 2);
+        ctx.stroke();
     }
+
+    // Nome de usuário
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '9px Courier';
+    ctx.textAlign = 'center';
+    ctx.fillText(nameLabel, x + width/2, y - 10);
 
     ctx.restore();
 }
 
-let enemies = [];
+// Avalia Progresso da Fase em Equipe
+function evalStageProgression() {
+    const totalPlayers = Object.keys(net.players).length;
+    const readyCount = net.stageReadySet.size;
 
-class Enemy {
-    constructor(x, y) {
-        this.x = x; this.y = y; this.width = 40; this.height = 40; this.speed = 2;
+    document.getElementById('stage-wait-status').innerText = `${readyCount} / ${totalPlayers} PRONTOS`;
+
+    if (player.reachedEnd) {
+        document.getElementById('modal-stage-wait').classList.remove('hidden');
+    }
+
+    // Só passa se TODOS passarem a fase
+    if (readyCount >= totalPlayers && totalPlayers > 0) {
+        if (net.user === Object.keys(net.players)[0]) {
+            const nextS = state.stage + 1;
+            net.channel.postMessage({ type: 'NEXT_STAGE', stage: nextS });
+            state.stage = nextS;
+            startNextStageLocal();
+        }
+    }
+}
+
+function startNextStageLocal() {
+    document.getElementById('modal-stage-wait').classList.add('hidden');
+    net.stageReadySet.clear();
+    player.reachedEnd = false;
+    if (net.players[net.user]) net.players[net.user].reachedEnd = false;
+    initStage(state.stage);
+}
+
+// Inimigos e Objetos
+let activeBoss = null;
+let projectiles = [];
+let enemies = [];
+let collectibles = [];
+let pinkButterflies = [];
+let superInsect = null;
+
+class PinkButterfly {
+    constructor() { this.x = 800; this.y = 150 + Math.random() * 150; }
+    update() { this.x -= 2; }
+    draw() {
+        ctx.fillStyle = '#ff1493'; ctx.beginPath(); ctx.arc(this.x, this.y, 10, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.font = '10px Courier'; ctx.fillText('🦋', this.x - 6, this.y + 4);
+    }
+}
+
+class SuperInsect {
+    constructor() { this.x = 800; this.y = 50; this.width = 120; this.height = 120; this.speed = 1.5; }
+    update() { this.x -= this.speed; }
+    draw() {
+        ctx.fillStyle = '#8a2be2'; ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.fillStyle = '#fff'; ctx.font = '60px Courier'; ctx.fillText('🪲', this.x + 20, this.y + 80);
+    }
+}
+
+class SemiBoss {
+    constructor(stage) {
+        this.x = 650; this.y = 280; this.width = 70; this.height = 70;
+        this.stage = stage; this.hp = 5 + (stage / 5) * 3; this.maxHp = this.hp;
+        this.attackTimer = 0; this.frozenTimer = 0;
+        const types = {
+            5: { name: 'Libélula Gigante', color: '#00e5ff', speed: 4, icon: '🛸' },
+            10: { name: 'Besouro Blindado', color: '#795548', speed: 6, icon: '🪲' },
+            15: { name: 'Vespa Flamejante', color: '#ffc107', speed: 8, icon: '🐝' },
+            20: { name: 'Louva-a-Deus', color: '#4caf50', speed: 10, icon: '🦗' },
+            25: { name: 'Rainha Inseto', color: '#e91e63', speed: 12, icon: '👑' }
+        };
+        this.info = types[stage] || types[5];
     }
     update() {
+        if (this.frozenTimer > 0) { this.frozenTimer--; return; }
+        this.attackTimer++;
+        if (this.attackTimer >= Math.max(30, 120 - (this.stage * 3))) {
+            this.attackTimer = 0;
+            projectiles.push(new Projectile(this.x, 355, this.info.speed, this.info.color, this.info.icon));
+        }
+    }
+    draw() {
+        ctx.fillStyle = this.frozenTimer > 0 ? '#88ffff' : this.info.color;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.fillStyle = '#fff'; ctx.font = '28px Courier';
+        ctx.fillText(this.info.icon, this.x + 18, this.y + 45);
+        ctx.fillStyle = '#ff0000'; ctx.fillRect(this.x, this.y - 15, (this.width * (this.hp / this.maxHp)), 6);
+    }
+}
+
+class Projectile {
+    constructor(x, y, speed, color, icon) { this.x = x; this.y = y; this.speed = speed; this.color = color; this.icon = icon; }
+    update() { this.x -= this.speed; }
+    draw() { ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x + 10, this.y + 10, 10, 0, Math.PI * 2); ctx.fill(); }
+}
+
+class Enemy {
+    constructor(x, y, word) { this.x = x; this.y = y; this.width = 40; this.height = 40; this.word = word; this.speed = 2; this.frozenTimer = 0; }
+    update() {
+        if (this.frozenTimer > 0) { this.frozenTimer--; return; }
         this.x -= this.speed;
         if (this.x < -100) this.x = canvas.width + Math.random() * 200;
     }
     draw() {
-        ctx.fillStyle = '#cc0000';
+        ctx.fillStyle = this.frozenTimer > 0 ? '#88ffff' : '#cc0000';
         ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.fillStyle = '#ffffff'; ctx.font = '10px Courier';
+        ctx.fillText(this.word, this.x - 5, this.y - 5);
     }
 }
 
 function initStage(stageNum) {
     state.stage = stageNum;
-    enemies = [];
-    for(let i = 0; i < 3 + stageNum; i++) {
-        enemies.push(new Enemy(600 + i * 250, 340));
+    enemies = []; collectibles = []; projectiles = []; pinkButterflies = [];
+    activeBoss = null; superInsect = null; player.isCarriedAway = false; player.x = 50; player.y = 300;
+    
+    if ([5, 10, 15, 20, 25].includes(stageNum)) {
+        activeBoss = new SemiBoss(stageNum);
+    } else {
+        const words = ['ERRO', 'DUVIDA', 'IGNORANCIA', 'ATRASO'];
+        for(let i = 0; i < 3 + Math.floor(stageNum / 2); i++) {
+            enemies.push(new Enemy(600 + i * 250, 340, words[i % words.length]));
+        }
     }
     document.getElementById('ui-stage').innerText = state.stage;
 }
 
-// LOOP PRINCIPAL
+// Loop do Jogo
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (!state.isGameOver) {
+    if (!state.isGameOver && !state.isPaused) {
         player.update();
         player.draw();
 
-        // Desenhar Jogadores Remotos (Multijogador)
-        Object.keys(remotePlayers).forEach(id => {
-            const rp = remotePlayers[id];
-            drawCharacterSprite(rp.x, rp.y, rp.charKey, rp.pinkShield, rp.user);
+        // Renderiza Outros Jogadores da Sala Multiplayer (Até 6)
+        const pKeys = Object.keys(net.players);
+        document.getElementById('ui-players-count').innerText = `${pKeys.length}/6`;
+
+        pKeys.forEach(k => {
+            if (k !== net.user) {
+                const p = net.players[k];
+                drawCharacterSprite(p.x, p.y, 40, 50, p.charKey, p.pinkShield, p.shieldActive, p.shieldType, p.shieldRange, p.id, false);
+            }
         });
 
-        // Inimigos e Mecânica Original de Pular no Cabeção
+        // Spawn Borboleta Rosa
+        if (state.score >= state.lastPinkButterflyScore + 10000) {
+            state.lastPinkButterflyScore = Math.floor(state.score / 10000) * 10000;
+            pinkButterflies.push(new PinkButterfly());
+        }
+
+        // Spawn Super Inseto
+        if (state.score >= state.lastSuperInsectScore + 25000) {
+            state.lastSuperInsectScore = Math.floor(state.score / 25000) * 25000;
+            superInsect = new SuperInsect();
+        }
+
+        pinkButterflies.forEach((bf, index) => {
+            bf.update(); bf.draw();
+            if (Math.abs(player.x - bf.x) < 30 && Math.abs(player.y - bf.y) < 30) {
+                state.pinkShield = true;
+                pinkButterflies.splice(index, 1);
+            }
+        });
+
+        if (superInsect) {
+            superInsect.update(); superInsect.draw();
+            if (player.shieldActive && player.shieldType === 'U') {
+                const dist = Math.hypot((player.x + 20) - (superInsect.x + 60), (player.y + 25) - (superInsect.y + 60));
+                if (dist < player.shieldRange + 60) {
+                    player.isCarriedAway = true;
+                    player.x = superInsect.x + 40;
+                    player.y = superInsect.y + 60;
+                    
+                    setTimeout(() => {
+                        state.score += 5000;
+                        initStage(state.stage + 1);
+                    }, 1500);
+                }
+            }
+        }
+
+        // Mestre
+        if (activeBoss) {
+            activeBoss.update(); activeBoss.draw();
+            if (player.shieldActive && player.shieldType === 'U') {
+                if (Math.abs(player.x - activeBoss.x) < 60 && Math.abs(player.y - activeBoss.y) < 60) {
+                    activeBoss.hp -= 0.1;
+                    if (activeBoss.hp <= 0) {
+                        state.score += 1000;
+                        activeBoss = null;
+                        evalStageProgression();
+                    }
+                }
+            }
+        }
+
+        // Projéteis
+        projectiles.forEach((proj, pIndex) => {
+            proj.update(); proj.draw();
+            if (!state.isImmune && Math.abs(player.x - proj.x) < 25 && Math.abs(player.y - proj.y) < 25) {
+                projectiles.splice(pIndex, 1);
+                handlePlayerHit();
+            }
+        });
+
+        // Inimigos + Pulo na cabeça estilo Mario
         enemies.forEach((enemy, index) => {
             enemy.update(); enemy.draw();
 
@@ -484,36 +782,17 @@ function gameLoop() {
             const playerFeet = player.y + player.height;
             const enemyHead = enemy.y;
 
-            if (isFalling && playerFeet >= enemyHead && playerFeet <= enemyHead + 15 && 
-                player.x + player.width > enemy.x && player.x < enemy.x + enemy.width) {
+            if (isFalling && playerFeet >= enemyHead && playerFeet <= enemyHead + 15 && player.x + player.width > enemy.x && player.x < enemy.x + enemy.width) {
                 enemies.splice(index, 1);
                 player.vy = -8;
                 state.score += 200;
+                return;
+            }
+
+            if (!state.isImmune && Math.abs(player.x - enemy.x) < 28 && Math.abs(player.y - enemy.y) < 28) {
+                handlePlayerHit();
             }
         });
-
-        // REGRA MULTIPLAYER: Só passa a fase se TODOS os jogadores chegarem na zona final (Direita da tela)
-        const inExitZone = player.x >= canvas.width - 60;
-        let totalPlayersInExit = inExitZone ? 1 : 0;
-
-        Object.keys(remotePlayers).forEach(id => {
-            if (remotePlayers[id].x >= canvas.width - 60) totalPlayersInExit++;
-        });
-
-        const totalPlayers = connections.length + 1;
-        
-        // Desenha Portal / Zona de Transição de Fase
-        ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
-        ctx.fillRect(canvas.width - 50, 300, 50, 80);
-        ctx.fillStyle = '#fff';
-        ctx.font = '10px Courier';
-        ctx.fillText(`SAÍDA (${totalPlayersInExit}/${totalPlayers})`, canvas.width - 50, 290);
-
-        if (totalPlayersInExit >= totalPlayers && isHost) {
-            const nextStage = state.stage + 1;
-            initStage(nextStage);
-            broadcast({ type: 'STAGE_ADVANCE', stage: nextStage });
-        }
 
         document.getElementById('ui-score').innerText = Math.floor(state.score);
     }
@@ -521,8 +800,33 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// Touch Controls Joystick
-let touchMoveX = 0, touchJump = false, touchAttack = false;
+function handlePlayerHit() {
+    if (state.pinkShield) {
+        state.pinkShield = false;
+        state.isImmune = true;
+        state.immunityTimer = 60;
+        return;
+    }
+    
+    state.lives--;
+    updateLivesUI();
+    if (state.lives <= 0) {
+        state.isGameOver = true;
+        document.getElementById('modal-gameover').classList.remove('hidden');
+    } else {
+        state.isImmune = true;
+        state.immunityTimer = 120;
+    }
+}
+
+function updateLivesUI() {
+    let hearts = '';
+    for(let i=0; i<state.lives; i++) hearts += '❤️';
+    document.getElementById('ui-lives').innerText = hearts || '💀';
+}
+
+// Controles Touch
+let touchMoveX = 0, touchJump = false, touchAttack = false, touchSpecial = false;
 const joystickZone = document.getElementById('joystick-zone');
 const joystickKnob = document.getElementById('joystick-knob');
 
@@ -543,8 +847,44 @@ function handleJoystick(e) {
 
 document.getElementById('btn-jump').addEventListener('touchstart', (e) => { e.preventDefault(); touchJump = true; });
 document.getElementById('btn-attack').addEventListener('touchstart', (e) => { e.preventDefault(); touchAttack = true; });
+document.getElementById('btn-special').addEventListener('touchstart', (e) => { e.preventDefault(); touchSpecial = true; });
+
+function updateKeybindButtonsUI() {
+    document.getElementById('rebind-left').innerText = `Esquerda: ${state.keyMap.left}`;
+    document.getElementById('rebind-right').innerText = `Direita: ${state.keyMap.right}`;
+    document.getElementById('rebind-jump').innerText = `Pulo: ${state.keyMap.jump}`;
+    document.getElementById('rebind-attack').innerText = `Escudo U: ${state.keyMap.attack}`;
+    document.getElementById('rebind-special').innerText = `Relógio I: ${state.keyMap.special}`;
+}
+
+['left','right','jump','attack','special'].forEach(action => {
+    document.getElementById(`rebind-${action}`).onclick = () => {
+        listeningRebind = action;
+        document.getElementById(`rebind-${action}`).innerText = 'Pressione Tecla...';
+    };
+});
+
+document.getElementById('btn-config').onclick = openConfigMenu;
+document.getElementById('btn-save-keybinds').onclick = saveSettings;
+
+document.getElementById('btn-apply-cheat').onclick = () => {
+    const stageInput = parseInt(document.getElementById('cheat-stage-input').value);
+    if (stageInput >= 1 && stageInput <= 25) {
+        initStage(stageInput);
+        document.getElementById('modal-cheat').classList.add('hidden');
+    }
+};
+document.getElementById('btn-close-cheat').onclick = () => document.getElementById('modal-cheat').classList.add('hidden');
+
+document.getElementById('btn-restart').onclick = () => {
+    state.lives = 3; state.score = 0; state.isGameOver = false;
+    updateLivesUI();
+    document.getElementById('modal-gameover').classList.add('hidden');
+    initStage(1);
+};
 
 // Iniciar Jogo
+loadSettings();
 initStage(1);
 gameLoop();
 
