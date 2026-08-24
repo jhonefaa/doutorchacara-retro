@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doutor Chácara - Alfabetização Arcade Mobile v2.1</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121214;
+            color: #e1e1e6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            max-width: 800px;
+            max-height: 450px;
+            background: #19191d;
+            position: relative;
+            border: 4px solid #4d4d57;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            aspect-ratio: 16/9;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            background: rgba(25, 25, 29, 0.95);
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        #game-canvas-screen {
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+            display: none;
+        }
+
+        #game-canvas-screen.active {
+            display: block;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        h1 {
+            color: #ffcc00;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        h2 {
+            color: #00e676;
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+        }
+
+        p {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            max-width: 80%;
+            line-height: 1.4;
+        }
+
+        .btn {
+            background: #ffcc00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 6px;
+            transition: transform 0.1s, background 0.2s;
+            text-transform: uppercase;
+            box-shadow: 0 4px 0 #b38f00;
+        }
+
+        .btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #b38f00;
+        }
+
+        .btn-secondary {
+            background: #4d4d57;
+            color: #fff;
+            box-shadow: 0 4px 0 #2a2a32;
+        }
+        
+        .btn-secondary:active {
+            box-shadow: 0 1px 0 #2a2a32;
+        }
+
+        .btn-danger {
+            background: #ff5252;
+            color: #fff;
+            box-shadow: 0 4px 0 #b33939;
+        }
+
+        .btn-danger:active {
+            box-shadow: 0 1px 0 #b33939;
+        }
+
+        .input-field {
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 4px;
+            border: 2px solid #4d4d57;
+            background: #2a2a32;
+            color: #fff;
+            margin-bottom: 15px;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        /* Top HUD Bar inside game */
+        #hud-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            z-index: 10;
+            color: #fff;
+        }
+
+        .hud-item span {
+            color: #ffcc00;
+            font-weight: bold;
+        }
+
+        #hud-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .hud-icon-btn {
+            background: #333;
+            border: 1px solid #555;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        /* Mobile Controls Overlay */
+        #mobile-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 110px;
+            z-index: 10;
+            display: none;
+            justify-content: space-between;
+            padding: 10px 20px;
+            pointer-events: none;
+        }
+
+        .d-pad, .action-buttons {
+            display: flex;
+            gap: 10px;
+            pointer-events: auto;
+            align-items: center;
+        }
+
+        .joy-btn {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            touch-action: manipulation;
+        }
+
+        .joy-btn:active {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Forms / Configuration Layout */
+        .config-row {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            max-width: 300px;
+            margin: 6px 0;
+            align-items: center;
+        }
+
+        .config-row label {
+            font-size: 0.9rem;
+        }
+
+        .config-key-input {
+            width: 70px;
+            padding: 4px;
+            text-align: center;
+            background: #333;
+            border: 1px solid #555;
+            color: #ffcc00;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* High scores list */
+        .score-board {
+            width: 80%;
+            max-width: 400px;
+            background: #222;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            max-height: 120px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 10px;
+            border-bottom: 1px solid #333;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        /* Utility classes */
+        .flex-row {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        #video-container {
+            width: 80%;
+            max-width: 320px;
+            height: 100px;
+            background: #000;
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px dashed #444;
+            color: #888;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        
+        <!-- MAIN MENU SCREEN -->
+        <div id="screen-menu" class="screen active">
+            <h1>Doutor Chácara</h1>
+            <h2>Alfabetização Arcade Mobile v2.1</h2>
+            <p>Aprenda jogando e destruindo alvos nesta incrível aventura arcade!</p>
+            <div class="flex-row">
+                <button class="btn" onclick="changeScreen('screen-fase1')">Iniciar Jogo ▶</button>
+                <button class="btn btn-secondary" onclick="openConfigMenu()">Configurações ⚙</button>
+            </div>
+            <div class="flex-row" style="margin-top: 15px;">
+                <button class="btn btn-secondary" style="font-size: 0.8rem;" onclick="changeScreen('screen-pix')">⚡ Apoiar com PIX</button>
+                <button class="btn btn-secondary" style="font-size: 0.8rem;" onclick="changeScreen('screen-comentarios')">💬 Comentários</button>
+            </div>
+        </div>
+
+        <!-- PIX SUPPORT SCREEN -->
+        <div id="screen-pix" class="screen">
+            <h2>APOIE O JOGO COM PIX ⚡</h2>
+            <p>Sua ajuda garante novos conteúdos e melhorias para o jogo!</p>
+            <div class="input-field" style="font-size: 0.85rem; width: 90%;">jhonemercadopago2023@gmail.com</div>
+            <div>
+                <button class="btn" onclick="copyPixKey()">COPIAR CHAVE PIX 📋</button>
+                <button class="btn btn-secondary" onclick="changeScreen('screen-menu')">◀ VOLTAR</button>
+            </div>
+        </div>
+
+        <!-- COMMENTS SCREEN -->
+        <div id="screen-comentarios" class="screen">
+            <h2>DEIXE SEU COMENTÁRIO 💬</h2>
+            <p>Envie sua mensagem para aparecer no jogo!</p>
+            <input type="text" id="comment-input" class="input-field" placeholder="Escreva seu comentário aqui...">
+            <div>
+                <button class="btn" onclick="sendComment()">ENVIAR COMENTÁRIO 📝</button>
+                <button class="btn btn-secondary" onclick="changeScreen('screen-menu')">◀ VOLTAR</button>
+            </div>
+        </div>
+
+        <!-- PRE-LEVEL 1 SCREEN -->
+        <div id="screen-fase1" class="screen">
+            <h2>FASE 1</h2>
+            <p>Destrua as letras solicitadas para formar as sílabas! Fique atento aos alvos corretos.</p>
+            <button class="btn" onclick="startGame(1)">INICIAR FASE ▶</button>
+            <button class="btn btn-secondary" onclick="changeScreen('screen-menu')">VOLTAR</button>
+        </div>
+
+        <!-- LEVEL COMPLETED SCREEN -->
+        <div id="screen-fase-concluida" class="screen">
+            <h2>FASE CONCLUÍDA! 🎉</h2>
+            <p>Excelente trabalho! Você provou suas habilidades de alfabetização!</p>
+            <p style="font-size: 0.85rem; color: #aaa;">Apoie o canal do Doutor Chácara para continuar:</p>
+            <div class="flex-row">
+                <button class="btn btn-danger" onclick="visitYoutube()">🔴 Se inscreva no canal</button>
+                <button class="btn btn-secondary" onclick="visitYoutube()">👍 Já é inscrito</button>
+                <button class="btn" onclick="proceedAfterLevelClear()">Continuar jogo ▶</button>
+            </div>
+        </div>
+
+        <!-- YOUTUBE PAUSE SCREEN -->
+        <div id="screen-pausado-youtube" class="screen">
+            <h2>JOGO PAUSADO ⏸</h2>
+            <p>O jogo está pausado enquanto você visita o canal!</p>
+            <button class="btn" onclick="resumeFromYoutube()">CONTINUAR JOGO ▶</button>
+        </div>
+
+        <!-- CONFIGURATION MENU -->
+        <div id="screen-config" class="screen">
+            <h2>CONFIGURAÇÃO DE TECLAS</h2>
+            
+            <div class="config-row">
+                <label>Ataque (Lançar Escudo):</label>
+                <input type="text" id="key-attack" class="config-key-input" readonly onclick="captureKey('attack')">
+            </div>
+            <div class="config-row">
+                <label>Pulo:</label>
+                <input type="text" id="key-jump" class="config-key-input" readonly onclick="captureKey('jump')">
+            </div>
+            <div class="config-row">
+                <label>Super Escudo:</label>
+                <input type="text" id="key-shield" class="config-key-input" readonly onclick="captureKey('shield')">
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <button class="btn" onclick="saveConfig()">SALVAR AJUSTES 💾</button>
+                <button class="btn btn-secondary" onclick="closeConfigMenu()">VOLTAR</button>
+            </div>
+        </div>
+
+        <!-- GAME VICTORY / END OF GAME SCREEN -->
+        <div id="screen-victory" class="screen">
+            <h2>PARABÉNS! VOCÊ ZEROU A FASE 26! 🏆</h2>
+            <p>Mensagem especial do Doutor Chácara:</p>
+            
+            <div id="video-container">
+                [Vídeo Comemorativo HTML5 - Canal Doutor Chácara]
+            </div>
+
+            <p style="font-size: 0.85rem; margin-bottom: 5px;">Digite seu nome para gravar seu recorde no placar para sempre:</p>
+            <input type="text" id="player-name-input" class="input-field" placeholder="Seu Nome/Apelido" value="Jogador">
+            
+            <div>
+                <button class="btn" onclick="savePermanentRecord()">GRAVAR NO PLACAR PERMANENTE 🏆</button>
+                <button class="btn btn-secondary" onclick="changeScreen('screen-menu')">MENU INICIAL</button>
+            </div>
+        </div>
+
+        <!-- GAME OVER SCREEN -->
+        <div id="screen-gameover" class="screen">
+            <h2>GAME OVER</h2>
+            <p>Você perdeu todas as suas vidas ou falhou na fase!</p>
+            <p>Sua pontuação: <span id="gameover-score" style="color: #ff5252; font-weight: bold;">0</span></p>
+            <div>
+                <button class="btn" onclick="retryLevel()">REENTRAR NA FASE 🔄</button>
+                <button class="btn btn-secondary" onclick="changeScreen('screen-menu')">MENU INICIAL</button>
+            </div>
+            
+            <h3 style="margin-top: 15px; font-size: 1rem; color: #ffcc00;">🏆 PLACAR PERMANENTE DE RECORDES</h3>
+            <div class="score-board" id="leaderboard-container">
+                <!-- Scores loaded via JS -->
+            </div>
+        </div>
+
+        <!-- CANVAS GAME SCREEN -->
+        <div id="game-canvas-screen" class="screen">
+            <!-- HUD -->
+            <div id="hud-bar">
+                <div class="hud-item">FASE: <span id="hud-level">1</span></div>
+                <div class="hud-item">PONTOS: <span id="hud-score">0</span></div>
+                <div class="hud-item">VIDAS: <span id="hud-lives">3</span></div>
+                <div id="hud-controls">
+                    <button class="hud-icon-btn" onclick="toggleAudio()">🎵 <span id="hud-music-status">ON</span></button>
+                    <button class="hud-icon-btn" onclick="toggleVoice()">🔊 <span id="hud-voice-status">ON</span></button>
+                    <button class="hud-icon-btn" onclick="pauseGameButton()">⏸ PAUSE</button>
+                </div>
+            </div>
+
+            <!-- Canvas Element -->
+            <canvas id="gameCanvas" width="800" height="450"></canvas>
+
+            <!-- Mobile Buttons Overlay -->
+            <div id="mobile-controls">
+                <div class="d-pad">
+                    <div class="joy-btn" id="btn-left">◀</div>
+                    <div class="joy-btn" id="btn-right">▶</div>
+                </div>
+                <div class="action-buttons">
+                    <div class="joy-btn" id="btn-attack-ui" style="background: #ff5252;">A</div>
+                    <div class="joy-btn" id="btn-jump-ui" style="background: #2196f3;">P</div>
+                    <div class="joy-btn" id="btn-shield-ui" style="background: #4caf50;">E</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- GAME STATE & CONFIGURATION ---
+        let currentScreen = 'screen-menu';
+        let previousScreen = 'screen-menu';
+        let gameInterval = null;
+        let isGameRunning = false;
+        let isPaused = false;
+        
+        // Game Settings (Stored in LocalStorage)
+        let keysConfig = {
+            attack: 'KeyA',
+            jump: 'KeyS',
+            shield: 'KeyD'
+        };
+        
+        let audioSettings = {
+            music: true,
+            voice: true
+        };
+
+        // Game Variables
+        let score = 0;
+        let lives = 3;
+        let currentLevel = 1;
+        let targetScoreForLevel = 1000;
+        
+        // Canvas & Context
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Key listener state
+        let keysPressed = {};
+        let activeKeyCapture = null;
+
+        // --- GAME ENTITIES & MECHANICS ---
+        let player = {
+            x: 100,
+            y: 300,
+            width: 40,
+            height: 60,
+            vx: 0,
+            vy: 0,
+            isJumping: false,
+            color: '#2196f3', // Default Blue Doctor Coat
+            hasPinkJacket: false,
+            shieldActive: false,
+            shieldTimer: 0,
+            isBeingCarried: false,
+            carrierBug: null
+        };
+
+        let shields = []; // Active thrown shields
+        let targets = []; // Letter targets / Enemies
+        let pinkButterflies = []; // Special items
+        let giantBugs = []; // Super flying giant insects
+        
+        let scoreMilestonePink = 0;
+        let scoreMilestoneGiant = 0;
+
+        // Initialize Settings from LocalStorage
+        function initSettings() {
+            if (localStorage.getItem('dc_keys_config')) {
+                keysConfig = JSON.parse(localStorage.getItem('dc_keys_config'));
+            }
+            if (localStorage.getItem('dc_audio_settings')) {
+                audioSettings = JSON.parse(localStorage.getItem('dc_audio_settings'));
+            }
+            updateConfigUI();
+            updateHudAudioUI();
+            
+            // Detect if mobile device to show touch controls
+            if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                document.getElementById('mobile-controls').style.display = 'flex';
+            }
+        }
+
+        // Screen Navigation Management
+        function changeScreen(screenId) {
+            // Pause game autonomously if opening menus during active gameplay
+            if (isGameRunning && screenId !== 'game-canvas-screen' && screenId !== 'screen-pausado-youtube') {
+                pauseGame();
+            }
+
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            previousScreen = currentScreen;
+            currentScreen = screenId;
+            
+            if (screenId === 'screen-gameover') {
+                loadLeaderboard();
+            }
+        }
+
+        // Configuration Mapping
+        function openConfigMenu() {
+            pauseGame();
+            changeScreen('screen-config');
+        }
+
+        function closeConfigMenu() {
+            if (isGameRunning) {
+                changeScreen('game-canvas-screen');
+                resumeGame();
+            } else {
+                changeScreen('screen-menu');
+            }
+        }
+
+        function updateConfigUI() {
+            document.getElementById('key-attack').value = keysConfig.attack.replace('Key', '');
+            document.getElementById('key-jump').value = keysConfig.jump.replace('Key', '');
+            document.getElementById('key-shield').value = keysConfig.shield.replace('Key', '');
+        }
+
+        function captureKey(action) {
+            activeKeyCapture = action;
+            const inputElement = document.getElementById(`key-${action}`);
+            inputElement.value = '>>> ? <<<';
+            inputElement.style.background = '#ffcc00';
+            inputElement.style.color = '#000';
+        }
+
+        function saveConfig() {
+            localStorage.setItem('dc_keys_config', JSON.stringify(keysConfig));
+            updateConfigUI();
+            alert('Configurações salvas com sucesso!');
+            closeConfigMenu();
+        }
+
+        // PIX & Comments Functions
+        function copyPixKey() {
+            navigator.clipboard.writeText('jhonemercadopago2023@gmail.com');
+            alert('Chave PIX copiada para a área de transferência!');
+        }
+
+        function sendComment() {
+            const txt = document.getElementById('comment-input').value;
+            if(txt.trim() !== "") {
+                alert('Obrigado! Seu comentário enviado com sucesso: "' + txt + '"');
+                document.getElementById('comment-input').value = '';
+                changeScreen('screen-menu');
+            }
+        }
+
+        // Audio & Voice Switches
+        function toggleAudio() {
+            audioSettings.music = !audioSettings.music;
+            localStorage.setItem('dc_audio_settings', JSON.stringify(audioSettings));
+            updateHudAudioUI();
+        }
+
+        function toggleVoice() {
+            audioSettings.voice = !audioSettings.voice;
+            localStorage.setItem('dc_audio_settings', JSON.stringify(audioSettings));
+            updateHudAudioUI();
+        }
+
+        function updateHudAudioUI() {
+            document.getElementById('hud-music-status').innerText = audioSettings.music ? "ON" : "OFF";
+            document.getElementById('hud-voice-status').innerText = audioSettings.voice ? "ON" : "OFF";
+        }
+
+        // YouTube Workflow
+        function visitYoutube() {
+            window.open('https://youtube.com', '_blank');
+            changeScreen('screen-pausado-youtube');
+        }
+
+        function resumeFromYoutube() {
+            changeScreen('screen-fase-concluida');
+        }
+
+        function proceedAfterLevelClear() {
+            if (currentLevel >= 26) {
+                changeScreen('screen-victory');
+            } else {
+                currentLevel++;
+                startGame(currentLevel);
+            }
+        }
+
+        // --- CORE GAME ENGINE LOOP ---
+        function startGame(level) {
+            currentLevel = level;
+            score = 0;
+            lives = 3;
+            scoreMilestonePink = 0;
+            scoreMilestoneGiant = 0;
+            
+            // Entities setup
+            shields = [];
+            targets = [];
+            pinkButterflies = [];
+            giantBugs = [];
+            
+            player.x = 100;
+            player.y = 300;
+            player.vx = 0;
+            player.vy = 0;
+            player.isJumping = false;
+            player.color = '#2196f3';
+            player.hasPinkJacket = false;
+            player.shieldActive = false;
+            player.isBeingCarried = false;
+            player.carrierBug = null;
+
+            // Spawn first wave
+            spawnTarget();
+            spawnTarget();
+
+            isGameRunning = true;
+            isPaused = false;
+            
+            document.getElementById('hud-level').innerText = currentLevel;
+            document.getElementById('hud-score').innerText = score;
+            document.getElementById('hud-lives').innerText = lives;
+
+            changeScreen('game-canvas-screen');
+            
+            if(gameInterval) clearInterval(gameInterval);
+            gameInterval = setInterval(gameLoop, 1000 / 60); // 60 FPS
+        }
+
+        function pauseGame() {
+            if (isGameRunning) {
+                isPaused = true;
+            }
+        }
+
+        function resumeGame() {
+            if (isGameRunning) {
+                isPaused = false;
+            }
+        }
+
+        function pauseGameButton() {
+            alert("Jogo Pausado. Clique em OK para continuar.");
+        }
+
+        function retryLevel() {
+            startGame(currentLevel);
+        }
+
+        function gameLoop() {
+            if (isPaused) return;
+
+            updateState();
+            renderGraphics();
+        }
+
+        // --- STATE & PHYSICS UPDATE ---
+        function updateState() {
+            // 1. Handling carrier flying sequence
+            if (player.isBeingCarried && player.carrierBug) {
+                player.carrierBug.y -= 4;
+                player.x = player.carrierBug.x + (player.carrierBug.width/2 - player.width/2);
+                player.y = player.carrierBug.y + player.carrierBug.height;
+                
+                // If insect exits screen top side, complete level instantly
+                if (player.carrierBug.y + player.carrierBug.height < 0) {
+                    clearInterval(gameInterval);
+                    isGameRunning = false;
+                    changeScreen('screen-fase-concluida');
+                }
+                
+                // Update active background bugs only
+                giantBugs.forEach(bug => { bug.x += bug.vx; });
+                return; 
+            }
+
+            // 2. Standard Player Controls Horizontal
+            if (keysPressed['ArrowLeft'] || keysPressed['mobile-left']) {
+                player.vx = -5;
+            } else if (keysPressed['ArrowRight'] || keysPressed['mobile-right']) {
+                player.vx = 5;
+            } else {
+                player.vx = 0;
+            }
+
+            // Apply Jump Trigger
+            if ((keysPressed[keysConfig.jump] || keysPressed['mobile-jump']) && !player.isJumping) {
+                player.vy = -12;
+                player.isJumping = true;
+                keysPressed[keysConfig.jump] = false; // Reset trigger
+                keysPressed['mobile-jump'] = false;
+            }
+
+            // Physics Gravity
+            player.x += player.vx;
+            player.y += player.vy;
+            player.vy += 0.5; // Gravity pull
+
+            // Screen boundary clamping horizontal
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
+            // Ground collision anchor
+            if (player.y >= 350) {
+                player.y = 350;
+                player.vy = 0;
+                player.isJumping = false;
+            }
+
+            // Shield Timers
+            if (player.shieldActive) {
+                player.shieldTimer--;
+                if (player.shieldTimer <= 0) {
+                    player.shieldActive = false;
+                }
+            }
+
+            // Trigger Shield Attack Throws
+            if (keysPressed[keysConfig.attack] || keysPressed['mobile-attack']) {
+                throwShield();
+                keysPressed[keysConfig.attack] = false;
+                keysPressed['mobile-attack'] = false;
+            }
+
+            // Trigger Super Shield Mode
+            if (keysPressed[keysConfig.shield] || keysPressed['mobile-shield']) {
+                activateSuperShield();
+                keysPressed[keysConfig.shield] = false;
+                keysPressed['mobile-shield'] = false;
+            }
+
+            // 3. Move & Check Active Projectile Shields
+            for (let i = shields.length - 1; i >= 0; i--) {
+                let s = shields[i];
+                s.x += s.vx;
+                s.y += s.vy;
+                
+                // Target hit testing against letters/enemies
+                for (let j = targets.length - 1; j >= 0; j--) {
+                    let t = targets[j];
+                    if (checkCollision(s, t)) {
+                        // Explode target / gain score
+                        targets.splice(j, 1);
+                        addScore(150);
+                        shields.splice(i, 1);
+                        spawnTarget();
+                        break;
+                    }
+                }
+
+                // Check giant bug long range cross hitting
+                if (shields[i]) { // check if still active
+                    for (let b = giantBugs.length - 1; b >= 0; b--) {
+                        let bug = giantBugs[b];
+                        if (checkCollision(s, bug)) {
+                            // Player gets grabbed instantly by giant insect!
+                            player.isBeingCarried = true;
+                            player.carrierBug = bug;
+                            shields.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+
+                // Clean loose out-of-bound shields
+                if (shields[i] && (s.x > canvas.width || s.x < 0 || s.y < 0)) {
+                    shields.splice(i, 1);
+                }
+            }
+
+            // 4. Handle Enemies / Targets Physics
+            for (let j = targets.length - 1; j >= 0; j--) {
+                let t = targets[j];
+                t.x += t.vx;
+                
+                // Bound bounce reversing direction
+                if (t.x < 0 || t.x + t.width > canvas.width) {
+                    t.vx *= -1;
+                }
+
+                // --- NEW MECHANIC: ARCADE STYLE JUMP ATTACK ---
+                if (player.vy > 0 && 
+                    player.x + player.width > t.x && 
+                    player.x < t.x + t.width &&
+                    player.y + player.height >= t.y && 
+                    player.y + player.height <= t.y + 20) {
+                    
+                    // Instant kill enemy via head stomp bounce
+                    targets.splice(j, 1);
+                    addScore(200);
+                    player.vy = -8; // bounce bounce trick
+                    player.isJumping = true;
+                    spawnTarget();
+                    continue;
+                }
+
+                // Regular lateral hostile damage tracking
+                if (checkCollision(player, t)) {
+                    if (player.shieldActive) {
+                        // Reflected safetly
+                        targets.splice(j, 1);
+                        spawnTarget();
+                    } else if (player.hasPinkJacket) {
+                        // Immunity coat absorbs damage completely
+                        player.hasPinkJacket = false;
+                        player.color = '#2196f3'; // Back to blue original coat
+                        targets.splice(j, 1);
+                        spawnTarget();
+                    } else {
+                        // Direct hit damage penalty applied
+                        lives--;
+                        document.getElementById('hud-lives').innerText = lives;
+                        targets.splice(j, 1);
+                        spawnTarget();
+                        if (lives <= 0) {
+                            gameOver();
+                        }
+                    }
+                }
+            }
+
+            // 5. Special Pink Butterfly Item Handling
+            for (let pIdx = pinkButterflies.length - 1; pIdx >= 0; pIdx--) {
+                let bfly = pinkButterflies[pIdx];
+                bfly.y += Math.sin(Date.now() / 200) * 2; // hover float waving pattern
+                bfly.x -= 2;
+
+                if (checkCollision(player, bfly)) {
+                    // Activate unique pink protective suit color modifier
+                    player.hasPinkJacket = true;
+                    player.color = '#FF1493'; // Deep Pink Choque coat modification
+                    pinkButterflies.splice(pIdx, 1);
+                } else if (bfly.x < -40) {
+                    pinkButterflies.splice(pIdx, 1);
+                }
+            }
+
+            // 6. Giant Insets Behavior
+            for (let bgIdx = giantBugs.length - 1; bgIdx >= 0; bgIdx--) {
+                let gBug = giantBugs[bgIdx];
+                gBug.x += gBug.vx;
+                
+                if (gBug.x < -gBug.width || gBug.x > canvas.width + 50) {
+                    giantBugs.splice(bgIdx, 1);
+                }
+            }
+
+            // Procedural infinite random spawning intervals
+            if (Math.random() < 0.005 && targets.length < 4) {
+                spawnTarget();
+            }
+        }
+
+        // Spawn logic elements
+        function spawnTarget() {
+            let letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"];
+            let randomLetter = letters[Math.floor(Math.random() * letters.length)];
+            targets.push({
+                x: canvas.width + Math.random() * 200,
+                y: 350,
+                width: 30,
+                height: 40,
+                vx: -(2 + Math.random() * 3),
+                label: randomLetter
+            });
+        }
+
+        function throwShield() {
+            // Normal projectile launch forward
+            shields.push({
+                x: player.x + player.width,
+                y: player.y + player.height / 3,
+                width: 20,
+                height: 20,
+                vx: 8,
+                vy: 0
+            });
+        }
+
+        function activateSuperShield() {
+            player.shieldActive = true;
+            player.shieldTimer = 180; // ~3 seconds of static immunity aura shield frame
+            
+            // --- ENHANCED FEATURE RANGE TRIGGER AGAINST GIANT BUGS ---
+            if (giantBugs.length > 0) {
+                let targetBug = giantBugs[0];
+                // Project vertical up-tilted extreme extension tracking shield straight to it
+                let dx = (targetBug.x + targetBug.width/2) - player.x;
+                let dy = (targetBug.y + targetBug.height/2) - player.y;
+                let angle = Math.atan2(dy, dx);
+                
+                shields.push({
+                    x: player.x + player.width/2,
+                    y: player.y,
+                    width: 35,
+                    height: 35,
+                    vx: Math.cos(angle) * 12,
+                    vy: Math.sin(angle) * 12
+                });
+            }
+        }
+
+        function addScore(pts) {
+            score += pts;
+            document.getElementById('hud-score').innerText = score;
+
+            // Trigger Item Special - Borboleta Rosa (Every 10,000 points)
+            if (Math.floor(score / 10000) > scoreMilestonePink) {
+                scoreMilestonePink = Math.floor(score / 10000);
+                pinkButterflies.push({
+                    x: canvas.width + 20,
+                    y: 150 + Math.random() * 100,
+                    width: 30,
+                    height: 30
+                });
+            }
+
+            // Trigger Super Inseto Voador Gigante (Every 25,000 points)
+            if (Math.floor(score / 25000) > scoreMilestoneGiant) {
+                scoreMilestoneGiant = Math.floor(score / 25000);
+                giantBugs.push({
+                    x: canvas.width + 50,
+                    y: 40,
+                    width: 120, // 10x larger visual aspect
+                    height: 90,
+                    vx: -1.5,
+                    label: "SUPER INSETO"
+                });
+            }
+
+            // Dynamic Level win thresholds
+            if (score >= targetScoreForLevel && !player.isBeingCarried) {
+                clearInterval(gameInterval);
+                isGameRunning = false;
+                changeScreen('screen-fase-concluida');
+            }
+        }
+
+        function gameOver() {
+            clearInterval(gameInterval);
+            isGameRunning = false;
+            document.getElementById('gameover-score').innerText = score;
+            changeScreen('screen-gameover');
+        }
+
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        // --- GRAPHICS RENDERING ENGINE ---
+        function renderGraphics() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Sky & Ground Backdrop Design
+            ctx.fillStyle = '#87CEEB'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#556B2F'; // Dark olive green grass line
+            ctx.fillRect(0, 390, canvas.width, 60);
+
+            // Render Giant Flying Super Bugs
+            giantBugs.forEach(bug => {
+                ctx.fillStyle = '#8B008B'; // Dark magenta tint
+                ctx.fillRect(bug.x, bug.y, bug.width, bug.height);
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillText(bug.label, bug.x + 15, bug.y + 45);
+                
+                // Draw functional giant wings fluttering
+                let wingOffset = Math.sin(Date.now() / 50) * 20;
+                ctx.fillStyle = '#DA70D6';
+                ctx.beginPath();
+                ctx.ellipse(bug.x + bug.width/2, bug.y, 25, Math.abs(wingOffset), 0, 0, Math.PI*2);
+                ctx.fill();
+            });
+
+            // Render Pink Butterflies
+            pinkButterflies.forEach(bfly => {
+                ctx.fillStyle = '#FF69B4'; // HotPink style tone
+                ctx.beginPath();
+                ctx.arc(bfly.x + 10, bfly.y + 10, 10, 0, Math.PI*2);
+                ctx.arc(bfly.x + 20, bfly.y + 15, 8, 0, Math.PI*2);
+                ctx.fill();
+            });
+
+            // Render Active Projectile Shields
+            ctx.fillStyle = '#ffd700'; // Golden shields elements
+            shields.forEach(s => {
+                ctx.beginPath();
+                ctx.arc(s.x + s.width/2, s.y + s.height/2, s.width/2, 0, Math.PI*2);
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.stroke();
+            });
+
+            // Render Hostile Enemies Letters Targets
+            targets.forEach(t => {
+                ctx.fillStyle = '#ff5252'; // Enemy red boxes
+                ctx.fillRect(t.x, t.y, t.width, t.height);
+                
+                // Label text
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 20px monospace';
+                ctx.fillText(t.label, t.x + 8, t.y + 26);
+            });
+
+            // Render Main Character Dr. Chácara Figure
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            
+            // Character Head/Face details layout
+            ctx.fillStyle = '#ffdbac'; 
+            ctx.fillRect(player.x + 5, player.y - 15, 30, 20); // Head square
+            ctx.fillStyle = '#000';
+            ctx.fillRect(player.x + 22, player.y - 10, 5, 5); // Eyes right orientation
+            
+            // Rendering static protection bubble sphere aura
+            if (player.shieldActive) {
+                ctx.strokeStyle = 'rgba(0, 230, 118, 0.6)';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(player.x + player.width/2, player.y + player.height/2, player.height * 0.8, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+
+        // --- HARD PLACAR PERMANENTE PERSISTENCE SYSTEM ---
+        function savePermanentRecord() {
+            const name = document.getElementById('player-name-input').value.trim() || 'Anonimo';
+            let records = [];
+            if(localStorage.getItem('dc_permanent_leaderboard')) {
+                records = JSON.parse(localStorage.getItem('dc_permanent_leaderboard'));
+            }
+            records.push({ name: name, score: score, level: currentLevel });
+            records.sort((a, b) => b.score - a.score);
+            
+            localStorage.setItem('dc_permanent_leaderboard', JSON.stringify(records));
+            alert('Parabéns! Seu nome foi imortalizado no Placar do Doutor Chácara!');
+            changeScreen('screen-menu');
+        }
+
+        function loadLeaderboard() {
+            const container = document.getElementById('leaderboard-container');
+            container.innerHTML = '';
+            let records = [
+                {name: "Doutor Chácara", score: 99999, level: 26},
+                {name: "Professor Arcade", score: 50000, level: 15},
+                {name: "Mobile Master", score: 25000, level: 10}
+            ];
+            
+            if(localStorage.getItem('dc_permanent_leaderboard')) {
+                records = JSON.parse(localStorage.getItem('dc_permanent_leaderboard'));
+            }
+
+            records.forEach((r, idx) => {
+                let div = document.createElement('div');
+                div.className = 'score-item';
+                div.innerHTML = `<span>${idx+1}. ${r.name} (Fase ${r.level})</span> <span>${r.score} pts</span>`;
+                container.appendChild(div);
+            });
+        }
+
+        // --- HARDWARE INPUT EVENT LISTENERS ---
+        window.addEventListener('keydown', function(e) {
+            if (activeKeyCapture) {
+                keysConfig[activeKeyCapture] = e.code;
+                activeKeyCapture = null;
+                updateConfigUI();
+                return;
+            }
+            keysPressed[e.code] = true;
+        });
+
+        window.addEventListener('keyup', function(e) {
+            keysPressed[e.code] = false;
+        });
+
+        // Mapping Touch Controllers UI bindings manually
+        function bindMobileBtn(elementId, keyPseudo) {
+            const el = document.getElementById(elementId);
+            if(el) {
+                el.addEventListener('touchstart', (e) => { e.preventDefault(); keysPressed[keyPseudo] = true; });
+                el.addEventListener('touchend', (e) => { e.preventDefault(); keysPressed[keyPseudo] = false; });
+                // Fallbacks for mouse emulation debugging standard PCs
+                el.addEventListener('mousedown', () => { keysPressed[keyPseudo] = true; });
+                el.addEventListener('mouseup', () => { keysPressed[keyPseudo] = false; });
+            }
+        }
+        
+        bindMobileBtn('btn-left', 'ArrowLeft');
+        bindMobileBtn('btn-right', 'ArrowRight');
+        bindMobileBtn('btn-attack-ui', 'mobile-attack');
+        bindMobileBtn('btn-jump-ui', 'mobile-jump');
+        bindMobileBtn('btn-shield-ui', 'mobile-shield');
+
+        // Startup Boot trigger
+        window.onload = function() {
+            initSettings();
+        };
+
+    </script>
+</body>
+</html>
