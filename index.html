@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Doutor Chácara - Arcade Multiplayer v3.2</title>
+    <title>Doutor Chácara - Arcade Multiplayer v3.3</title>
     <!-- PeerJS para Conexão Multiplayer Online P2P -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -51,11 +51,12 @@
         .char-card.selected { border-color: #4CAF50; background: rgba(76, 175, 80, 0.3); }
         .char-preview { width: 20px; height: 20px; margin: 0 auto 4px auto; border-radius: 2px; }
 
-        #chat-box { position: absolute; bottom: 100px; left: 10px; width: 220px; height: 120px; background: rgba(0,0,0,0.6); border: 1px solid #4caf50; display: flex; flex-direction: column; z-index: 15; font-size: 10px; }
+        /* Chat Relocado para o Topo Superior Direito */
+        #chat-box { position: absolute; top: 35px; right: 10px; width: 200px; height: 95px; background: rgba(0,0,0,0.65); border: 1px solid #4caf50; display: flex; flex-direction: column; z-index: 15; font-size: 9px; border-radius: 4px; }
         #chat-messages { flex: 1; overflow-y: auto; padding: 4px; text-align: left; }
         #chat-input-container { display: flex; }
-        #chat-input { flex: 1; background: #111; color: #fff; border: none; padding: 4px; font-size: 10px; }
-        #chat-send { background: #4caf50; border: none; color: white; padding: 4px 8px; cursor: pointer; }
+        #chat-input { flex: 1; background: #111; color: #fff; border: none; padding: 4px; font-size: 9px; }
+        #chat-send { background: #4caf50; border: none; color: white; padding: 4px 6px; cursor: pointer; font-weight: bold; }
 
         .yt-banner { color: #ff0000; font-weight: bold; margin-bottom: 6px; text-decoration: none; border: 1px solid red; padding: 4px 8px; border-radius: 4px; background: rgba(255,0,0,0.1); font-size: 11px; }
     </style>
@@ -75,11 +76,11 @@
         </div>
     </div>
 
-    <!-- Chat ao Vivo -->
+    <!-- Chat ao Vivo Re-posicionado para não Atrapalhar -->
     <div id="chat-box">
         <div id="chat-messages"></div>
         <div id="chat-input-container">
-            <input type="text" id="chat-input" placeholder="Mensagem ao vivo..." maxlength="50">
+            <input type="text" id="chat-input" placeholder="Chat ao vivo..." maxlength="50">
             <button id="chat-send">▶</button>
         </div>
     </div>
@@ -95,19 +96,17 @@
         </div>
     </div>
 
-    <!-- Modal de Cadastro / Login e Seleção de Personagem -->
+    <!-- Modal de Login e Seleção do Personagem -->
     <div id="modal-auth" class="modal">
         <h2 style="color: #ffeb3b; margin-bottom: 2px;">DOUTOR CHÁCARA</h2>
         <a href="https://www.youtube.com" target="_blank" class="yt-banner">📺 Inscreva-se no Canal Doutor Chácara!</a>
-        <p style="font-size:10px;">Cadastre seu usuário e escolha seu personagem para jogar em grupo (Máx 6/Sala)</p>
+        <p style="font-size:10px;">Cadastre-se e escolha seu personagem para jogar em grupo</p>
         
         <input type="text" id="auth-username" placeholder="Nome do Jogador" value="Doutor Chácara">
         <input type="password" id="auth-password" placeholder="Senha de Acesso" value="123456">
 
         <p style="font-size:10px; margin-top: 4px; color: #4CAF50;">ESCOLHA SEU PERSONAGEM:</p>
-        <div class="char-select-grid" id="char-grid">
-            <!-- Gerado via JavaScript -->
-        </div>
+        <div class="char-select-grid" id="char-grid"></div>
 
         <button id="btn-login" style="background:#4CAF50; color:white;">ENTRAR NA SALA E JOGAR</button>
     </div>
@@ -137,65 +136,71 @@
         </div>
         <button id="btn-save-keybinds" style="background: #4CAF50; color: white;">SALVAR E CONTINUAR JOGO</button>
     </div>
-
-    <div id="modal-gameover" class="modal hidden">
-        <h1 id="go-title">GAME OVER</h1>
-        <p id="go-message">Aguardando a equipe...</p>
-        <button id="btn-restart">REINICIAR FASE</button>
-    </div>
 </div>
 
 <script>
 /**
- * DOUTOR CHÁCARA - ARCADE MULTIPLAYER v3.2
+ * DOUTOR CHÁCARA - ARCADE MULTIPLAYER v3.3
  */
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-const bgEven = new Image();
-bgEven.src = 'fundo.jpg.jpg'; 
+// Trilha Sonora Retro Synthwave sem Direitos Autorais
+const bgm = new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a7315b.mp3?filename=8-bit-arcade-138828.mp3');
+bgm.loop = true;
+bgm.volume = 0.3;
 
-const bgRetro = new Image();
-bgRetro.src = 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80';
+// Imagens de Fundo
+const bgEven = new Image(); bgEven.src = 'fundo.jpg.jpg'; 
+const bgRetro = new Image(); bgRetro.src = 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80';
+const bgModern = new Image(); bgModern.src = 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80';
 
-const bgModern = new Image();
-bgModern.src = 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80';
-
-// Os 6 Personagens da Família Doutor Chácara
 const CHARACTER_TYPES = [
     { id: 0, name: 'Doutor Chácara', color: '#003366' },
-    { id: 1, name: 'Pai do Doutor', color: '#8A2BE2' }, // Violeta
-    { id: 2, name: 'Irmã do Doutor', color: '#FF69B4' }, // Rosa
-    { id: 3, name: 'Filho do Doutor', color: '#00E5FF' }, // Azul Claro
-    { id: 4, name: 'Filha do Doutor', color: '#FFD700' }, // Dourado
-    { id: 5, name: 'Tio do Doutor', color: '#2E8B57' }   // Verde Esmeralda
+    { id: 1, name: 'Pai do Doutor', color: '#8A2BE2' },
+    { id: 2, name: 'Irmã do Doutor', color: '#FF69B4' },
+    { id: 3, name: 'Filho do Doutor', color: '#00E5FF' },
+    { id: 4, name: 'Filha do Doutor', color: '#FFD700' },
+    { id: 5, name: 'Tio do Doutor', color: '#2E8B57' }
 ];
 
 const state = {
     selectedCharId: 0,
-    myPlayerId: 0,
+    myPlayerId: Math.random().toString(36).substring(2, 9),
     username: 'Doutor Chácara',
-    roomCode: 'dc_room_1',
     score: 0,
     lives: 3,
     stage: 1,
-    isGameOver: false,
     isPaused: false,
     players: {},
-    keyMap: {
-        left: 'KeyA',
-        right: 'KeyD',
-        up: 'KeyW',
-        down: 'KeyS',
-        jump: 'KeyU',
-        salto: 'KeyO',
-        attack: 'KeyU',
-        special: 'KeyI'
-    }
+    keyMap: { left: 'KeyA', right: 'KeyD', up: 'KeyW', down: 'KeyS', jump: 'KeyU', salto: 'KeyO', attack: 'KeyU', special: 'KeyI' }
 };
 
-// Renderiza a Seleção Visual de Personagens no Menu Inicial
+// Gerenciador de Insetos (Aranha, Mosca, Abelha)
+const INSECT_TYPES = [
+    { type: 'spider', color: '#8B0000', speed: 1.5, size: 16, label: '🕷️' },
+    { type: 'fly', color: '#708090', speed: 2.5, size: 12, label: '🪰' },
+    { type: 'bee', color: '#FFD700', speed: 2.0, size: 14, label: '🐝' }
+];
+
+let enemies = [];
+
+function spawnEnemies() {
+    enemies = [];
+    const count = 3 + state.stage * 2;
+    for (let i = 0; i < count; i++) {
+        const spec = INSECT_TYPES[Math.floor(Math.random() * INSECT_TYPES.length)];
+        enemies.push({
+            x: 400 + Math.random() * 350,
+            y: spec.type === 'spider' ? 364 : 250 + Math.random() * 80,
+            spec: spec,
+            vx: -spec.speed,
+            vy: spec.type === 'fly' ? Math.sin(Math.random() * 10) : 0
+        });
+    }
+}
+
 function renderCharacterSelection() {
     const grid = document.getElementById('char-grid');
     grid.innerHTML = '';
@@ -220,100 +225,80 @@ function renderCharacterSelection() {
     });
 }
 
-// Configuração Multiplayer
+// Sala Multiplayer Única e Direta
 let peer = null;
-let connections = {};
-let isHost = false;
+let hostConn = null;
+let clientConns = [];
 
-function initMultiplayer(username) {
-    state.username = username;
-    try {
-        peer = new Peer();
-        peer.on('open', () => { joinRoom(1); });
-        peer.on('connection', (conn) => { setupConnection(conn); });
-    } catch(e) {
-        console.log("Modo solo ativado.");
+function initMultiplayer() {
+    const roomKey = "dc_chacara_room_global_v33";
+    peer = new Peer(roomKey);
+
+    peer.on('open', () => {
+        // Criou a sala global como líder
+        spawnEnemies();
+    });
+
+    peer.on('error', (err) => {
+        if (err.type === 'unavailable-id') {
+            // A sala já existe, conecta como jogador convidado
+            peer = new Peer();
+            peer.on('open', () => {
+                hostConn = peer.connect(roomKey);
+                setupHostConnection(hostConn);
+            });
+        }
+    });
+
+    peer.on('connection', (conn) => {
+        clientConns.push(conn);
+        conn.on('data', (data) => processNetworkData(data));
+        // Sincroniza o estado atual do jogo e fase para quem acabou de entrar
+        conn.send({ type: 'SYNC_STAGE', stage: state.stage, enemies: enemies });
+    });
+}
+
+function setupHostConnection(conn) {
+    conn.on('open', () => {
+        updateRoomUI();
+    });
+    conn.on('data', (data) => processNetworkData(data));
+}
+
+function processNetworkData(data) {
+    if (data.type === 'STATE_UPDATE') {
+        state.players[data.id] = data.playerData;
+        checkStageProgression();
+    } else if (data.type === 'SYNC_STAGE') {
+        state.stage = data.stage;
+        enemies = data.enemies || [];
+        player.x = 50;
+        player.stageCleared = false;
+        document.getElementById('ui-stage').innerText = state.stage;
+    } else if (data.type === 'CHAT') {
+        addChatMessage(data.sender, data.msg);
     }
 }
 
-function joinRoom(roomNum) {
-    const hostId = `dc_chacara_room_v3_${roomNum}`;
-    if (!peer) return;
-    const conn = peer.connect(hostId);
-
-    conn.on('open', () => {
-        document.getElementById('ui-room').innerText = roomNum;
-        setupConnection(conn);
-    });
-
-    conn.on('error', () => { becomeHost(hostId, roomNum); });
-
-    setTimeout(() => {
-        if (Object.keys(connections).length === 0 && !isHost) {
-            becomeHost(hostId, roomNum);
-        }
-    }, 1200);
-}
-
-function becomeHost(hostId, roomNum) {
-    if (peer) peer.destroy();
-    peer = new Peer(hostId);
-    isHost = true;
-    document.getElementById('ui-room').innerText = roomNum;
-    
-    peer.on('connection', (conn) => {
-        if (Object.keys(connections).length >= 5) {
-            conn.send({ type: 'REDIRECT', nextRoom: roomNum + 1 });
-            return;
-        }
-        setupConnection(conn);
-    });
-}
-
-function setupConnection(conn) {
-    connections[conn.peer] = conn;
-
-    conn.on('data', (data) => {
-        if (data.type === 'REDIRECT') {
-            joinRoom(data.nextRoom);
-        } else if (data.type === 'STATE_UPDATE') {
-            state.players[data.id] = data.playerData;
-            checkStageProgression();
-        } else if (data.type === 'CHAT') {
-            addChatMessage(data.sender, data.msg);
-        } else if (data.type === 'STAGE_ADVANCE') {
-            state.stage = data.stage;
-            player.stageCleared = false;
-            player.x = 50;
-            document.getElementById('ui-stage').innerText = state.stage;
-        }
-    });
-
-    conn.on('close', () => {
-        delete connections[conn.peer];
-        updateRoomUI();
-    });
-
-    updateRoomUI();
-}
-
 function broadcast(data) {
-    Object.values(connections).forEach(conn => {
-        if (conn && conn.open) conn.send(data);
+    if (hostConn && hostConn.open) {
+        hostConn.send(data);
+    }
+    clientConns.forEach(c => {
+        if (c && c.open) c.send(data);
     });
 }
 
 function updateRoomUI() {
-    const total = Object.keys(connections).length + 1;
+    const total = Object.keys(state.players).length + 1;
     document.getElementById('ui-players-count').innerText = `${total}/6`;
 }
 
-// Teclas
+// Controle do Teclado
 const keys = {};
 window.addEventListener('keydown', e => { keys[e.code] = true; });
 window.addEventListener('keyup', e => { keys[e.code] = false; });
 
-// Objeto do Jogador Principal
 const player = {
     x: 50, y: 330, width: 40, height: 50, vx: 0, vy: 0, speed: 5,
     jumpPower: -12, grounded: true, shieldActive: false, shieldTimer: 0, stageCleared: false,
@@ -350,7 +335,6 @@ const player = {
 
         if (this.x < 0) this.x = 0;
         
-        // Final da Fase
         if (this.x + this.width >= canvas.width - 10) {
             this.x = canvas.width - this.width - 10;
             if (!this.stageCleared) {
@@ -364,10 +348,9 @@ const player = {
             if (this.shieldTimer <= 0) this.shieldActive = false;
         }
 
-        // Envia o estado atual com o Personagem Escolhido
         broadcast({
             type: 'STATE_UPDATE',
-            id: peer ? peer.id : 'solo',
+            id: state.myPlayerId,
             playerData: {
                 x: this.x, y: this.y, charId: state.selectedCharId,
                 name: state.username, shieldActive: this.shieldActive, cleared: this.stageCleared
@@ -411,7 +394,26 @@ const player = {
     }
 };
 
-// Verifica se TODOS na sala passaram a fase antes de prosseguir
+function updateEnemies() {
+    enemies.forEach((enemy) => {
+        enemy.x += enemy.vx;
+        if (enemy.spec.type === 'fly') {
+            enemy.y += Math.sin(Date.now() / 200) * 1.5;
+        }
+
+        if (enemy.x < -20) enemy.x = canvas.width + 20;
+
+        // Renderiza os Insetos
+        ctx.fillStyle = enemy.spec.color;
+        ctx.beginPath();
+        ctx.arc(enemy.x, enemy.y, enemy.spec.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = '14px Arial';
+        ctx.fillText(enemy.spec.label, enemy.x - 8, enemy.y + 5);
+    });
+}
+
 function checkStageProgression() {
     let totalPlayers = 1;
     let clearedPlayers = player.stageCleared ? 1 : 0;
@@ -423,33 +425,24 @@ function checkStageProgression() {
 
     document.getElementById('ui-cleared-count').innerText = `${clearedPlayers}/${totalPlayers}`;
 
-    // A fase só avança se TODOS passarem
     if (clearedPlayers >= totalPlayers && totalPlayers > 0) {
-        if (isHost || !peer) {
-            state.stage++;
-            player.stageCleared = false;
-            player.x = 50;
-            document.getElementById('ui-stage').innerText = state.stage;
-            broadcast({ type: 'STAGE_ADVANCE', stage: state.stage });
-        }
+        state.stage++;
+        player.stageCleared = false;
+        player.x = 50;
+        spawnEnemies();
+        document.getElementById('ui-stage').innerText = state.stage;
+        broadcast({ type: 'SYNC_STAGE', stage: state.stage, enemies: enemies });
     }
 }
 
 function drawBackground() {
     if (state.stage % 2 === 0) {
-        if (bgEven.complete && bgEven.naturalWidth !== 0) {
-            ctx.drawImage(bgEven, 0, 0, canvas.width, canvas.height);
-        } else {
-            ctx.fillStyle = '#1a0033'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
+        if (bgEven.complete && bgEven.naturalWidth !== 0) ctx.drawImage(bgEven, 0, 0, canvas.width, canvas.height);
+        else { ctx.fillStyle = '#1a0033'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
     } else {
-        if (state.stage % 3 === 0 && bgRetro.complete) {
-            ctx.drawImage(bgRetro, 0, 0, canvas.width, canvas.height);
-        } else if (bgModern.complete) {
-            ctx.drawImage(bgModern, 0, 0, canvas.width, canvas.height);
-        } else {
-            ctx.fillStyle = '#050515'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
+        if (state.stage % 3 === 0 && bgRetro.complete) ctx.drawImage(bgRetro, 0, 0, canvas.width, canvas.height);
+        else if (bgModern.complete) ctx.drawImage(bgModern, 0, 0, canvas.width, canvas.height);
+        else { ctx.fillStyle = '#050515'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
     }
 
     ctx.fillStyle = '#222';
@@ -457,30 +450,30 @@ function drawBackground() {
     ctx.fillStyle = '#4CAF50';
     ctx.fillRect(0, 380, canvas.width, 4);
 
-    // Linha de chegada visual no final da fase
     ctx.fillStyle = '#ff0000';
     ctx.fillRect(canvas.width - 15, 300, 10, 80);
 }
 
-// Loop Principal do Jogo
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     drawBackground();
+    updateEnemies();
 
     player.update();
     player.draw(player.x, player.y, state.selectedCharId, state.username, player.shieldActive);
 
-    // Desenha todos os outros jogadores conectados na sala
     Object.keys(state.players).forEach(id => {
-        const p = state.players[id];
-        player.draw(p.x, p.y, p.charId, p.name, p.shieldActive);
+        if (id !== state.myPlayerId) {
+            const p = state.players[id];
+            player.draw(p.x, p.y, p.charId, p.name, p.shieldActive);
+        }
     });
 
     requestAnimationFrame(gameLoop);
 }
 
-// Chat
+// Chat no Topo
 const chatInput = document.getElementById('chat-input');
 const chatMessages = document.getElementById('chat-messages');
 
@@ -503,13 +496,14 @@ function addChatMessage(sender, msg) {
 document.getElementById('chat-send').onclick = sendChatMessage;
 chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChatMessage(); });
 
-// Modais e Botões
+// Inicialização e Ações
 document.getElementById('btn-login').onclick = () => {
     const user = document.getElementById('auth-username').value.trim();
     if (user) {
         state.username = user;
         document.getElementById('modal-auth').classList.add('hidden');
-        initMultiplayer(user);
+        bgm.play().catch(() => {});
+        initMultiplayer();
     }
 };
 
@@ -523,7 +517,6 @@ document.getElementById('btn-save-keybinds').onclick = () => {
     document.getElementById('modal-keybinds').classList.add('hidden');
 };
 
-// Inicialização
 renderCharacterSelection();
 gameLoop();
 
