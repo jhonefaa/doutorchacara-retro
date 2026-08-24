@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Doutor Chácara - Arcade Multiplayer v3.3</title>
-    <!-- PeerJS para Conexão Multiplayer Online P2P -->
+    <title>Doutor Chácara - Arcade Multiplayer v3.4</title>
+    <!-- PeerJS para Conexão Multiplayer Online P2P Corrigida -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
@@ -39,20 +39,17 @@
 
         .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 30; padding: 10px; text-align: center; box-sizing: border-box; }
         .hidden { display: none !important; }
-        .modal input, .modal select { padding: 6px; font-size: 12px; text-align: center; margin: 4px 0; font-family: inherit; width: 80%; max-width: 250px; }
+        .modal input { padding: 6px; font-size: 12px; text-align: center; margin: 4px 0; font-family: inherit; width: 80%; max-width: 250px; }
         .modal button { padding: 6px 12px; font-size: 11px; cursor: pointer; background: #fff; color: #000; border: none; font-weight: bold; margin-top: 6px; }
         
-        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-width: 90%; max-height: 55%; overflow-y: auto; margin-bottom: 8px; width: 100%; }
-        .config-grid button, .config-grid select { width: 100%; font-size: 10px; padding: 6px; }
-
-        /* Grade de Escolha dos 6 Personagens */
+        /* Seleção de Personagens */
         .char-select-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: 320px; width: 100%; margin: 8px 0; }
         .char-card { border: 2px solid #555; padding: 6px; cursor: pointer; border-radius: 4px; font-size: 9px; background: rgba(255,255,255,0.05); }
         .char-card.selected { border-color: #4CAF50; background: rgba(76, 175, 80, 0.3); }
         .char-preview { width: 20px; height: 20px; margin: 0 auto 4px auto; border-radius: 2px; }
 
-        /* Chat Relocado para o Topo Superior Direito */
-        #chat-box { position: absolute; top: 35px; right: 10px; width: 200px; height: 95px; background: rgba(0,0,0,0.65); border: 1px solid #4caf50; display: flex; flex-direction: column; z-index: 15; font-size: 9px; border-radius: 4px; }
+        /* Chat Relocado e Elevado para Não Atrapalhar */
+        #chat-box { position: absolute; top: 35px; right: 10px; width: 190px; height: 85px; background: rgba(0,0,0,0.7); border: 1px solid #4caf50; display: flex; flex-direction: column; z-index: 15; font-size: 9px; border-radius: 4px; }
         #chat-messages { flex: 1; overflow-y: auto; padding: 4px; text-align: left; }
         #chat-input-container { display: flex; }
         #chat-input { flex: 1; background: #111; color: #fff; border: none; padding: 4px; font-size: 9px; }
@@ -68,15 +65,15 @@
 
     <div class="ui-panel">
         <div>
-            <div>FASE: <span id="ui-stage">1</span> | PONTOS: <span id="ui-score">0</span> | SALA: <span id="ui-room">1</span></div>
-            <div>VIDAS: <span id="ui-lives">❤️❤️❤️</span> | JOGADORES: <span id="ui-players-count">1/6</span> | FIM DA FASE: <span id="ui-cleared-count">0/1</span></div>
+            <div>FASE: <span id="ui-stage">1</span> | PONTOS: <span id="ui-score">0</span></div>
+            <div>VIDAS: <span id="ui-lives">❤️❤️❤️</span> | JOGADORES NA SALA: <span id="ui-players-count">1/6</span> | CONCLUÍDO: <span id="ui-cleared-count">0/1</span></div>
         </div>
         <div>
             <button class="btn-ui" id="btn-config">⚙️ CONTROLES</button>
         </div>
     </div>
 
-    <!-- Chat ao Vivo Re-posicionado para não Atrapalhar -->
+    <!-- Chat ao Vivo no Alto da Tela -->
     <div id="chat-box">
         <div id="chat-messages"></div>
         <div id="chat-input-container">
@@ -96,65 +93,31 @@
         </div>
     </div>
 
-    <!-- Modal de Login e Seleção do Personagem -->
+    <!-- Modal Inicial de Entrada -->
     <div id="modal-auth" class="modal">
         <h2 style="color: #ffeb3b; margin-bottom: 2px;">DOUTOR CHÁCARA</h2>
         <a href="https://www.youtube.com" target="_blank" class="yt-banner">📺 Inscreva-se no Canal Doutor Chácara!</a>
-        <p style="font-size:10px;">Cadastre-se e escolha seu personagem para jogar em grupo</p>
         
         <input type="text" id="auth-username" placeholder="Nome do Jogador" value="Doutor Chácara">
-        <input type="password" id="auth-password" placeholder="Senha de Acesso" value="123456">
-
         <p style="font-size:10px; margin-top: 4px; color: #4CAF50;">ESCOLHA SEU PERSONAGEM:</p>
         <div class="char-select-grid" id="char-grid"></div>
 
-        <button id="btn-login" style="background:#4CAF50; color:white;">ENTRAR NA SALA E JOGAR</button>
-    </div>
-
-    <!-- Modal de Configuração de Controles -->
-    <div id="modal-keybinds" class="modal hidden">
-        <h3 style="margin-bottom: 5px; color: #4CAF50;">CONFIGURAÇÃO DE CONTROLES</h3>
-        <div class="config-grid">
-            <button id="rebind-left">Esquerda: A</button>
-            <button id="rebind-right">Direita: D</button>
-            <button id="rebind-up">Cima: W</button>
-            <button id="rebind-down">Baixo: S</button>
-            <button id="rebind-jump">Pulo: U</button>
-            <button id="rebind-salto">Salto: O</button>
-            <button id="rebind-attack">Escudo: U</button>
-            <button id="rebind-special">Especial: I</button>
-
-            <select id="gamepad-select">
-                <option value="0">Joystick / Gamepad: Padrão</option>
-                <option value="1">Gamepad Detectado</option>
-            </select>
-            
-            <select id="sens-select">
-                <option value="1">Sensibilidade Joystick: Normal</option>
-                <option value="1.5">Sensibilidade Joystick: Alta</option>
-            </select>
-        </div>
-        <button id="btn-save-keybinds" style="background: #4CAF50; color: white;">SALVAR E CONTINUAR JOGO</button>
+        <button id="btn-login" style="background:#4CAF50; color:white;">ENTRAR E JOGAR JUNTO</button>
     </div>
 </div>
 
 <script>
 /**
- * DOUTOR CHÁCARA - ARCADE MULTIPLAYER v3.3
+ * DOUTOR CHÁCARA - ARCADE MULTIPLAYER v3.4 (Conexão e Sincronização Corrigida)
  */
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Trilha Sonora Retro Synthwave sem Direitos Autorais
+// Trilha Sonora Arcade sem Direitos Autorais
 const bgm = new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a7315b.mp3?filename=8-bit-arcade-138828.mp3');
 bgm.loop = true;
-bgm.volume = 0.3;
-
-// Imagens de Fundo
-const bgEven = new Image(); bgEven.src = 'fundo.jpg.jpg'; 
-const bgRetro = new Image(); bgRetro.src = 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80';
-const bgModern = new Image(); bgModern.src = 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80';
+bgm.volume = 0.25;
 
 const CHARACTER_TYPES = [
     { id: 0, name: 'Doutor Chácara', color: '#003366' },
@@ -167,21 +130,18 @@ const CHARACTER_TYPES = [
 
 const state = {
     selectedCharId: 0,
-    myPlayerId: Math.random().toString(36).substring(2, 9),
+    myPlayerId: 'p_' + Math.floor(Math.random() * 10000),
     username: 'Doutor Chácara',
-    score: 0,
-    lives: 3,
     stage: 1,
-    isPaused: false,
     players: {},
-    keyMap: { left: 'KeyA', right: 'KeyD', up: 'KeyW', down: 'KeyS', jump: 'KeyU', salto: 'KeyO', attack: 'KeyU', special: 'KeyI' }
+    keyMap: { left: 'KeyA', right: 'KeyD', jump: 'KeyU', attack: 'KeyU' }
 };
 
-// Gerenciador de Insetos (Aranha, Mosca, Abelha)
+// Configuração dos Insetos Inimigos
 const INSECT_TYPES = [
-    { type: 'spider', color: '#8B0000', speed: 1.5, size: 16, label: '🕷️' },
-    { type: 'fly', color: '#708090', speed: 2.5, size: 12, label: '🪰' },
-    { type: 'bee', color: '#FFD700', speed: 2.0, size: 14, label: '🐝' }
+    { type: 'spider', color: '#8B0000', speed: 1.2, label: '🕷️' },
+    { type: 'fly', color: '#708090', speed: 2.2, label: '🪰' },
+    { type: 'bee', color: '#FFD700', speed: 1.8, label: '🐝' }
 ];
 
 let enemies = [];
@@ -190,13 +150,12 @@ function spawnEnemies() {
     enemies = [];
     const count = 3 + state.stage * 2;
     for (let i = 0; i < count; i++) {
-        const spec = INSECT_TYPES[Math.floor(Math.random() * INSECT_TYPES.length)];
+        const spec = INSECT_TYPES[i % INSECT_TYPES.length];
         enemies.push({
-            x: 400 + Math.random() * 350,
-            y: spec.type === 'spider' ? 364 : 250 + Math.random() * 80,
+            x: 350 + (i * 90),
+            y: spec.type === 'spider' ? 360 : 220 + (i * 20) % 100,
             spec: spec,
-            vx: -spec.speed,
-            vy: spec.type === 'fly' ? Math.sin(Math.random() * 10) : 0
+            vx: -spec.speed
         });
     }
 }
@@ -225,76 +184,68 @@ function renderCharacterSelection() {
     });
 }
 
-// Sala Multiplayer Única e Direta
+// Lógica de Conexão em Tempo Real Sem Falhas
 let peer = null;
-let hostConn = null;
-let clientConns = [];
+let activeConnections = {};
+const ROOM_ID = 'dc_sala_principal_oficial_v34';
 
-function initMultiplayer() {
-    const roomKey = "dc_chacara_room_global_v33";
-    peer = new Peer(roomKey);
+function connectNetwork() {
+    peer = new Peer(ROOM_ID);
 
     peer.on('open', () => {
-        // Criou a sala global como líder
+        // Criador da Sala Principal
         spawnEnemies();
     });
 
     peer.on('error', (err) => {
-        if (err.type === 'unavailable-id') {
-            // A sala já existe, conecta como jogador convidado
-            peer = new Peer();
-            peer.on('open', () => {
-                hostConn = peer.connect(roomKey);
-                setupHostConnection(hostConn);
-            });
-        }
+        // Conecta como membro da Sala
+        peer = new Peer(state.myPlayerId);
+        peer.on('open', () => {
+            const conn = peer.connect(ROOM_ID);
+            bindEvents(conn);
+        });
     });
 
     peer.on('connection', (conn) => {
-        clientConns.push(conn);
-        conn.on('data', (data) => processNetworkData(data));
-        // Sincroniza o estado atual do jogo e fase para quem acabou de entrar
-        conn.send({ type: 'SYNC_STAGE', stage: state.stage, enemies: enemies });
+        bindEvents(conn);
+        // Sincroniza a fase atual do mapa imediatamente para o novo participante
+        conn.on('open', () => {
+            conn.send({ type: 'STAGE_SYNC', stage: state.stage, enemies: enemies });
+        });
     });
 }
 
-function setupHostConnection(conn) {
-    conn.on('open', () => {
-        updateRoomUI();
+function bindEvents(conn) {
+    conn.on('data', (data) => {
+        if (data.type === 'POS_UPDATE') {
+            state.players[data.id] = data.player;
+            updateRoomUI();
+            checkStageAdvance();
+        } else if (data.type === 'STAGE_SYNC') {
+            state.stage = data.stage;
+            enemies = data.enemies || [];
+            player.x = 50;
+            player.stageCleared = false;
+            document.getElementById('ui-stage').innerText = state.stage;
+        } else if (data.type === 'CHAT') {
+            addChatMessage(data.sender, data.msg);
+        }
     });
-    conn.on('data', (data) => processNetworkData(data));
+    activeConnections[conn.peer] = conn;
 }
 
-function processNetworkData(data) {
-    if (data.type === 'STATE_UPDATE') {
-        state.players[data.id] = data.playerData;
-        checkStageProgression();
-    } else if (data.type === 'SYNC_STAGE') {
-        state.stage = data.stage;
-        enemies = data.enemies || [];
-        player.x = 50;
-        player.stageCleared = false;
-        document.getElementById('ui-stage').innerText = state.stage;
-    } else if (data.type === 'CHAT') {
-        addChatMessage(data.sender, data.msg);
-    }
-}
-
-function broadcast(data) {
-    if (hostConn && hostConn.open) {
-        hostConn.send(data);
-    }
-    clientConns.forEach(c => {
+function sendToAll(data) {
+    Object.values(activeConnections).forEach(c => {
         if (c && c.open) c.send(data);
     });
 }
 
 function updateRoomUI() {
-    const total = Object.keys(state.players).length + 1;
-    document.getElementById('ui-players-count').innerText = `${total}/6`;
+    const count = Object.keys(state.players).length + 1;
+    document.getElementById('ui-players-count').innerText = `${count}/6`;
 }
 
-// Controle do Teclado
+// Teclas
 const keys = {};
 window.addEventListener('keydown', e => { keys[e.code] = true; });
 window.addEventListener('keyup', e => { keys[e.code] = false; });
@@ -304,184 +255,148 @@ const player = {
     jumpPower: -12, grounded: true, shieldActive: false, shieldTimer: 0, stageCleared: false,
 
     update() {
-        if (state.isPaused) return;
-
         let moveX = 0;
         if (keys[state.keyMap.left]) moveX = -1;
         if (keys[state.keyMap.right]) moveX = 1;
 
         this.vx = moveX * this.speed;
 
-        if ((keys[state.keyMap.jump] || keys[state.keyMap.salto]) && this.grounded) {
-            this.vy = keys[state.keyMap.salto] ? -14 : this.jumpPower;
+        if (keys[state.keyMap.jump] && this.grounded) {
+            this.vy = this.jumpPower;
             this.grounded = false;
-        }
-
-        if (keys[state.keyMap.attack] && !this.shieldActive) {
-            this.shieldActive = true;
-            this.shieldTimer = 60;
         }
 
         this.vy += 0.6;
         this.x += this.vx;
         this.y += this.vy;
 
-        const groundY = 380;
-        if (this.y + this.height >= groundY) {
-            this.y = groundY - this.height;
+        if (this.y + this.height >= 380) {
+            this.y = 380 - this.height;
             this.vy = 0;
             this.grounded = true;
         }
 
         if (this.x < 0) this.x = 0;
-        
-        if (this.x + this.width >= canvas.width - 10) {
-            this.x = canvas.width - this.width - 10;
+
+        // Linha de Fim de Fase
+        if (this.x + this.width >= canvas.width - 20) {
+            this.x = canvas.width - this.width - 20;
             if (!this.stageCleared) {
                 this.stageCleared = true;
-                checkStageProgression();
+                checkStageAdvance();
             }
         }
 
-        if (this.shieldTimer > 0) {
-            this.shieldTimer--;
-            if (this.shieldTimer <= 0) this.shieldActive = false;
-        }
-
-        broadcast({
-            type: 'STATE_UPDATE',
+        // Transmissão das posições
+        sendToAll({
+            type: 'POS_UPDATE',
             id: state.myPlayerId,
-            playerData: {
+            player: {
                 x: this.x, y: this.y, charId: state.selectedCharId,
-                name: state.username, shieldActive: this.shieldActive, cleared: this.stageCleared
+                name: state.username, cleared: this.stageCleared
             }
         });
     },
 
-    draw(x, y, charId, name, shieldActive) {
+    draw(x, y, charId, name) {
         const charInfo = CHARACTER_TYPES[charId || 0];
         
         ctx.save();
         ctx.fillStyle = '#ffffff';
-        ctx.font = '11px Courier';
-        ctx.fillText(name || state.username, x - 5, y - 10);
+        ctx.font = '10px Courier';
+        ctx.fillText(name || state.username, x - 5, y - 8);
 
         ctx.fillStyle = '#ffcc99'; 
         ctx.fillRect(x + 10, y, 20, 15); 
-
-        ctx.fillStyle = '#111';
-        ctx.fillRect(x + 8, y + 2, 24, 4);
 
         ctx.fillStyle = charInfo.color; 
         ctx.fillRect(x + 5, y + 15, 30, 25); 
 
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(x + 5, y + 15, 6, 25);
-        ctx.fillRect(x + 29, y + 15, 6, 25);
+        ctx.fillRect(x + 5, y + 15, 5, 25);
+        ctx.fillRect(x + 30, y + 15, 5, 25);
 
         ctx.fillStyle = '#000000'; 
         ctx.fillRect(x + 5, y + 40, 10, 10); 
         ctx.fillRect(x + 25, y + 40, 10, 10);
-
-        if (shieldActive) {
-            ctx.strokeStyle = '#00ffff'; 
-            ctx.lineWidth = 3;
-            ctx.beginPath(); 
-            ctx.arc(x + 20, y + 25, 35, 0, Math.PI * 2); 
-            ctx.stroke();
-        }
         ctx.restore();
     }
 };
 
 function updateEnemies() {
-    enemies.forEach((enemy) => {
-        enemy.x += enemy.vx;
-        if (enemy.spec.type === 'fly') {
-            enemy.y += Math.sin(Date.now() / 200) * 1.5;
-        }
+    enemies.forEach((e) => {
+        e.x += e.vx;
+        if (e.x < -30) e.x = canvas.width + 10;
 
-        if (enemy.x < -20) enemy.x = canvas.width + 20;
-
-        // Renderiza os Insetos
-        ctx.fillStyle = enemy.spec.color;
-        ctx.beginPath();
-        ctx.arc(enemy.x, enemy.y, enemy.spec.size, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.font = '14px Arial';
-        ctx.fillText(enemy.spec.label, enemy.x - 8, enemy.y + 5);
+        ctx.font = '18px Arial';
+        ctx.fillText(e.spec.label, e.x, e.y);
     });
 }
 
-function checkStageProgression() {
-    let totalPlayers = 1;
-    let clearedPlayers = player.stageCleared ? 1 : 0;
+function checkStageAdvance() {
+    let total = 1;
+    let ready = player.stageCleared ? 1 : 0;
 
     Object.values(state.players).forEach(p => {
-        totalPlayers++;
-        if (p.cleared) clearedPlayers++;
+        total++;
+        if (p.cleared) ready++;
     });
 
-    document.getElementById('ui-cleared-count').innerText = `${clearedPlayers}/${totalPlayers}`;
+    document.getElementById('ui-cleared-count').innerText = `${ready}/${total}`;
 
-    if (clearedPlayers >= totalPlayers && totalPlayers > 0) {
+    // Passa de fase coletivamente
+    if (ready >= total && total > 0) {
         state.stage++;
         player.stageCleared = false;
         player.x = 50;
         spawnEnemies();
         document.getElementById('ui-stage').innerText = state.stage;
-        broadcast({ type: 'SYNC_STAGE', stage: state.stage, enemies: enemies });
+        sendToAll({ type: 'STAGE_SYNC', stage: state.stage, enemies: enemies });
     }
-}
-
-function drawBackground() {
-    if (state.stage % 2 === 0) {
-        if (bgEven.complete && bgEven.naturalWidth !== 0) ctx.drawImage(bgEven, 0, 0, canvas.width, canvas.height);
-        else { ctx.fillStyle = '#1a0033'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
-    } else {
-        if (state.stage % 3 === 0 && bgRetro.complete) ctx.drawImage(bgRetro, 0, 0, canvas.width, canvas.height);
-        else if (bgModern.complete) ctx.drawImage(bgModern, 0, 0, canvas.width, canvas.height);
-        else { ctx.fillStyle = '#050515'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
-    }
-
-    ctx.fillStyle = '#222';
-    ctx.fillRect(0, 380, canvas.width, 70);
-    ctx.fillStyle = '#4CAF50';
-    ctx.fillRect(0, 380, canvas.width, 4);
-
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(canvas.width - 15, 300, 10, 80);
 }
 
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    drawBackground();
+    // Fundo Visual
+    ctx.fillStyle = '#0d0d1a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Chão
+    ctx.fillStyle = '#222';
+    ctx.fillRect(0, 380, canvas.width, 70);
+    ctx.fillStyle = '#4CAF50';
+    ctx.fillRect(0, 380, canvas.width, 4);
+
+    // Linha Vermelha de Chegada
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(canvas.width - 15, 300, 10, 80);
+
     updateEnemies();
 
     player.update();
-    player.draw(player.x, player.y, state.selectedCharId, state.username, player.shieldActive);
+    player.draw(player.x, player.y, state.selectedCharId, state.username);
 
+    // Desenha os outros participantes da sala
     Object.keys(state.players).forEach(id => {
         if (id !== state.myPlayerId) {
             const p = state.players[id];
-            player.draw(p.x, p.y, p.charId, p.name, p.shieldActive);
+            player.draw(p.x, p.y, p.charId, p.name);
         }
     });
 
     requestAnimationFrame(gameLoop);
 }
 
-// Chat no Topo
+// Chat no Canto Superior Direito
 const chatInput = document.getElementById('chat-input');
 const chatMessages = document.getElementById('chat-messages');
 
 function sendChatMessage() {
     const text = chatInput.value.trim();
     if (text) {
-        addChatMessage(state.username || 'Eu', text);
-        broadcast({ type: 'CHAT', sender: state.username || 'Jogador', msg: text });
+        addChatMessage(state.username, text);
+        sendToAll({ type: 'CHAT', sender: state.username, msg: text });
         chatInput.value = '';
     }
 }
@@ -494,27 +409,16 @@ function addChatMessage(sender, msg) {
 }
 
 document.getElementById('chat-send').onclick = sendChatMessage;
-chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChatMessage(); });
 
-// Inicialização e Ações
+// Inicialização
 document.getElementById('btn-login').onclick = () => {
-    const user = document.getElementById('auth-username').value.trim();
-    if (user) {
-        state.username = user;
+    const name = document.getElementById('auth-username').value.trim();
+    if (name) {
+        state.username = name;
         document.getElementById('modal-auth').classList.add('hidden');
         bgm.play().catch(() => {});
-        initMultiplayer();
+        connectNetwork();
     }
-};
-
-document.getElementById('btn-config').onclick = () => {
-    state.isPaused = true;
-    document.getElementById('modal-keybinds').classList.remove('hidden');
-};
-
-document.getElementById('btn-save-keybinds').onclick = () => {
-    state.isPaused = false;
-    document.getElementById('modal-keybinds').classList.add('hidden');
 };
 
 renderCharacterSelection();
