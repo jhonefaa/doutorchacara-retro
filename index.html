@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Doutor Chácara & Família - Multiplayer Online</title>
+    <title>Doutor Chácara - Arcade Mobile v3.0 Online Multi-jogador</title>
+    <!-- PeerJS para Conexão Multiplayer Online Gratuita em Tempo Real -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body { background-color: #111; font-family: 'Courier New', Courier, monospace; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
@@ -23,51 +25,34 @@
         
         .ui-panel { position: absolute; top: 8px; left: 10px; right: 10px; display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; text-shadow: 2px 2px #000; z-index: 10; pointer-events: none; }
         .btn-ui { background: #333; color: #fff; border: 1px solid #fff; padding: 4px 8px; cursor: pointer; pointer-events: auto; font-family: inherit; font-size: 11px; }
+        .btn-ui:active { background: #555; }
         
-        /* Chat ao Vivo Overlay */
-        #chat-container {
-            position: absolute;
-            bottom: 100px;
-            left: 10px;
-            width: 250px;
-            height: 120px;
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column;
-            z-index: 15;
-            pointer-events: auto;
-        }
-        #chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 4px;
-            font-size: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        #chat-input-container { display: flex; border-top: 1px solid rgba(255,255,255,0.3); }
-        #chat-input { flex: 1; background: transparent; border: none; color: #fff; padding: 4px; font-size: 10px; font-family: inherit; outline: none; }
-        #chat-btn { background: #4CAF50; border: none; color: white; padding: 4px 8px; font-size: 10px; cursor: pointer; }
-
-        /* Controles */
-        #touch-controls { position: absolute; bottom: 8px; left: 10px; right: 10px; height: 80px; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
+        #touch-controls { position: absolute; bottom: 8px; left: 10px; right: 10px; height: 90px; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
+        .joystick-zone { width: 80px; height: 80px; background: rgba(255,255,255,0.1); border: 2px dashed rgba(255,255,255,0.4); border-radius: 50%; position: relative; }
+        .joystick-knob { width: 32px; height: 32px; background: rgba(255,255,255,0.8); border-radius: 50%; position: absolute; top: 22px; left: 22px; }
         .action-buttons { display: flex; gap: 8px; }
-        .btn-action { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #fff; font-weight: bold; font-size: 10px; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px #000; }
-        #btn-jump { background: #2196F3; } #btn-attack { background: #4CAF50; } #btn-special { background: #FF9800; }
+        .btn-action { width: 48px; height: 48px; border-radius: 50%; border: 2px solid #fff; font-weight: bold; font-size: 11px; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px #000; }
+        .btn-action:active { transform: translateY(2px); box-shadow: 0 0 #000; }
+        #btn-jump { background: #2196F3; }
+        #btn-attack { background: #4CAF50; }
+        #btn-special { background: #FF9800; }
 
         /* Modais */
-        .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 30; padding: 15px; text-align: center; }
+        .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 30; padding: 10px; text-align: center; box-sizing: border-box; }
         .hidden { display: none !important; }
-        .modal input, .modal select { padding: 8px; font-size: 12px; text-align: center; margin: 5px 0; font-family: inherit; width: 80%; max-width: 250px; background: #222; border: 1px solid #fff; color: white; }
-        .modal button { padding: 8px 16px; font-size: 11px; cursor: pointer; background: #4CAF50; color: #fff; border: none; font-weight: bold; margin-top: 8px; text-transform: uppercase; }
+        .modal input, .modal select { padding: 6px; font-size: 12px; text-align: center; margin: 4px 0; font-family: inherit; width: 80%; max-width: 250px; }
+        .modal button { padding: 6px 12px; font-size: 11px; cursor: pointer; background: #fff; color: #000; border: none; font-weight: bold; margin-top: 4px; }
         
-        .char-select-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; width: 100%; max-width: 400px; }
-        .char-card { border: 2px solid #444; padding: 8px; cursor: pointer; border-radius: 4px; background: #111; }
-        .char-card.selected { border-color: #00ffcc; background: #222; }
-        .char-preview { width: 30px; height: 35px; margin: 0 auto 4px auto; }
+        /* Chat Overlay */
+        #chat-container { position: absolute; bottom: 100px; left: 10px; width: 220px; height: 120px; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 5px; display: flex; flex-direction: column; z-index: 15; pointer-events: auto; }
+        #chat-messages { flex: 1; overflow-y: auto; padding: 4px; font-size: 10px; text-align: left; }
+        #chat-input-box { display: flex; border-top: 1px solid rgba(255,255,255,0.3); }
+        #chat-input { flex: 1; background: transparent; border: none; color: white; font-size: 10px; padding: 4px; outline: none; }
+        #chat-send { background: #2196F3; border: none; color: white; font-size: 10px; padding: 4px 8px; cursor: pointer; }
+        
+        .char-select-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; max-width: 300px; }
+        .char-card { border: 1px solid #fff; padding: 6px; cursor: pointer; border-radius: 4px; font-size: 10px; }
+        .char-card.selected { border: 2px solid #00ff00; background: rgba(0,255,0,0.2); }
     </style>
 </head>
 <body>
@@ -75,31 +60,28 @@
 <div id="game-container">
     <canvas id="gameCanvas" width="800" height="450"></canvas>
 
-    <!-- UI do Jogo -->
     <div class="ui-panel">
         <div>
             <div>FASE: <span id="ui-stage">1</span> | PONTOS: <span id="ui-score">0</span></div>
-            <div>JOGADORES NA FASE: <span id="ui-ready-count">1/1</span></div>
+            <div>VIDAS: <span id="ui-lives">❤️❤️❤️</span> | ON: <span id="ui-online-count">1/6</span></div>
         </div>
         <div>
-            <button class="btn-ui" id="btn-logout">SAIR</button>
+            <button class="btn-ui" id="btn-config">⚙️ MENU / PAUSE</button>
         </div>
     </div>
 
     <!-- Chat ao Vivo -->
     <div id="chat-container">
         <div id="chat-messages"></div>
-        <div id="chat-input-container">
-            <input type="text" id="chat-input" placeholder="Digite uma mensagem..." maxlength="50">
-            <button id="chat-btn">>></button>
+        <div id="chat-input-box">
+            <input type="text" id="chat-input" placeholder="Chat ao vivo..." maxlength="45">
+            <button id="chat-send">Enviar</button>
         </div>
     </div>
 
-    <!-- Controles de Toque -->
     <div id="touch-controls">
-        <div style="display:flex; gap: 5px;">
-            <div class="btn-action" id="btn-left" style="background:#333;">◄</div>
-            <div class="btn-action" id="btn-right" style="background:#333;">►</div>
+        <div class="joystick-zone" id="joystick-zone">
+            <div class="joystick-knob" id="joystick-knob"></div>
         </div>
         <div class="action-buttons">
             <div class="btn-action" id="btn-attack">ESC.U</div>
@@ -108,330 +90,464 @@
         </div>
     </div>
 
-    <!-- Modal de Autenticação / Cadastro -->
+    <!-- Modal de Autenticação Obrigatória -->
     <div id="modal-auth" class="modal">
-        <h2 style="color: #4CAF50; margin-bottom: 10px;">LOGIN / CADASTRO</h2>
-        <p style="font-size: 11px; margin-bottom: 10px;">Digite seus dados para acessar o servidor multiplayer (Máx. 6 Jogadores)</p>
-        <input type="text" id="auth-username" placeholder="Nome de Usuário" maxlength="12">
-        <input type="password" id="auth-password" placeholder="Senha">
-        <button id="btn-login">ENTRAR / CADASTRAR</button>
+        <h2>DOUTOR CHÁCARA MULTIPLAYER</h2>
+        <p style="font-size:11px; margin-bottom: 8px;">Cadastre-se ou Entre para Jogar Online</p>
+        <input type="text" id="auth-user" placeholder="Usuário">
+        <input type="password" id="auth-pass" placeholder="Senha">
+        <div>
+            <button id="btn-login" style="background:#4CAF50; color:white;">ENTRAR</button>
+            <button id="btn-register">CADASTRAR</button>
+        </div>
+        <p id="auth-status" style="color:#ff3333; font-size:10px; margin-top:5px;"></p>
     </div>
 
-    <!-- Modal de Seleção de Personagem -->
-    <div id="modal-char-select" class="modal hidden">
-        <h3>ESCOLHA SEU PERSONAGEM</h3>
-        <p style="font-size: 10px; color: #aaa;">Mesmo molde original do Doutor Chácara em cores familiares</p>
+    <!-- Modal de Seleção de Personagem e Lobby Online -->
+    <div id="modal-lobby" class="modal hidden">
+        <h3>SELEÇÃO DE PERSONAGEM</h3>
         <div class="char-select-grid" id="char-grid"></div>
-        <button id="btn-confirm-char">ENTRAR NA SALA DE JOGO</button>
+        
+        <h3>SALA MULTIPLAYER (MÁX 6)</h3>
+        <div>
+            <button id="btn-create-room" style="background:#2196F3; color:white;">CRIAR SALA</button>
+            <input type="text" id="join-room-id" placeholder="Código da Sala" style="width:120px;">
+            <button id="btn-join-room">ENTRAR NA SALA</button>
+        </div>
+        <p id="lobby-room-info" style="font-size:10px; color:#00ff00; margin-top:5px;"></p>
+        <button id="btn-start-game" style="background:#4CAF50; color:white; margin-top:10px; display:none;">INICIAR JOGO</button>
     </div>
 
-    <!-- Modal de Aguardando Jogadores para Passar de Fase -->
-    <div id="modal-waiting-stage" class="modal hidden">
-        <h2 style="color: #00ffcc;">FASE CONCLUÍDA!</h2>
-        <p style="margin-top: 10px;">Aguardando todos os jogadores chegarem ao final para prosseguir...</p>
-        <h3 id="waiting-status" style="margin-top: 15px; color: #ff9800;">1 / 6 PRONTOS</h3>
+    <div id="modal-gameover" class="modal hidden">
+        <h1 id="go-title">GAME OVER</h1>
+        <p id="go-message">Tente novamente!</p>
+        <button id="btn-restart">REINICIAR FASE</button>
     </div>
 </div>
 
 <script>
 /**
- * DOUTOR CHÁCARA - MULTIPLAYER ONLINE (MÁX 6 JOGADORES)
+ * DOUTOR CHÁCARA - ONLINE MULTIPLAYER v3.0
  */
+
+// Configuração dos Personagens (Cores mantendo a semelhança ao Doutor Chácara original)
+const CHARACTERS = {
+    doc:    { name: "Dr. Chácara",  color: "#003366", skin: "#ffcc99" },
+    father: { name: "Pai (Violeta)", color: "#8a2be2", skin: "#ffcc99" },
+    sister: { name: "Irmã (Rosa)",   color: "#ff69b4", skin: "#ffcc99" },
+    son:    { name: "Filho (Verde)", color: "#2e8b57", skin: "#ffcc99" },
+    daughter:{ name: "Filha (Amarelo)",color:"#ffd700", skin: "#ffcc99" },
+    uncle:  { name: "Tio (Laranja)", color: "#ff4500", skin: "#ffcc99" }
+};
+
+let currentUser = null;
+let selectedCharKey = 'doc';
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Definição dos 6 Personagens (Estilo visual baseado na estrutura do original Doutor Chácara)
-const CHARACTERS = {
-    doc:    { name: 'Doutor Chácara', bodyColor: '#003366', headColor: '#ffcc99', extra: '' },
-    father: { name: 'Pai do Doutor',  bodyColor: '#8a2be2', headColor: '#e0ac69', extra: '👴' }, // Violeta
-    sister: { name: 'Irmã do Doutor', bodyColor: '#ff69b4', headColor: '#ffcc99', extra: '🎀' }, // Rosa
-    son:    { name: 'Filho',          bodyColor: '#33cc33', headColor: '#ffcc99', extra: '🧢' }, // Verde
-    daughter:{ name: 'Filha',         bodyColor: '#ff9900', headColor: '#ffcc99', extra: '👧' }, // Laranja
-    uncle:  { name: 'Tio',            bodyColor: '#795548', headColor: '#d2b48c', extra: '👓' }  // Marrom
-};
-
-// Estado Local e da Sala Multiplayer
-const netState = {
-    currentUser: null,
-    selectedCharKey: 'doc',
-    roomId: 'room_global',
-    maxPlayers: 6,
-    players: {}, // Armazena estado dos até 6 jogadores
+const state = {
+    score: 0,
+    lives: 3,
     stage: 1,
-    stageReadyPlayers: new Set()
+    isImmune: false,
+    immunityTimer: 0,
+    pinkShield: false,
+    isGameOver: false,
+    isPaused: false,
+    lastPinkButterflyScore: 0,
+    lastSuperInsectScore: 0,
+    playersInExitZone: 0
 };
 
-const keys = {};
-window.addEventListener('keydown', e => { keys[e.code] = true; });
-window.addEventListener('keyup', e => { keys[e.code] = false; });
+// Estrutura de Rede / PeerJS Multiplayer
+let peer = null;
+let connections = [];
+let remotePlayers = {}; // Guarda dados dos outros até 5 jogadores
+let roomId = null;
+let isHost = false;
 
-// CADASTRO / LOGIN SIMULADO (Persistência no LocalStorage)
+// 1. AUTENTICAÇÃO
+document.getElementById('btn-register').onclick = () => {
+    const u = document.getElementById('auth-user').value.trim();
+    const p = document.getElementById('auth-pass').value.trim();
+    if (!u || !p) return showAuthStatus("Preencha usuário e senha!");
+    
+    if (localStorage.getItem(`user_${u}`)) {
+        showAuthStatus("Usuário já existe!");
+    } else {
+        localStorage.setItem(`user_${u}`, JSON.stringify({ password: p }));
+        showAuthStatus("Cadastrado com sucesso! Clique em Entrar.", "#00ff00");
+    }
+};
+
 document.getElementById('btn-login').onclick = () => {
-    const user = document.getElementById('auth-username').value.trim();
-    const pass = document.getElementById('auth-password').value.trim();
-
-    if (!user || !pass) {
-        alert('Por favor, preencha o usuário e a senha.');
-        return;
+    const u = document.getElementById('auth-user').value.trim();
+    const p = document.getElementById('auth-pass').value.trim();
+    const data = localStorage.getItem(`user_${u}`);
+    if (!data) return showAuthStatus("Usuário não encontrado!");
+    
+    const parsed = JSON.parse(data);
+    if (parsed.password === p) {
+        currentUser = u;
+        document.getElementById('modal-auth').classList.add('hidden');
+        openLobby();
+    } else {
+        showAuthStatus("Senha incorreta!");
     }
-
-    const accounts = JSON.parse(localStorage.getItem('dc_registered_users') || '{}');
-    if (accounts[user] && accounts[user] !== pass) {
-        alert('Senha incorreta!');
-        return;
-    }
-
-    // Registra se não existir
-    accounts[user] = pass;
-    localStorage.setItem('dc_registered_users', JSON.stringify(accounts));
-
-    netState.currentUser = user;
-    document.getElementById('modal-auth').classList.add('hidden');
-    buildCharSelectUI();
-    document.getElementById('modal-char-select').classList.remove('hidden');
 };
 
-function buildCharSelectUI() {
+function showAuthStatus(msg, color = "#ff3333") {
+    const el = document.getElementById('auth-status');
+    el.style.color = color;
+    el.innerText = msg;
+}
+
+// 2. LOBBY E PERSONAGENS
+function openLobby() {
+    document.getElementById('modal-lobby').classList.remove('hidden');
     const grid = document.getElementById('char-grid');
     grid.innerHTML = '';
+    
     Object.keys(CHARACTERS).forEach(key => {
-        const c = CHARACTERS[key];
+        const char = CHARACTERS[key];
         const card = document.createElement('div');
-        card.className = `char-card ${key === netState.selectedCharKey ? 'selected' : ''}`;
+        card.className = `char-card ${key === selectedCharKey ? 'selected' : ''}`;
+        card.style.borderColor = char.color;
+        card.innerHTML = `<div style="width:20px;height:20px;background:${char.color};margin:0 auto 4px;"></div>${char.name}`;
         card.onclick = () => {
-            document.querySelectorAll('.char-card').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
-            netState.selectedCharKey = key;
+            selectedCharKey = key;
         };
-        card.innerHTML = `
-            <div class="char-preview" style="background:${c.bodyColor}; border: 1px solid #fff;"></div>
-            <div style="font-size: 10px;">${c.name}</div>
-        `;
         grid.appendChild(card);
     });
 }
 
-document.getElementById('btn-confirm-char').onclick = () => {
-    document.getElementById('modal-char-select').classList.add('hidden');
-    initMultiplayerGame();
+// 3. SISTEMA ONLINE (PeerJS)
+function initPeer() {
+    peer = new Peer();
+    peer.on('open', id => {
+        if (isHost) {
+            roomId = id;
+            document.getElementById('lobby-room-info').innerText = `Código da Sala: ${roomId} (Envie aos amigos)`;
+            document.getElementById('btn-start-game').style.display = 'inline-block';
+        }
+    });
+
+    peer.on('connection', conn => {
+        if (connections.length >= 5) { // Máximo de 6 jogadores (Host + 5)
+            conn.close();
+            return;
+        }
+        setupConnection(conn);
+    });
+}
+
+function setupConnection(conn) {
+    connections.push(conn);
+    updateOnlineCounter();
+
+    conn.on('data', data => {
+        handleNetworkData(data, conn);
+    });
+
+    conn.on('close', () => {
+        connections = connections.filter(c => c !== conn);
+        delete remotePlayers[conn.peer];
+        updateOnlineCounter();
+    });
+}
+
+document.getElementById('btn-create-room').onclick = () => {
+    isHost = true;
+    initPeer();
 };
 
-// SIMULAÇÃO DE REDE MULTIPLAYER (BROADCAST CHANNEL PARA COMUNICAÇÃO EM TEMPO REAL ENTRE ABAS/JOGADORES)
-let networkChannel = null;
-
-function initMultiplayerGame() {
-    networkChannel = new BroadcastChannel('doutor_chacara_multiplayer_room');
+document.getElementById('btn-join-room').onclick = () => {
+    const inputId = document.getElementById('join-room-id').value.trim();
+    if (!inputId) return alert("Digite o código da sala!");
     
-    // Insere o jogador local no estado
-    netState.players[netState.currentUser] = {
-        id: netState.currentUser,
-        charKey: netState.selectedCharKey,
-        x: 50 + Math.random() * 50,
-        y: 330,
-        vx: 0,
-        vy: 0,
-        grounded: true,
-        shieldActive: false,
-        shieldType: 'U',
-        reachedEnd: false,
-        score: 0
-    };
+    isHost = false;
+    peer = new Peer();
+    peer.on('open', () => {
+        const conn = peer.connect(inputId);
+        setupConnection(conn);
+        document.getElementById('lobby-room-info').innerText = "Conectado à sala com sucesso!";
+        document.getElementById('modal-lobby').classList.add('hidden');
+    });
+};
 
-    // Escuta pacotes dos outros até 5 jogadores
-    networkChannel.onmessage = (event) => {
-        const data = event.data;
-        if (data.type === 'SYNC_STATE') {
-            if (data.user !== netState.currentUser) {
-                netState.players[data.user] = data.playerState;
-            }
-        } else if (data.type === 'CHAT_MSG') {
-            addChatMessage(data.user, data.msg);
-        } else if (data.type === 'STAGE_READY') {
-            netState.stageReadyPlayers.add(data.user);
-            checkStageProgression();
-        } else if (data.type === 'NEXT_STAGE_START') {
-            netState.stage = data.newStage;
-            resetStageLocal();
-        }
-    };
+document.getElementById('btn-start-game').onclick = () => {
+    broadcast({ type: 'START_GAME' });
+    document.getElementById('modal-lobby').classList.add('hidden');
+};
 
-    // Transmissão periódica das posições (Tick de Rede)
-    setInterval(() => {
-        if (netState.currentUser && netState.players[netState.currentUser]) {
-            networkChannel.postMessage({
-                type: 'SYNC_STATE',
-                user: netState.currentUser,
-                playerState: netState.players[netState.currentUser]
-            });
-        }
-    }, 30);
-
-    addChatMessage('SYSTEM', `${netState.currentUser} entrou no jogo.`);
-    gameLoop();
+function updateOnlineCounter() {
+    document.getElementById('ui-online-count').innerText = `${connections.length + 1}/6`;
 }
 
-// CHAT AO VIVO
-const chatInput = document.getElementById('chat-input');
-const chatBtn = document.getElementById('chat-btn');
-const chatMessages = document.getElementById('chat-messages');
+// Transmite dados para todos os conectados
+function broadcast(data) {
+    connections.forEach(conn => {
+        if (conn.open) conn.send(data);
+    });
+}
+
+function handleNetworkData(data, conn) {
+    if (data.type === 'START_GAME') {
+        document.getElementById('modal-lobby').classList.add('hidden');
+    } else if (data.type === 'PLAYER_SYNC') {
+        remotePlayers[conn.peer] = data.player;
+    } else if (data.type === 'CHAT') {
+        appendChatMessage(data.user, data.msg);
+    } else if (data.type === 'STAGE_ADVANCE') {
+        initStage(data.stage);
+    }
+}
+
+// 4. CHAT EM TEMPO REAL
+document.getElementById('chat-send').onclick = sendChatMessage;
+document.getElementById('chat-input').addEventListener('keypress', e => {
+    if (e.key === 'Enter') sendChatMessage();
+});
 
 function sendChatMessage() {
-    const msg = chatInput.value.trim();
-    if (msg && networkChannel) {
-        networkChannel.postMessage({ type: 'CHAT_MSG', user: netState.currentUser, msg: msg });
-        addChatMessage(netState.currentUser, msg);
-        chatInput.value = '';
-    }
-}
-chatBtn.onclick = sendChatMessage;
-chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChatMessage(); });
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (!msg) return;
 
-function addChatMessage(user, msg) {
+    appendChatMessage(currentUser || "Eu", msg);
+    broadcast({ type: 'CHAT', user: currentUser || "Anônimo", msg: msg });
+    input.value = '';
+}
+
+function appendChatMessage(user, msg) {
+    const chatMsgs = document.getElementById('chat-messages');
     const div = document.createElement('div');
-    div.innerHTML = `<b style="color: #00ffcc;">${user}:</b> ${msg}`;
-    chatMessages.appendChild(div);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    div.innerHTML = `<strong style="color:#2196F3;">${user}:</strong> ${msg}`;
+    chatMsgs.appendChild(div);
+    chatMsgs.scrollTop = chatMsgs.scrollHeight;
 }
 
-// LÓGICA DO JOGO MULTIPLAYER
-let touchMoveDir = 0, touchJump = false, touchAttack = false, touchSpecial = false;
+// 5. JOGADOR PRINCIPAL E LÓGICA DO JOGO
+const keys = {};
+window.addEventListener('keydown', e => { keys[e.code] = true; });
+window.addEventListener('keyup', e => { keys[e.code] = false; });
 
-document.getElementById('btn-left').ontouchstart = (e) => { e.preventDefault(); touchMoveDir = -1; };
-document.getElementById('btn-left').ontouchend = (e) => { e.preventDefault(); touchMoveDir = 0; };
-document.getElementById('btn-right').ontouchstart = (e) => { e.preventDefault(); touchMoveDir = 1; };
-document.getElementById('btn-right').ontouchend = (e) => { e.preventDefault(); touchMoveDir = 0; };
-document.getElementById('btn-jump').ontouchstart = (e) => { e.preventDefault(); touchJump = true; };
-document.getElementById('btn-attack').ontouchstart = (e) => { e.preventDefault(); touchAttack = true; };
-document.getElementById('btn-special').ontouchstart = (e) => { e.preventDefault(); touchSpecial = true; };
-
-function updateLocalPlayer() {
-    const p = netState.players[netState.currentUser];
-    if (!p) return;
-
-    let moveX = 0;
-    if (keys['KeyA'] || keys['ArrowLeft'] || touchMoveDir === -1) moveX = -1;
-    if (keys['KeyD'] || keys['ArrowRight'] || touchMoveDir === 1) moveX = 1;
-
-    p.vx = moveX * 4;
-
-    if ((keys['Space'] || touchJump) && p.grounded) {
-        p.vy = -11;
-        p.grounded = false;
-        touchJump = false;
-    }
-
-    p.vy += 0.6; // Gravidade
-    p.x += p.vx;
-    p.y += p.vy;
-
-    const groundY = 380;
-    if (p.y + 50 >= groundY) {
-        p.y = groundY - 50;
-        p.vy = 0;
-        p.grounded = true;
-    }
-
-    if (p.x < 0) p.x = 0;
-
-    // Checagem de Fim de Fase (Sincronização do grupo de 6 jogadores)
-    if (p.x >= 750 && !p.reachedEnd) {
-        p.reachedEnd = true;
-        netState.stageReadyPlayers.add(netState.currentUser);
-        networkChannel.postMessage({ type: 'STAGE_READY', user: netState.currentUser });
-        checkStageProgression();
-    }
-}
-
-function checkStageProgression() {
-    const totalPlayers = Object.keys(netState.players).length;
-    const readyCount = netState.stageReadyPlayers.size;
-
-    document.getElementById('waiting-status').innerText = `${readyCount} / ${totalPlayers} JOGADORES PRONTOS`;
+const player = {
+    x: 50, y: 300, width: 40, height: 50, vx: 0, vy: 0, speed: 5, jumpPower: -12, grounded: false,
+    shieldActive: false, shieldTimer: 0, shieldRange: 35, isCarriedAway: false,
     
-    if (netState.players[netState.currentUser].reachedEnd) {
-        document.getElementById('modal-waiting-stage').classList.remove('hidden');
-    }
+    update() {
+        if (state.isPaused) return;
 
-    // Regra: O jogo só continua se TODOS passarem a fase
-    if (readyCount >= totalPlayers && totalPlayers > 0) {
-        if (netState.currentUser === Object.keys(netState.players)[0]) { // Líder da sala dispara a mudança
-            networkChannel.postMessage({ type: 'NEXT_STAGE_START', newStage: netState.stage + 1 });
-            netState.stage += 1;
-            resetStageLocal();
+        if (this.isCarriedAway) {
+            this.y -= 3;
+            return;
         }
+
+        let moveX = 0;
+        if (keys['KeyA'] || keys['ArrowLeft']) moveX = -1;
+        if (keys['KeyD'] || keys['ArrowRight']) moveX = 1;
+        if (touchMoveX !== 0) moveX = touchMoveX;
+
+        this.vx = moveX * this.speed;
+
+        if ((keys['Space'] || touchJump) && this.grounded) {
+            this.vy = this.jumpPower;
+            this.grounded = false;
+            touchJump = false;
+        }
+
+        if ((keys['KeyU'] || touchAttack) && !this.shieldActive) {
+            this.activateShield('U');
+            touchAttack = false;
+        }
+
+        this.vy += 0.6;
+        this.x += this.vx;
+        this.y += this.vy;
+
+        const groundY = 380;
+        if (this.y + this.height >= groundY) {
+            this.y = groundY - this.height;
+            this.vy = 0;
+            this.grounded = true;
+        }
+
+        if (this.x < 0) this.x = 0;
+        if (this.x + this.width > canvas.width) this.x = canvas.width - this.width;
+
+        if (this.shieldTimer > 0) {
+            this.shieldTimer--;
+            if (this.shieldTimer <= 0) this.shieldActive = false;
+        }
+
+        // Transmitir posição para a rede
+        if (peer && connections.length > 0) {
+            broadcast({
+                type: 'PLAYER_SYNC',
+                player: {
+                    x: this.x,
+                    y: this.y,
+                    charKey: selectedCharKey,
+                    user: currentUser,
+                    pinkShield: state.pinkShield
+                }
+            });
+        }
+    },
+
+    activateShield(type) {
+        this.shieldActive = true;
+        this.shieldTimer = 60;
+    },
+
+    draw() {
+        drawCharacterSprite(this.x, this.y, selectedCharKey, state.pinkShield, currentUser);
     }
-}
+};
 
-function resetStageLocal() {
-    document.getElementById('modal-waiting-stage').classList.add('hidden');
-    netState.stageReadyPlayers.clear();
-    const p = netState.players[netState.currentUser];
-    if (p) {
-        p.x = 50;
-        p.y = 330;
-        p.reachedEnd = false;
-    }
-    document.getElementById('ui-stage').innerText = netState.stage;
-}
-
-// RENDERIZAÇÃO DE TODOS OS JOGADORES NA MESMA TELA
-function drawPlayer(p) {
-    const charData = CHARACTERS[p.charKey] || CHARACTERS.doc;
-
+// Renderização Unificada dos Personagens Semelhantes ao Doutor Chácara Original
+function drawCharacterSprite(x, y, charKey, isPink, name) {
     ctx.save();
-    // Cabeça
-    ctx.fillStyle = charData.headColor;
-    ctx.fillRect(p.x + 10, p.y, 20, 15);
+    const char = CHARACTERS[charKey] || CHARACTERS.doc;
+
+    // Cabeça / Corpo
+    ctx.fillStyle = char.skin; 
+    ctx.fillRect(x + 10, y, 20, 15);
     
-    // Acessório único se houver
-    if (charData.extra) {
-        ctx.font = '12px Courier';
-        ctx.fillText(charData.extra, p.x + 12, p.y - 2);
+    ctx.fillStyle = isPink ? '#ff007f' : char.color; 
+    ctx.fillRect(x + 5, y + 15, 30, 25);
+    
+    // Pés
+    ctx.fillStyle = '#000'; 
+    ctx.fillRect(x + 5, y + 40, 10, 10); 
+    ctx.fillRect(x + 25, y + 40, 10, 10);
+
+    // Nome acima do Personagem
+    if (name) {
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '10px Courier';
+        ctx.textAlign = 'center';
+        ctx.fillText(name, x + 20, y - 5);
     }
-
-    // Corpo
-    ctx.fillStyle = charData.bodyColor;
-    ctx.fillRect(p.x + 5, p.y + 15, 30, 25);
-
-    // Pernas
-    ctx.fillStyle = '#000';
-    ctx.fillRect(p.x + 5, p.y + 40, 10, 10);
-    ctx.fillRect(p.x + 25, p.y + 40, 10, 10);
-
-    // Nome de usuário sobre o personagem
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '10px Courier';
-    ctx.textAlign = 'center';
-    ctx.fillText(p.id, p.x + 20, p.y - 12);
 
     ctx.restore();
 }
 
+let enemies = [];
+
+class Enemy {
+    constructor(x, y) {
+        this.x = x; this.y = y; this.width = 40; this.height = 40; this.speed = 2;
+    }
+    update() {
+        this.x -= this.speed;
+        if (this.x < -100) this.x = canvas.width + Math.random() * 200;
+    }
+    draw() {
+        ctx.fillStyle = '#cc0000';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+}
+
+function initStage(stageNum) {
+    state.stage = stageNum;
+    enemies = [];
+    for(let i = 0; i < 3 + stageNum; i++) {
+        enemies.push(new Enemy(600 + i * 250, 340));
+    }
+    document.getElementById('ui-stage').innerText = state.stage;
+}
+
+// LOOP PRINCIPAL
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Desenha Chão e Linha de Chegada
-    ctx.fillStyle = '#222';
-    ctx.fillRect(0, 380, canvas.width, 70);
-    ctx.fillStyle = '#00ffcc';
-    ctx.fillRect(770, 280, 10, 100); // Portal / Chegada da fase
+    if (!state.isGameOver) {
+        player.update();
+        player.draw();
 
-    // Atualiza jogador local
-    updateLocalPlayer();
+        // Desenhar Jogadores Remotos (Multijogador)
+        Object.keys(remotePlayers).forEach(id => {
+            const rp = remotePlayers[id];
+            drawCharacterSprite(rp.x, rp.y, rp.charKey, rp.pinkShield, rp.user);
+        });
 
-    // Renderiza todos os até 6 jogadores conectados na sala
-    const playerKeys = Object.keys(netState.players);
-    playerKeys.forEach(key => {
-        drawPlayer(netState.players[key]);
-    });
+        // Inimigos e Mecânica Original de Pular no Cabeção
+        enemies.forEach((enemy, index) => {
+            enemy.update(); enemy.draw();
 
-    document.getElementById('ui-ready-count').innerText = `${playerKeys.length}/6`;
+            const isFalling = player.vy > 0;
+            const playerFeet = player.y + player.height;
+            const enemyHead = enemy.y;
+
+            if (isFalling && playerFeet >= enemyHead && playerFeet <= enemyHead + 15 && 
+                player.x + player.width > enemy.x && player.x < enemy.x + enemy.width) {
+                enemies.splice(index, 1);
+                player.vy = -8;
+                state.score += 200;
+            }
+        });
+
+        // REGRA MULTIPLAYER: Só passa a fase se TODOS os jogadores chegarem na zona final (Direita da tela)
+        const inExitZone = player.x >= canvas.width - 60;
+        let totalPlayersInExit = inExitZone ? 1 : 0;
+
+        Object.keys(remotePlayers).forEach(id => {
+            if (remotePlayers[id].x >= canvas.width - 60) totalPlayersInExit++;
+        });
+
+        const totalPlayers = connections.length + 1;
+        
+        // Desenha Portal / Zona de Transição de Fase
+        ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+        ctx.fillRect(canvas.width - 50, 300, 50, 80);
+        ctx.fillStyle = '#fff';
+        ctx.font = '10px Courier';
+        ctx.fillText(`SAÍDA (${totalPlayersInExit}/${totalPlayers})`, canvas.width - 50, 290);
+
+        if (totalPlayersInExit >= totalPlayers && isHost) {
+            const nextStage = state.stage + 1;
+            initStage(nextStage);
+            broadcast({ type: 'STAGE_ADVANCE', stage: nextStage });
+        }
+
+        document.getElementById('ui-score').innerText = Math.floor(state.score);
+    }
 
     requestAnimationFrame(gameLoop);
 }
 
-document.getElementById('btn-logout').onclick = () => { location.reload(); };
+// Touch Controls Joystick
+let touchMoveX = 0, touchJump = false, touchAttack = false;
+const joystickZone = document.getElementById('joystick-zone');
+const joystickKnob = document.getElementById('joystick-knob');
+
+joystickZone.addEventListener('touchstart', handleJoystick);
+joystickZone.addEventListener('touchmove', handleJoystick);
+joystickZone.addEventListener('touchend', () => {
+    joystickKnob.style.top = '22px'; joystickKnob.style.left = '22px'; touchMoveX = 0;
+});
+
+function handleJoystick(e) {
+    e.preventDefault();
+    const rect = joystickZone.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left - 40;
+    touchMoveX = Math.max(-1, Math.min(1, x / 30));
+    joystickKnob.style.left = `${22 + touchMoveX * 20}px`;
+}
+
+document.getElementById('btn-jump').addEventListener('touchstart', (e) => { e.preventDefault(); touchJump = true; });
+document.getElementById('btn-attack').addEventListener('touchstart', (e) => { e.preventDefault(); touchAttack = true; });
+
+// Iniciar Jogo
+initStage(1);
+gameLoop();
+
 </script>
 </body>
 </html>
