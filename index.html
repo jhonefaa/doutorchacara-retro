@@ -1,728 +1,1131 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Doutor Chácara - Alfabetização Arcade Mobile v2.5</title>
   <style>
-    * { box-sizing: border-box; user-select: none; margin: 0; padding: 0; }
-    body, html { width: 100%; height: 100%; overflow: hidden; background: #111; font-family: Arial, sans-serif; color: #fff; }
+    * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
+    html, body {
+      width: 100vw; height: 100vh; background-color: #000; color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center; overflow: hidden; user-select: none;
+    }
     
-    #game-container { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
-    canvas { background: #87CEEB; display: block; max-width: 100%; max-height: 100%; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+    #game-container {
+      position: relative; width: 100vw; height: 100vh;
+      display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000;
+    }
+    #gameCanvas {
+      background: #000; width: 100vw; height: 100vh; object-fit: fill; display: block;
+    }
 
-    /* HUD Topo */
-    #hud {
-      position: absolute; top: 10px; left: 10px; right: 10px;
-      display: flex; justify-content: space-between; align-items: center;
-      background: rgba(0, 0, 0, 0.6); padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 14px; z-index: 5;
+    .touch-controls {
+      position: absolute; bottom: 65px; left: 0; width: 100%;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      padding: 0 30px; pointer-events: none; z-index: 5;
     }
-    .hud-btn { background: #444; color: #fff; border: 1px solid #777; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-    .hud-btn:hover { background: #666; }
+    
+    #joystick-zone {
+      width: 120px; height: 120px; background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(0, 255, 204, 0.3); border-radius: 50%; position: relative;
+      pointer-events: auto; touch-action: none;
+    }
+    #joystick-stick {
+      width: 50px; height: 50px; background: rgba(0, 255, 204, 0.4); border-radius: 50%;
+      position: absolute; top: 35px; left: 35px;
+      box-shadow: 0 0 8px rgba(0, 255, 204, 0.5); pointer-events: none;
+    }
 
-    /* Controles Mobile (Touch) */
-    #touch-controls {
-      position: absolute; bottom: 10px; left: 10px; right: 10px;
-      display: flex; justify-content: space-between; align-items: flex-end; z-index: 5; pointer-events: none;
+    .action-buttons { display: flex; gap: 10px; pointer-events: auto; }
+    .btn-action {
+      width: 60px; height: 60px; border-radius: 50%; font-size: 0.75rem; font-weight: bold;
+      border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 0 8px rgba(255,255,255,0.2);
+      display: flex; justify-content: center; align-items: center; color: #fff;
+      opacity: 0.75; cursor: pointer;
     }
-    .dpad, .action-btns { pointer-events: auto; display: flex; gap: 8px; }
-    .dpad { display: grid; grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(2, 50px); gap: 5px; }
-    .touch-btn {
-      width: 50px; height: 50px; background: rgba(255, 255, 255, 0.25); border: 2px solid #fff;
-      border-radius: 50%; color: #fff; font-weight: bold; font-size: 12px; display: flex;
-      align-items: center; justify-content: center; touch-action: manipulation;
-    }
-    .touch-btn:active { background: rgba(255, 255, 255, 0.6); }
+    .btn-jump { background: rgba(0, 136, 255, 0.4); }
+    .btn-attack { background: rgba(255, 0, 85, 0.4); }
+    .btn-shield { background: rgba(255, 140, 0, 0.4); border-color: rgba(255, 140, 0, 0.6); }
 
-    /* Overlays & Modais */
-    .modal {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.85); display: none; flex-direction: column;
-      align-items: center; justify-content: center; z-index: 10; padding: 20px; text-align: center;
+    #top-left-controls {
+      position: absolute; top: 15px; left: 15px; display: flex; gap: 8px; z-index: 10;
     }
-    .modal.active { display: flex; }
-    .modal h2 { margin-bottom: 15px; color: #ffd700; }
-    .modal p { margin-bottom: 15px; max-width: 500px; line-height: 1.4; }
-    .modal input { padding: 10px; border-radius: 5px; border: none; font-size: 16px; margin-bottom: 10px; text-align: center; width: 80%; max-width: 300px; }
-    .modal button { padding: 10px 20px; background: #28a745; color: #fff; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 16px; margin: 5px; }
 
-    /* Overlay de Comentários / Pix Sidebar */
-    #sidebar {
-      position: absolute; right: 10px; top: 60px; width: 200px; max-height: 300px;
-      background: rgba(0,0,0,0.7); border-radius: 8px; padding: 10px; font-size: 12px; z-index: 5;
-      display: flex; flex-direction: column; gap: 8px; overflow-y: auto;
+    #btn-fullscreen {
+      position: absolute; top: 15px; right: 15px; background: rgba(0, 255, 204, 0.08);
+      border: 1px solid rgba(0, 255, 204, 0.3); color: #00ffcc; padding: 6px 12px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: bold; cursor: pointer; z-index: 10;
+      backdrop-filter: blur(4px);
     }
-    #comments-list { max-height: 120px; overflow-y: auto; background: rgba(255,255,255,0.1); padding: 5px; border-radius: 4px; }
+    
+    .btn-top-bar {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.3); color: #fff; padding: 6px 12px; border-radius: 20px;
+      font-size: 0.75rem; cursor: pointer; backdrop-filter: blur(4px); font-weight: bold;
+    }
+    .btn-top-bar:hover { background: rgba(0, 255, 204, 0.2); border-color: #00ffcc; }
+
+    .bottom-bar {
+      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 8px; background: rgba(10, 10, 18, 0.25);
+      backdrop-filter: blur(5px); padding: 5px 10px; border-radius: 20px;
+      border: 1px solid rgba(0, 255, 204, 0.25); z-index: 15; max-width: 95vw; overflow-x: auto;
+    }
+
+    .btn-tool {
+      background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 5px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;
+      cursor: pointer; display: flex; align-items: center; gap: 5px; white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .btn-tool:hover { background: rgba(0, 255, 204, 0.2); border-color: #00ffcc; }
+    .btn-tool.off { background: rgba(100, 100, 100, 0.3); opacity: 0.5; }
+
+    .overlay-panel {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(10, 10, 18, 0.85); 
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 255, 204, 0.4);
+      border-radius: 20px; padding: 20px; box-shadow: 0 0 25px rgba(0, 255, 204, 0.2);
+      z-index: 2000; display: none; flex-direction: column; align-items: center; gap: 12px;
+      width: 90%; max-width: 480px; color: #fff;
+    }
+
+    .overlay-panel h2 { color: #00ffcc; font-size: 1.3rem; text-shadow: 0 0 6px #000; }
+    .overlay-panel p { font-size: 0.9rem; line-height: 1.3; text-shadow: 0 0 6px #000; }
+    
+    .btn-main {
+      background: rgba(0, 255, 204, 0.65); color: #000; font-size: 0.95rem; font-weight: bold;
+      padding: 8px 20px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.4); cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); margin: 3px;
+      width: 100%; max-width: 320px; backdrop-filter: blur(4px);
+    }
+
+    .btn-sub {
+      background: rgba(255, 0, 85, 0.65); color: #fff; font-size: 0.9rem; font-weight: bold;
+      padding: 8px 18px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.4); cursor: pointer;
+      box-shadow: 0 0 8px rgba(255, 0, 85, 0.3); margin: 3px;
+      width: 100%; max-width: 320px; backdrop-filter: blur(4px);
+    }
+
+    .btn-back {
+      background: rgba(255, 204, 0, 0.7); color: #000; font-size: 0.9rem; font-weight: bold;
+      padding: 8px 18px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.4); cursor: pointer;
+      box-shadow: 0 0 10px rgba(255, 204, 0, 0.4); margin-top: 8px; width: 100%; max-width: 320px;
+      backdrop-filter: blur(4px);
+    }
+
+    .btn-group { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+
+    input[type="text"], textarea, select {
+      padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(0, 255, 204, 0.5);
+      background: rgba(0, 0, 0, 0.8); color: #fff; font-size: 0.9rem; text-align: center; width: 90%;
+      backdrop-filter: blur(4px);
+    }
+
+    textarea { text-align: left; resize: none; height: 55px; }
+
+    .instant-comments-box {
+      position: absolute; top: 55px; right: 15px; width: 210px; max-height: 170px;
+      background: rgba(0, 0, 0, 0.12); backdrop-filter: blur(4px);
+      border: 1px solid rgba(0, 255, 204, 0.25); border-radius: 12px;
+      padding: 8px; z-index: 12; display: flex; flex-direction: column; text-align: left;
+    }
+    .instant-comments-header { font-size: 0.7rem; font-weight: bold; color: #00ffcc; margin-bottom: 4px; border-bottom: 1px solid rgba(0,255,204,0.2); padding-bottom: 2px; text-shadow: 0 0 4px #000; }
+    .instant-comments-list { overflow-y: auto; max-height: 130px; font-size: 0.7rem; display: flex; flex-direction: column; gap: 4px; }
+    .instant-item { background: rgba(0, 0, 0, 0.15); padding: 4px 6px; border-radius: 6px; word-break: break-word; text-shadow: 0 0 3px #000; }
+    .instant-item strong { color: #ffcc00; }
+
+    .leaderboard-list {
+      width: 100%; max-height: 110px; overflow-y: auto; text-align: left;
+      font-family: monospace; font-size: 0.8rem; background: rgba(0,0,0,0.3);
+      padding: 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
+    }
+    .leaderboard-item { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dashed rgba(255,255,255,0.2); }
+
+    .key-bind-row { display: flex; justify-content: space-between; width: 100%; align-items: center; padding: 4px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .key-bind-btn { background: rgba(0, 0, 0, 0.6); border: 1px solid #00ffcc; color: #00ffcc; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    
+    .pix-box {
+      background: rgba(0, 255, 204, 0.08); border: 1px dashed rgba(0, 255, 204, 0.5);
+      padding: 8px; border-radius: 10px; word-break: break-all; font-weight: bold;
+      color: #00ffcc; margin: 4px 0; width: 100%; font-size: 0.8rem;
+    }
+
+    video { width: 100%; border-radius: 12px; border: 1px solid #00ffcc; margin-top: 5px; }
   </style>
 </head>
 <body>
 
   <div id="game-container">
-    <canvas id="gameCanvas" width="800" height="450"></canvas>
+    <div id="top-left-controls">
+      <button class="btn-top-bar" onclick="openKeyConfig()">⚙️ CONTROLES (PC)</button>
+      <button class="btn-top-bar" style="border-color: #ffcc00; color: #ffcc00;" onclick="skipIntro()">⏭️ PULAR INTRO</button>
+    </div>
 
-    <!-- HUD -->
-    <div id="hud">
-      <div>FASE: <span id="hud-stage">1</span>/27</div>
-      <div>PONTOS: <span id="hud-score">0</span></div>
-      <div>VIDAS: <span id="hud-lives">❤️ x3</span></div>
-      <div>REGRA: <span id="hud-rule" style="color: #ffd700;">Minúsculas (a-f)</span></div>
-      <div>
-        <button class="hud-btn" onclick="toggleAudio('bgm')">🎵 Música</button>
-        <button class="hud-btn" onclick="toggleAudio('voice')">🔊 Voz</button>
-        <button class="hud-btn" onclick="takeScreenshot()">📸 Print</button>
-        <button class="hud-btn" onclick="showPixModal()">⚡ Pix</button>
+    <button id="btn-fullscreen" onclick="toggleFullScreen()">TELA CHEIA ⛶</button>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="instant-comments-box">
+      <div class="instant-comments-header">💬 COMENTÁRIOS AO VIVO</div>
+      <div class="instant-comments-list" id="instant-comments-list"></div>
+    </div>
+
+    <div class="bottom-bar">
+      <button class="btn-tool" onclick="takeScreenshot()">📸 Print</button>
+      <button class="btn-tool" onclick="openYoutubeChannel()">🔴 YouTube</button>
+      <button class="btn-tool" onclick="openPixOverlay()">⚡ Pix</button>
+      <button class="btn-tool" onclick="openCommentsOverlay()">💬 Comentários</button>
+      <button class="btn-tool" id="btn-toggle-music" onclick="toggleMusic()">🎵 Música: ON</button>
+      <button class="btn-tool" id="btn-toggle-voice" onclick="toggleVoice()">🔊 Voz: ON</button>
+    </div>
+
+    <div id="panel-pix-overlay" class="overlay-panel">
+      <h2>APOIE O JOGO COM PIX ⚡</h2>
+      <p>Sua ajuda garante novos conteúdos e melhorias para o jogo!</p>
+      <div class="pix-box" id="pixKey">jhonemercadopago2023@gmail.com</div>
+      <button class="btn-main" onclick="copyPixKey()">COPIAR CHAVE PIX 📋</button>
+      <button class="btn-back" onclick="closeAllPanels()">◀ VOLTAR AO JOGO</button>
+    </div>
+
+    <div id="panel-cheat-stage" class="overlay-panel">
+      <h2>SELEÇÃO DE FASES 🧪</h2>
+      <p>Escolha a fase para onde deseja se transportar:</p>
+      <select id="cheat-stage-select"></select>
+      <button class="btn-main" onclick="jumpToSelectedStage()">TELEPORTAR ▶</button>
+      <button class="btn-back" onclick="closeAllPanels()">◀ CANCELAR</button>
+    </div>
+
+    <div id="panel-comments-overlay" class="overlay-panel">
+      <h2>DEIXE SEU COMENTÁRIO 💬</h2>
+      <p>Envie sua mensagem para aparecer no jogo!</p>
+      <input type="text" id="comm-author" placeholder="Seu Nome" maxlength="15">
+      <textarea id="comm-text" placeholder="Escreva seu comentário..." maxlength="120"></textarea>
+      <button class="btn-main" onclick="saveNewComment()">ENVIAR COMENTÁRIO 📝</button>
+      <button class="btn-back" onclick="closeAllPanels()">◀ VOLTAR AO JOGO</button>
+    </div>
+
+    <div id="panel-stage-start" class="overlay-panel">
+      <h2 id="stage-title">FASE 1</h2>
+      <p id="stage-instruction">Destrua os alvos solicitados!</p>
+      <div id="stage-score-info"></div>
+      <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
+    </div>
+
+    <div id="panel-youtube-promo" class="overlay-panel">
+      <h2>FASE CONCLUÍDA! 🎉</h2>
+      <p>Apoie o canal do Doutor Chácara para continuar (Aperte ENTER ou clique abaixo):</p>
+      <div class="btn-group">
+        <button class="btn-main" style="background: rgba(255, 0, 0, 0.65); color:#fff;" onclick="handleYtAnswer('inscrever')">🔴 Se inscreva no canal Doutor Chácara</button>
+        <button class="btn-main" onclick="handleYtAnswer('sim')">👍 Já é inscrito</button>
+        <button class="btn-sub" id="btn-continue-game" style="background: rgba(0, 153, 255, 0.65);" onclick="handleYtAnswer('continuar')">▶ Continuar jogo (ENTER / Click)</button>
+      </div>
+      <div id="yt-feedback-msg" style="margin-top: 5px; font-weight: bold; color: #ffcc00; text-shadow: 0 0 5px #000;"></div>
+    </div>
+
+    <div id="panel-yt-return" class="overlay-panel">
+      <h2>JOGO PAUSADO ⏸️</h2>
+      <p>O jogo está pausado enquanto você visita o canal!</p>
+      <button class="btn-main" onclick="resumeGameFromYt()">CONTINUAR JOGO ▶</button>
+    </div>
+
+    <div id="panel-key-config" class="overlay-panel">
+      <h2>⚙️ CONFIGURAÇÃO DE CONTROLES (PC)</h2>
+      <p style="font-size:0.75rem; color:#00ffcc;">Clique no botão e escolha a tecla desejada no teclado:</p>
+      
+      <div class="key-bind-row">
+        <span>Mover para Esquerda:</span>
+        <button class="key-bind-btn" id="bind-left-btn" onclick="listenKeyChange('left')">KeyA</button>
+      </div>
+      <div class="key-bind-row">
+        <span>Mover para Direita:</span>
+        <button class="key-bind-btn" id="bind-right-btn" onclick="listenKeyChange('right')">KeyD</button>
+      </div>
+      <div class="key-bind-row">
+        <span>Mover para Cima / Mirar Cima:</span>
+        <button class="key-bind-btn" id="bind-up-btn" onclick="listenKeyChange('up')">KeyW</button>
+      </div>
+      <div class="key-bind-row">
+        <span>Mover para Baixo / Agachar:</span>
+        <button class="key-bind-btn" id="bind-down-btn" onclick="listenKeyChange('down')">KeyS</button>
+      </div>
+      <div class="key-bind-row">
+        <span>Pular (Padrão Espaço):</span>
+        <button class="key-bind-btn" id="bind-jump-btn" onclick="listenKeyChange('jump')">Space</button>
+      </div>
+      <div class="key-bind-row">
+        <span>Pulo Secundário (Letra O):</span>
+        <button class="key-bind-btn" id="bind-jump2-btn" onclick="listenKeyChange('jump2')">KeyO</button>
+      </div>
+      <div class="key-bind-row">
+        <span>Escudo de Ataque (Letra U):</span>
+        <button class="key-bind-btn" id="bind-attack-btn" onclick="listenKeyChange('attack')">KeyU</button>
+      </div>
+      <div class="key-bind-row">
+        <span>Escudo Especial (Letra I):</span>
+        <button class="key-bind-btn" id="bind-shield-btn" onclick="listenKeyChange('shield')">KeyI</button>
+      </div>
+
+      <button class="btn-main" onclick="closeKeyConfig()">SALVAR E FECHAR 💾</button>
+    </div>
+
+    <div id="panel-victory" class="overlay-panel">
+      <h2 style="color: #00ffcc;">PARABÉNS! VOCÊ ZEROU A FASE 27! 🏆</h2>
+      <p>Mensagem especial do Doutor Chácara:</p>
+      <video id="victory-video" controls autoplay>
+        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+        Seu navegador não suporta vídeos HTML5.
+      </video>
+      <p>Digite seu nome para gravar seu recorde no placar para sempre:</p>
+      <input type="text" id="winner-name" placeholder="Seu Nome de Campeão" maxlength="15">
+      <button class="btn-main" onclick="saveVictoryScore()">GRAVAR NO PLACAR PARA SEMPRE 🏆</button>
+    </div>
+
+    <div id="panel-game-over" class="overlay-panel">
+      <h2 style="color: #ff0055;">GAME OVER</h2>
+      <p id="game-over-reason">Você perdeu a fase!</p>
+      <p>Sua pontuação: <strong id="final-score">0</strong></p>
+      <input type="text" id="player-name" placeholder="Digite seu nome" maxlength="12">
+      <button class="btn-main" id="btn-save-score">SALVAR RECORD 🔄</button>
+      
+      <h3 style="margin-top: 5px; color: #ffcc00; font-size: 0.85rem;">🏆 PLACAR PERMANENTE DE RECORDES</h3>
+      <div class="leaderboard-list" id="leaderboard-list"></div>
+    </div>
+
+    <div class="touch-controls">
+      <div id="joystick-zone">
+        <div id="joystick-stick"></div>
+      </div>
+
+      <div class="action-buttons">
+        <div class="btn-action btn-jump" id="touch-jump">PULO</div>
+        <div class="btn-action btn-attack" id="touch-attack">ESCUDO U</div>
+        <div class="btn-action btn-shield" id="touch-shield">SUPER I</div>
       </div>
     </div>
-
-    <!-- Sidebar de Comentários Ao Vivo -->
-    <div id="sidebar">
-      <strong>💬 COMENTÁRIOS AO VIVO</strong>
-      <div id="comments-list"></div>
-      <input type="text" id="comment-input" placeholder="Enviar comentário..." style="width:100%; font-size:10px; padding:3px;" />
-      <button class="hud-btn" onclick="addComment()">Enviar</button>
-    </div>
-
-    <!-- Controles Touch (Mobile) -->
-    <div id="touch-controls">
-      <div class="dpad">
-        <div></div>
-        <div class="touch-btn" id="btn-up" style="grid-column: 2;">▲</div>
-        <div></div>
-        <div class="touch-btn" id="btn-left">◀</div>
-        <div class="touch-btn" id="btn-down">▼</div>
-        <div class="touch-btn" id="btn-right">▶</div>
-      </div>
-      <div class="action-btns">
-        <div class="touch-btn" id="btn-shield" style="background:#007bff;">ESCUDO U</div>
-        <div class="touch-btn" id="btn-super" style="background:#ffc107; color:#000;">SUPER I</div>
-        <div class="touch-btn" id="btn-jump" style="background:#28a745;">PULO</div>
-      </div>
-    </div>
-
-    <!-- Modal Intro Fase 1 -->
-    <div id="intro-modal" class="modal active">
-      <h2>🛸 CHEGADA DO DOUTOR CHÁCARA</h2>
-      <p>Doutor Chácara foi abduzido e agora viaja pelas dimensões do conhecimento para salvar a alfabetização!</p>
-      <button onclick="skipIntro()">⏭️ PULAR INTRO / INICIAR</button>
-    </div>
-
-    <!-- Modal Boss HQ Comic (A cada 5 fases) -->
-    <div id="boss-modal" class="modal">
-      <h2 id="boss-title">💥 BATTALHA HQ - SEMI-MESTRE!</h2>
-      <p id="boss-question">Pergunta aqui...</p>
-      <input type="text" id="boss-answer" placeholder="Digite sua resposta em Português" />
-      <button onclick="submitBossAnswer()">RESPONDER</button>
-      <p id="boss-feedback" style="color:#ff4444; font-weight:bold;"></p>
-    </div>
-
-    <!-- Modal Promoção YouTube -->
-    <div id="yt-modal" class="modal">
-      <h2>🎉 FASE CONCLUÍDA!</h2>
-      <p>Inscreva-se no canal oficial do <strong>Doutor Chácara</strong> no YouTube para mais aventuras!</p>
-      <button onclick="nextStageFromYT()">PRÓXIMA FASE ➡️</button>
-    </div>
-
-    <!-- Modal Vitória Final (Fase 27) -->
-    <div id="victory-modal" class="modal">
-      <h2>🏆 PARABÉNS! VOCÊ ZEROU O JOGO!</h2>
-      <p>Você dominou todas as 27 fases do Doutor Chácara!</p>
-      <p>Pontuação Final: <span id="final-score">0</span></p>
-      <button onclick="saveHighScore()">💾 SALVAR RECORD PERMANENTE</button>
-      <button onclick="location.reload()">🔄 JOGAR NOVAMENTE</button>
-    </div>
-
-    <!-- Modal Pix -->
-    <div id="pix-modal" class="modal">
-      <h2>⚡ APOIE O DESENVOLVIMENTO</h2>
-      <p>Chave Pix (Mercado Pago):</p>
-      <p style="background:#222; padding:8px; border-radius:4px; font-family:monospace;">jhonemercadopago2023@gmail.com</p>
-      <button onclick="navigator.clipboard.writeText('jhonemercadopago2023@gmail.com'); alert('Chave Pix Copiada!');">📋 COPIAR CHAVE PIX</button>
-      <button onclick="hidePixModal()">FECHAR</button>
-    </div>
-
-    <!-- Modal Cheat Select Stage -->
-    <div id="cheat-modal" class="modal">
-      <h2>🔑 CHEAT MENU: SELECIONAR FASE</h2>
-      <p>Escolha uma fase de 1 a 27:</p>
-      <input type="number" id="cheat-stage" min="1" max="27" value="1" />
-      <button onclick="applyCheatStage()">TELEPORTAR</button>
-      <button onclick="hideCheatModal()">CANCELAR</button>
-    </div>
-
   </div>
 
   <script>
-    // --- CANVAS & SETUP BASE ---
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-    // --- ESTADO DO JOGO ---
-    let stage = 1;
-    let score = 0;
-    let lives = 3;
-    let audioBgm = true;
-    let audioVoice = true;
-    let gameOver = false;
-    let gamePaused = false;
-    let stageCleared = false;
-    let lastExtraLifeScore = 0;
-    let lastVehicleScore = 0;
-
-    // --- TECLAS E CONTROLES ---
-    const keys = {};
-    let cheatBuffer = "";
-
-    // --- PLAYER (DOUTOR CHÁCARA) ---
-    const player = {
-      x: 100, y: 300, width: 35, height: 50,
-      vx: 0, vy: 0, speed: 4, jumpPower: -11,
-      isGrounded: false, crouching: false,
-      shieldActive: false, shieldTimer: 0,
-      superActive: false, superTimer: 0,
-      immunityTimer: 0, schoolItemsCount: 0,
-      vehicle: null // 'aviao', 'carro', 'moto' ou null
-    };
-
-    // --- ENTIDADES DO MUNDO ---
-    let targets = [];
-    let enemyDarts = [];
-    let schoolCollectibles = [];
-    let pits = [];
-
-    // Rules Text
-    const STAGE_RULES = {
-      1: { text: "Destrua APENAS letras minúsculas (a-f)", type: "lowercase" },
-      2: { text: "Destrua APENAS números pares", type: "even" },
-      27: { text: "FASE FINAL TIGRE: Destrua APENAS vogais", type: "vowels", isTiger: true }
-    };
-    // Fases 3 a 26 padrão: Vogais
-    function getRuleForStage(stg) {
-      if (STAGE_RULES[stg]) return STAGE_RULES[stg];
-      return { text: "Destrua APENAS vogais (A, E, I, O, U)", type: "vowels" };
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     }
-
-    // --- INICIALIZAÇÃO E LOOP ---
-    function init() {
-      setupInputListeners();
-      setupTouchControls();
-      loadComments();
-      loadStage(1);
-      requestAnimationFrame(gameLoop);
-    }
-
-    function loadStage(s) {
-      stage = s;
-      stageCleared = false;
-      player.x = 80;
-      player.y = 300;
-      player.vx = 0;
-      player.vy = 0;
-      targets = [];
-      enemyDarts = [];
-      schoolCollectibles = [];
-      pits = [];
-
-      document.getElementById('hud-stage').innerText = stage;
-      const rule = getRuleForStage(stage);
-      document.getElementById('hud-rule').innerText = rule.text;
-
-      speakRule(rule.text);
-
-      // Gerar Buracos (Pits) em Fases Ímpares
-      if (stage % 2 !== 0 && stage !== 27) {
-        pits.push({ x: 300, width: 80 });
-        pits.push({ x: 550, width: 80 });
-      }
-
-      // Spawnar Alvos (Letras / Números)
-      spawnTargets();
-
-      // Spawnar Materiais Escolares (Até Fase 20)
-      if (stage <= 20) {
-        spawnSchoolCollectibles();
-      }
-
-      // Verificar Se é Fase de Semi-Boss (5, 10, 15, 20, 25)
-      if (stage % 5 === 0) {
-        startBossBattle();
-      }
-    }
-
-    function spawnTargets() {
-      const charPools = {
-        lowercase: ['a','b','c','d','e','f','A','B','C','1','2','3'],
-        even: ['2','4','6','8','1','3','5','7','A','B'],
-        vowels: ['A','E','I','O','U','B','C','D','F','1','2','3']
-      };
-
-      const rule = getRuleForStage(stage);
-      const pool = charPools[rule.type] || charPools.vowels;
-
-      for (let i = 0; i < 8; i++) {
-        targets.push({
-          x: 250 + i * 85,
-          y: 150 + Math.random() * 120,
-          char: pool[Math.floor(Math.random() * pool.length)],
-          vx: (Math.random() - 0.5) * 1.5,
-          vy: (Math.random() - 0.5) * 1.5,
-          isPurpleEnemy: (stage >= 4 && Math.random() > 0.6), // Inimigo Roxo com Dardo (Fase 4+)
-          shootTimer: 0
-        });
-      }
-    }
-
-    function spawnSchoolCollectibles() {
-      const items = ['📖', '✏️', '📝', '🧹'];
-      for (let i = 0; i < 3; i++) {
-        schoolCollectibles.push({
-          x: 200 + Math.random() * 500,
-          y: 280,
-          icon: items[Math.floor(Math.random() * items.length)]
-        });
-      }
-    }
-
-    // --- GAME LOOP ---
-    function gameLoop() {
-      if (!gameOver && !gamePaused) {
-        update();
-        render();
-      }
-      requestAnimationFrame(gameLoop);
-    }
-
-    // --- LÓGICA DE ATUALIZAÇÃO (UPDATE) ---
-    function update() {
-      // 1. Movimentação do Jogador
-      if (keys['KeyA'] || keys['ArrowLeft']) player.vx = -player.speed;
-      else if (keys['KeyD'] || keys['ArrowRight']) player.vx = player.speed;
-      else player.vx = 0;
-
-      // Veículo ou Pulo
-      if (player.vehicle === 'aviao') {
-        if (keys['KeyW'] || keys['ArrowUp']) player.vy = -player.speed;
-        else if (keys['KeyS'] || keys['ArrowDown']) player.vy = player.speed;
-        else player.vy = 0;
-      } else {
-        // Gravidade Normal
-        player.vy += 0.5;
-        if ((keys['Space'] || keys['KeyO'] || keys['ArrowUp']) && player.isGrounded) {
-          player.vy = player.jumpPower;
-          player.isGrounded = false;
-        }
-      }
-
-      player.x += player.vx;
-      player.y += player.vy;
-
-      // Limites e Colisão com Chão / Buracos
-      const floorY = 320;
-      let overPit = false;
-
-      pits.forEach(p => {
-        if (player.x + player.width > p.x && player.x < p.x + p.width) {
-          overPit = true;
-        }
-      });
-
-      if (!overPit && player.y + player.height >= floorY && player.vehicle !== 'aviao') {
-        player.y = floorY - player.height;
-        player.vy = 0;
-        player.isGrounded = true;
-      } else if (overPit && player.y > 450) {
-        takeDamage("Caiu no buraco!");
-      }
-
-      // Limites laterais da tela
-      player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
-
-      // Timers de Escudo e Super
-      if (player.shieldTimer > 0) player.shieldTimer--;
-      else player.shieldActive = false;
-
-      if (player.superTimer > 0) player.superTimer--;
-      else player.superActive = false;
-
-      if (player.immunityTimer > 0) player.immunityTimer--;
-
-      // 2. Sistema de Pontuação e Recompensas (Vida Extra e Veículos)
-      if (score - lastExtraLifeScore >= 10000) {
-        lives++;
-        lastExtraLifeScore = score;
-        speakRule("Vida extra conquistada!");
-        updateHUD();
-      }
-
-      if (score - lastVehicleScore >= 10000) {
-        const vehicles = ['aviao', 'carro', 'moto'];
-        player.vehicle = vehicles[Math.floor(Math.random() * vehicles.length)];
-        lastVehicleScore = score;
-        speakRule("Novo veículo liberado: " + player.vehicle);
-      }
-
-      // 3. Atualizar Alvos
-      targets.forEach((t, index) => {
-        t.x += t.vx;
-        t.y += t.vy;
-
-        // Quicar nas bordas
-        if (t.x < 50 || t.x > 750) t.vx *= -1;
-        if (t.y < 50 || t.y > 250) t.vy *= -1;
-
-        // Disparo de Dardos por Inimigos Roxos
-        if (t.isPurpleEnemy) {
-          t.shootTimer++;
-          if (t.shootTimer > 180) { // A cada 3s
-            enemyDarts.push({ x: t.x, y: t.y, vx: -3, vy: 0 });
-            t.shootTimer = 0;
-          }
-        }
-
-        // Colisão Ataque de Escudo do Player com Alvo
-        if (player.shieldActive) {
-          const shieldRange = { x: player.x - 20, y: player.y - 10, width: player.width + 40, height: player.height + 20 };
-          if (checkCollision(shieldRange, { x: t.x, y: t.y, width: 25, height: 25 })) {
-            validateTargetHit(t, index);
-          }
-        }
-
-        // Colisão do Player com Alvo
-        if (checkCollision(player, { x: t.x, y: t.y, width: 25, height: 25 })) {
-          if (player.immunityTimer <= 0 && !player.superActive) {
-            takeDamage("Tocou no caractere errado!");
-          }
-        }
-      });
-
-      // 4. Atualizar Dardos Inimigos
-      enemyDarts.forEach((d, index) => {
-        d.x += d.vx;
-        // Colisão com Super Escudo (I) bloqueia dardo
-        if (player.superActive && checkCollision(player, { x: d.x, y: d.y, width: 10, height: 5 })) {
-          enemyDarts.splice(index, 1);
-        } else if (checkCollision(player, { x: d.x, y: d.y, width: 10, height: 5 })) {
-          enemyDarts.splice(index, 1);
-          if (player.immunityTimer <= 0) takeDamage("Atingido por dardo inimigo!");
-        }
-      });
-
-      // 5. Materiais Escolares
-      schoolCollectibles.forEach((sc, index) => {
-        if (checkCollision(player, { x: sc.x, y: sc.y, width: 20, height: 20 })) {
-          schoolCollectibles.splice(index, 1);
-          player.schoolItemsCount++;
-          if (player.schoolItemsCount >= 3) {
-            player.immunityTimer = 300; // ~5 segundos de imunidade
-            player.schoolItemsCount = 0;
-            speakRule("Imunidade temporária ativada!");
-          }
-        }
-      });
-
-      // Check Fase Concluída
-      if (targets.length === 0 && !stageCleared) {
-        stageCleared = true;
-        if (stage === 27) {
-          triggerFinalVictory();
-        } else {
-          showYTModal();
-        }
-      }
-    }
-
-    // Validar Acerto de Alvo com base na Regra
-    function validateTargetHit(target, index) {
-      const rule = getRuleForStage(stage).type;
-      let isCorrect = false;
-
-      if (rule === "lowercase") {
-        isCorrect = /[a-f]/.test(target.char);
-      } else if (rule === "even") {
-        isCorrect = !isNaN(target.char) && parseInt(target.char) % 2 === 0;
-      } else if (rule === "vowels") {
-        isCorrect = /[AEIOUaeiou]/.test(target.char);
-      }
-
-      targets.splice(index, 1);
-
-      if (isCorrect) {
-        score += 1000;
-        speakRule("Correto!");
-      } else {
-        score = Math.max(0, score - 500);
-        takeDamage("Destruiu o item incorreto!");
-      }
-      updateHUD();
-    }
-
-    function takeDamage(msg) {
-      lives--;
-      updateHUD();
-      speakRule("Dano! " + msg);
-      player.x = 80;
-      player.y = 300;
-
-      if (lives <= 0) {
-        gameOver = true;
-        alert("GAME OVER! Tente novamente.");
-        location.reload();
-      }
-    }
-
-    function updateHUD() {
-      document.getElementById('hud-score').innerText = score;
-      document.getElementById('hud-lives').innerText = `❤️ x${lives}`;
-    }
-
-    // --- RENDERIZAÇÃO (DRAW) ---
-    function render() {
-      // Background (Fase 27 usa fundo do tigre)
-      if (getRuleForStage(stage).isTiger) {
-        ctx.fillStyle = "#ffaa55"; // Fundo Especial Tigre
-      } else {
-        ctx.fillStyle = "#87CEEB"; // Céu Padrão
-      }
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Desenhar Chão
-      ctx.fillStyle = "#2e8d2e";
-      ctx.fillRect(0, 320, canvas.width, 130);
-
-      // Desenhar Buracos (Pits)
-      ctx.fillStyle = "#111";
-      pits.forEach(p => {
-        ctx.fillRect(p.x, 320, p.width, 130);
-      });
-
-      // Desenhar Jogador
-      ctx.fillStyle = player.immunityTimer > 0 ? "#ffd700" : "#ff4444";
-      ctx.fillRect(player.x, player.y, player.width, player.height);
-
-      // Desenhar Veículo se Equipado
-      if (player.vehicle) {
-        ctx.fillStyle = "#333";
-        ctx.font = "16px Arial";
-        ctx.fillText(`[${player.vehicle.toUpperCase()}]`, player.x - 10, player.y - 10);
-      }
-
-      // Escudo Normal (Ataque U)
-      if (player.shieldActive) {
-        ctx.strokeStyle = "#00c8ff";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.arc(player.x + player.width/2, player.y + player.height/2, 40, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-
-      // Super Escudo (I) com Relógio Digital
-      if (player.superActive) {
-        ctx.strokeStyle = "#ffd700";
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.arc(player.x + player.width/2, player.y + player.height/2, 50, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Relógio no topo do escudo
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString();
-        ctx.fillStyle = "#fff";
-        ctx.font = "12px monospace";
-        ctx.fillText(timeStr, player.x - 15, player.y - 55);
-      }
-
-      // Desenhar Alvos
-      targets.forEach(t => {
-        ctx.fillStyle = t.isPurpleEnemy ? "#800080" : "#ffffff";
-        ctx.fillRect(t.x, t.y, 30, 30);
-        ctx.fillStyle = t.isPurpleEnemy ? "#fff" : "#000";
-        ctx.font = "bold 18px Arial";
-        ctx.fillText(t.char, t.x + 8, t.y + 22);
-      });
-
-      // Desenhar Dardos Inimigos
-      ctx.fillStyle = "#purple";
-      enemyDarts.forEach(d => {
-        ctx.fillRect(d.x, d.y, 10, 5);
-      });
-
-      // Desenhar Materiais Escolares
-      ctx.font = "20px Arial";
-      schoolCollectibles.forEach(sc => {
-        ctx.fillText(sc.icon, sc.x, sc.y);
-      });
-    }
-
-    // --- CONTROLES E INPUTS ---
-    function setupInputListeners() {
-      window.addEventListener('keydown', (e) => {
-        keys[e.code] = true;
-
-        // Escudo U
-        if (e.code === 'KeyU') activateShield();
-        // Super Escudo I
-        if (e.code === 'KeyI') activateSuperShield();
-
-        // Cheat Code Detection ('fasedoutor')
-        cheatBuffer += e.key.toLowerCase();
-        if (cheatBuffer.length > 20) cheatBuffer = cheatBuffer.slice(-15);
-        if (cheatBuffer.includes('fasedoutor')) {
-          cheatBuffer = "";
-          showCheatModal();
-        }
-      });
-
-      window.addEventListener('keyup', (e) => {
-        keys[e.code] = false;
-      });
-    }
-
-    function setupTouchControls() {
-      const bindBtn = (id, keyName) => {
-        const btn = document.getElementById(id);
-        if (!btn) return;
-        btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[keyName] = true; });
-        btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[keyName] = false; });
-      };
-
-      bindBtn('btn-left', 'ArrowLeft');
-      bindBtn('btn-right', 'ArrowRight');
-      bindBtn('btn-up', 'ArrowUp');
-      bindBtn('btn-down', 'ArrowDown');
-      bindBtn('btn-jump', 'Space');
-
-      document.getElementById('btn-shield').addEventListener('touchstart', (e) => { e.preventDefault(); activateShield(); });
-      document.getElementById('btn-super').addEventListener('touchstart', (e) => { e.preventDefault(); activateSuperShield(); });
-    }
-
-    function activateShield() {
-      player.shieldActive = true;
-      player.shieldTimer = 20; // Duração curta de ataque
-    }
-
-    function activateSuperShield() {
-      player.superActive = true;
-      player.superTimer = 180; // Duração maior de proteção
-    }
-
-    // --- SINTETIZADOR DE VOZ (WEB SPEECH API) ---
-    function speakRule(text) {
-      if (!audioVoice || !('speechSynthesis' in window)) return;
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'pt-BR';
-      window.speechSynthesis.speak(utterance);
-    }
-
-    function toggleAudio(type) {
-      if (type === 'voice') audioVoice = !audioVoice;
-      if (type === 'bgm') audioBgm = !audioBgm;
-      alert(`Audio ${type.toUpperCase()}: ${audioBgm || audioVoice ? "LIGADO" : "DESLIGADO"}`);
-    }
-
-    // --- MODAIS & SISTEMAS EXTRA ---
-    function skipIntro() {
-      document.getElementById('intro-modal').classList.remove('active');
-    }
-
-    // Semi-Boss HQ Comic (Fases 5, 10, 15, 20, 25)
-    const bossQuestions = [
-      { q: "Qual o coletivo de cães?", a: "matilha" },
-      { q: "Qual o antônimo de 'alto'?", a: "baixo" },
-      { q: "Quantas vogais existem no alfabeto?", a: "5" },
-      { q: "Qual a primeira letra do alfabeto?", a: "a" },
-      { q: "Complete: O Sol é uma...", a: "estrela" }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+    
+    const bgImageDefault = new Image();
+    bgImageDefault.src = "fundo.jpg.jpg";
+
+    const bgImageTiger = new Image();
+    bgImageTiger.src = "https://images.unsplash.com/photo-1561731216-c3a4d99437d5?auto=format&fit=crop&w=1200&q=80";
+
+    let bgImageCurrent = bgImageDefault;
+
+    const gamingBackgrounds = [
+      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80"
     ];
 
-    function startBossBattle() {
-      gamePaused = true;
-      const modal = document.getElementById('boss-modal');
-      const qObj = bossQuestions[(stage/5 - 1) % bossQuestions.length];
-      document.getElementById('boss-question').innerText = `DESAFIO SEMI-MESTRE: ${qObj.q}`;
-      document.getElementById('boss-feedback').innerText = "";
-      modal.classList.add('active');
+    const panelStageStart = document.getElementById("panel-stage-start");
+    const panelGameOver = document.getElementById("panel-game-over");
+    const panelVictory = document.getElementById("panel-victory");
+    const panelYtPromo = document.getElementById("panel-youtube-promo");
+    const panelYtReturn = document.getElementById("panel-yt-return");
+    const panelKeyConfig = document.getElementById("panel-key-config");
+    const panelPixOverlay = document.getElementById("panel-pix-overlay");
+    const panelCommentsOverlay = document.getElementById("panel-comments-overlay");
+    const panelCheatStage = document.getElementById("panel-cheat-stage");
+    
+    const stageTitle = document.getElementById("stage-title");
+    const stageInstruction = document.getElementById("stage-instruction");
+    const stageScoreInfo = document.getElementById("stage-score-info");
+    const finalScoreTxt = document.getElementById("final-score");
+    const playerNameInput = document.getElementById("player-name");
+    const leaderboardList = document.getElementById("leaderboard-list");
+    const btnStartAction = document.getElementById("btn-start-action");
+    const btnSaveScore = document.getElementById("btn-save-score");
+    const instantCommentsList = document.getElementById("instant-comments-list");
+
+    let isPausedForConfig = false;
+    let isMusicEnabled = true;
+    let isVoiceEnabled = true;
+
+    // VARIÁVEIS DE DETECÇÃO DO CHEAT "fasedoutor"
+    let cheatBuffer = "";
+
+    // INSETOS DA CHÁCARA
+    const ALL_INSECTS = [
+      { id: "formiga", name: "Formiga", emoji: "🐜", isTarget: true },
+      { id: "aranha", name: "Aranha", emoji: "🕷️", isTarget: false },
+      { id: "gafanhoto", name: "Gafanhoto", emoji: "🦗", isTarget: true },
+      { id: "besouro", name: "Besouro", emoji: "🪲", isTarget: false },
+      { id: "mosquito", name: "Mosquito", emoji: "🦟", isTarget: true },
+      { id: "abelha", name: "Abelha", emoji: "🐝", isTarget: false },
+      { id: "centopeia", name: "Centopéia", emoji: "🐛", isTarget: true },
+      { id: "escorpiao", name: "Escorpião", emoji: "🦂", isTarget: false },
+      { id: "joaninha", name: "Joaninha", emoji: "🐞", isTarget: true },
+      { id: "cupim", name: "Cupim", emoji: "🪰", isTarget: false },
+      { id: "esperanca", name: "Esperança", emoji: "🪲", isTarget: true },
+      { id: "barata", name: "Barata", emoji: "🪳", isTarget: false }
+    ];
+
+    // DEFINIÇÃO DOS INSETOS PRESENTES EM CADA FASE (1 a 26)
+    function getInsectsForStage(stage) {
+      if (stage >= 26) return ALL_INSECTS; // Fase 26 tem TODOS os insetos
+      const index1 = ((stage - 1) * 2) % ALL_INSECTS.length;
+      const index2 = ((stage - 1) * 2 + 1) % ALL_INSECTS.length;
+      const index3 = ((stage - 1) * 2 + 2) % ALL_INSECTS.length;
+      return [ALL_INSECTS[index1], ALL_INSECTS[index2], ALL_INSECTS[index3]];
     }
 
-    function submitBossAnswer() {
-      const ans = document.getElementById('boss-answer').value.trim().toLowerCase();
-      const qObj = bossQuestions[(stage/5 - 1) % bossQuestions.length];
+    // VARIÁVEIS DO SEMI-MESTRE
+    let bossActive = false;
+    let bossState = "none";
+    let bossQuizIndex = 0;
+    let bossQuizQuestions = [];
+    let bossEnemy = null;
+    let playerInputAnswer = "";
+    let hqAnimTimer = 0;
 
-      if (ans === qObj.a) {
-        alert("💥 BOSS DERROTADO! Você avançou!");
-        document.getElementById('boss-modal').classList.remove('active');
-        document.getElementById('boss-answer').value = "";
-        gamePaused = false;
-      } else {
-        document.getElementById('boss-feedback').innerText = "😈 Boss: 'Vá estudar mais, eu sou melhor que você!'";
+    // SISTEMA DE VIDAS E PONTUAÇÃO DE VIDAS EXTRAS
+    let playerLives = 3;
+    let nextExtraLifeScore = 10000;
+    let nextVehicleScore = 10000;
+
+    // OBJETOS ESCOLARES E VEÍCULOS
+    let schoolItems = [];
+    let schoolItemsCollected = 0;
+    let specialVehicle = null;
+    let isUsingVehicle = false;
+    let vehicleType = 'aviao';
+
+    const portugueseQuestionsBank = [
+      { q: "Qual palavra tem DÍGRAFO?", options: ["CHUVA", "PRATO", "ESCOLA", "PEDRA"], correctText: "CHUVA" },
+      { q: "Qual palavra tem apenas VOGAIS?", options: ["AEIOU", "BCDEF", "FGHIJ", "LMNOP"], correctText: "AEIOU" },
+      { q: "Qual palavra e PROPAROXITONA?", options: ["LAMPADA", "CAFE", "MESA", "COMPUTADOR"], correctText: "LAMPADA" },
+      { q: "Qual palavra tem ENCONTRO VOCALICO?", options: ["PEIXE", "GATO", "CACHORRO", "LIVRO"], correctText: "PEIXE" },
+      { q: "Qual e o PLURAL de CAO?", options: ["CAES", "CAOS", "CAOSES", "CAIS"], correctText: "CAES" }
+    ];
+
+    function addScore(amount) {
+      if (isUsingVehicle) return;
+      score += amount;
+      
+      while (score >= nextExtraLifeScore) {
+        playerLives++;
+        nextExtraLifeScore += 10000;
+        playSound('powerup');
+        speakText("Vida extra!");
+      }
+
+      if (score >= nextVehicleScore && !specialVehicle && !isUsingVehicle) {
+        spawnSpecialVehicle();
+        nextVehicleScore += 10000;
       }
     }
 
-    // Promoção YouTube
-    function showYTModal() {
-      gamePaused = true;
-      document.getElementById('yt-modal').classList.add('active');
+    function spawnSpecialVehicle() {
+      const types = ['aviao', 'carro', 'moto'];
+      vehicleType = types[Math.floor(Math.random() * types.length)];
+      const groundY = getGroundY();
+      specialVehicle = {
+        x: player.x + 300,
+        y: groundY - 40,
+        width: 45,
+        height: 30,
+        type: vehicleType,
+        active: true
+      };
+      playSound('powerup');
+      speakText(`Veículo especial ${vehicleType} apareceu!`);
     }
 
-    function nextStageFromYT() {
-      document.getElementById('yt-modal').classList.remove('active');
-      gamePaused = false;
-      loadStage(stage + 1);
+    function closeAllPanels() {
+      panelStageStart.style.display = "none";
+      panelGameOver.style.display = "none";
+      panelVictory.style.display = "none";
+      panelYtPromo.style.display = "none";
+      panelYtReturn.style.display = "none";
+      panelKeyConfig.style.display = "none";
+      panelPixOverlay.style.display = "none";
+      panelCommentsOverlay.style.display = "none";
+      panelCheatStage.style.display = "none";
+      isPausedForConfig = false;
     }
 
-    // Vitória Final
-    function triggerFinalVictory() {
-      gamePaused = true;
-      document.getElementById('final-score').innerText = score;
-      document.getElementById('victory-modal').classList.add('active');
+    function openYoutubeChannel() {
+      window.open("https://www.youtube.com/@DoutorChacara", "_blank");
     }
 
-    function saveHighScore() {
-      localStorage.setItem('doutor_chacara_highscore', score);
-      alert("Recorde salvo permanentemente: " + score);
+    function openPixOverlay() {
+      closeAllPanels();
+      panelPixOverlay.style.display = "flex";
+      isPausedForConfig = true;
     }
 
-    // Screenshot Tool
+    function copyPixKey() {
+      navigator.clipboard.writeText("jhonemercadopago2023@gmail.com");
+      alert("Chave Pix copiada com sucesso!");
+    }
+
+    function openCommentsOverlay() {
+      closeAllPanels();
+      panelCommentsOverlay.style.display = "flex";
+      isPausedForConfig = true;
+    }
+
+    function loadAndRenderComments() {
+      const stored = localStorage.getItem("dr_chacara_comments") || "[]";
+      const comments = JSON.parse(stored);
+      if (comments.length === 0) {
+        instantCommentsList.innerHTML = `<div class="instant-item">Nenhum comentário enviado ainda.</div>`;
+        return;
+      }
+      instantCommentsList.innerHTML = comments.map(c => `
+        <div class="instant-item">
+          <strong>${c.author}:</strong> ${c.text}
+        </div>
+      `).join('');
+    }
+
+    function saveNewComment() {
+      const authorInput = document.getElementById("comm-author");
+      const textInput = document.getElementById("comm-text");
+      const author = authorInput.value.trim() || "Anônimo";
+      const text = textInput.value.trim();
+
+      if (!text) { alert("Digite sua mensagem antes de enviar!"); return; }
+
+      const stored = localStorage.getItem("dr_chacara_comments") || "[]";
+      const comments = JSON.parse(stored);
+      comments.unshift({ author, text });
+      localStorage.setItem("dr_chacara_comments", JSON.stringify(comments.slice(0, 30)));
+
+      textInput.value = "";
+      alert("Comentário enviado e adicionado ao jogo!");
+      loadAndRenderComments();
+      closeAllPanels();
+    }
+
+    window.addEventListener("storage", loadAndRenderComments);
+    loadAndRenderComments();
+
     function takeScreenshot() {
-      const dataURL = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = 'doutor-chacara-print.png';
+      const dataURL = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.download = `doutor-chacara-print-${Date.now()}.png`;
       link.href = dataURL;
       link.click();
     }
 
-    // Pix Modal
-    function showPixModal() { document.getElementById('pix-modal').classList.add('active'); }
-    function hidePixModal() { document.getElementById('pix-modal').classList.remove('active'); }
-
-    // Cheat Modal
-    function showCheatModal() { document.getElementById('cheat-modal').classList.add('active'); }
-    function hideCheatModal() { document.getElementById('cheat-modal').classList.remove('active'); }
-    function applyCheatStage() {
-      const stg = parseInt(document.getElementById('cheat-stage').value);
-      if (stg >= 1 && stg <= 27) {
-        hideCheatModal();
-        loadStage(stg);
+    function toggleMusic() {
+      isMusicEnabled = !isMusicEnabled;
+      const btn = document.getElementById("btn-toggle-music");
+      if (isMusicEnabled) {
+        btn.innerText = "🎵 Música: ON";
+        btn.classList.remove("off");
+        startBackgroundMusic();
+      } else {
+        btn.innerText = "🔇 Música: OFF";
+        btn.classList.add("off");
+        stopBackgroundMusic();
       }
     }
 
-    // Comentários Ao Vivo
-    function addComment() {
-      const input = document.getElementById('comment-input');
-      if (!input.value.trim()) return;
-      let comments = JSON.parse(localStorage.getItem('dc_comments') || '[]');
-      comments.push(input.value.trim());
-      localStorage.setItem('dc_comments', JSON.stringify(comments));
-      input.value = "";
-      loadComments();
+    function toggleVoice() {
+      isVoiceEnabled = !isVoiceEnabled;
+      const btn = document.getElementById("btn-toggle-voice");
+      if (isVoiceEnabled) {
+        btn.innerText = "🔊 Voz: ON";
+        btn.classList.remove("off");
+      } else {
+        btn.innerText = "🔇 Voz: OFF";
+        btn.classList.add("off");
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      }
     }
 
-    function loadComments() {
-      const list = document.getElementById('comments-list');
-      let comments = JSON.parse(localStorage.getItem('dc_comments') || '[]');
-      list.innerHTML = comments.map(c => `<div>💬 ${c}</div>`).join('');
+    // MENU DE CHEAT: "fasedoutor"
+    function openCheatMenu() {
+      closeAllPanels();
+      const select = document.getElementById("cheat-stage-select");
+      select.innerHTML = "";
+      for (let i = 1; i <= maxStages; i++) {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.innerText = `Fase ${i} ${i % 5 === 0 ? '(Semi-Mestre)' : ''}`;
+        if (i === currentStage) opt.selected = true;
+        select.appendChild(opt);
+      }
+      panelCheatStage.style.display = "flex";
+      isPausedForConfig = true;
     }
 
-    // Iniciar o jogo
-    window.onload = init;
+    function jumpToSelectedStage() {
+      const select = document.getElementById("cheat-stage-select");
+      currentStage = parseInt(select.value);
+      closeAllPanels();
+      prepareStage();
+    }
+
+    // CONTROLES DE TECLADO
+    let keyBinds = { 
+      left: "KeyA", right: "KeyD", up: "KeyW", down: "KeyS", 
+      jump: "Space", jump2: "KeyO", attack: "KeyU", shield: "KeyI" 
+    };
+
+    function loadSavedKeyBinds() {
+      const saved = localStorage.getItem("dr_chacara_keybinds_v24");
+      if (saved) {
+        try { keyBinds = Object.assign(keyBinds, JSON.parse(saved)); } catch(e){}
+      }
+    }
+    loadSavedKeyBinds();
+
+    function saveKeyBinds() {
+      localStorage.setItem("dr_chacara_keybinds_v24", JSON.stringify(keyBinds));
+    }
+    
+    let listeningKeyAction = null;
+
+    function updateKeyButtonsUI() {
+      for (let act in keyBinds) {
+        const btn = document.getElementById(`bind-${act}-btn`);
+        if (btn) btn.innerText = keyBinds[act];
+      }
+    }
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let bgMusicTimer = null;
+    let bgMusicNoteIndex = 0;
+
+    const stageScales = [
+      [261.63, 293.66, 329.63, 349.23, 392.00, 440.00],
+      [293.66, 329.63, 369.99, 392.00, 440.00, 493.88],
+      [329.63, 369.99, 392.00, 440.00, 493.88, 523.25],
+      [349.23, 392.00, 440.00, 466.16, 523.25, 587.33],
+      [392.00, 440.00, 493.88, 523.25, 587.33, 659.25]
+    ];
+
+    function startBackgroundMusic() {
+      if (!isMusicEnabled || bgMusicTimer) return;
+      
+      bgMusicTimer = setInterval(() => {
+        if (!isMusicEnabled || gameOver || !stageStarted || isPausedForConfig) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = (currentStage % 2 === 0) ? 'triangle' : 'sine';
+        
+        const scale = stageScales[(currentStage - 1) % stageScales.length];
+        const note = scale[bgMusicNoteIndex % scale.length];
+        bgMusicNoteIndex++;
+
+        osc.frequency.setValueAtTime(note, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.002, audioCtx.currentTime + 0.35);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      }, 350);
+    }
+
+    function stopBackgroundMusic() {
+      if (bgMusicTimer) {
+        clearInterval(bgMusicTimer);
+        bgMusicTimer = null;
+      }
+    }
+
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'jump') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(750, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'attack') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+      } else if (type === 'hitTarget') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+      } else if (type === 'hitWrong') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'powerup') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+      }
+    }
+
+    function speakText(text, onEndCallback) {
+      if (!isVoiceEnabled) {
+        if (onEndCallback) setTimeout(onEndCallback, 3000);
+        return;
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'pt-BR';
+        utterance.rate = 1.0;
+        if (onEndCallback) utterance.onend = onEndCallback;
+        window.speechSynthesis.speak(utterance);
+      } else if (onEndCallback) {
+        setTimeout(onEndCallback, 3000);
+      }
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    // VARIÁVEIS DE JOGO
+    let currentStage = 1;
+    const maxStages = 27;
+    let score = 0;
+    let gameOver = false;
+    let stageStarted = false;
+    let stageMissionText = "";
+    let walkCycle = 0;
+    let sunAngle = 0;
+    let gameTimerSeconds = 0;
+    let roadColors = { main: "#8B4513", accent: "#5C2E0B", edge: "#2e7d32" };
+
+    const player = {
+      x: 50, y: 280, width: 33, height: 71.5, vx: 0, vy: 0, speed: 4.5,
+      friction: 0.82, grounded: false, crouching: false, facing: 'right',
+      aimingUp: false, attacking: false, attackTimer: 0, attackMaxTime: 12,
+      hasImmunityColor: false, shieldPowerUp: false, bigShieldActive: false, isKnockedDown: false
+    };
+
+    function triggerPlayerJump() {
+      if ((player.grounded || isUsingVehicle) && stageStarted && !gameOver && !isPausedForConfig && !player.isKnockedDown) {
+        player.vy = isUsingVehicle ? -8 : -12;
+        player.grounded = false;
+        playSound('jump');
+      }
+    }
+
+    const gravity = 0.65;
+    const weapon = { x: 0, y: 0, length: 0, baseMaxLength: 70 };
+    const targets = [];
+    const keys = {};
+
+    function getGroundY() {
+      return canvas.height - 80;
+    }
+
+    function getRuleForStage(stage) {
+      if (stage === 26) {
+        return {
+          title: "FASE 26: INVASÃO TOTAL DE INSETOS!",
+          instruction: "ATENÇÃO: Destrua as FORMIGAS, GAFANHOTOS, MOSQUITOS, CENTOPÉIAS E JOANINHAS!",
+          isValid: (insect) => insect.isTarget
+        };
+      }
+      if (stage === maxStages) {
+        return {
+          title: "FASE 27: O DESAFIO FINAL DO TIGRE",
+          instruction: "ATENÇÃO: Vença o tigre final acertando os insetos corretos!",
+          isValid: (insect) => insect.isTarget
+        };
+      }
+      const stageInsects = getInsectsForStage(stage);
+      const targetInsects = stageInsects.filter(i => i.isTarget).map(i => i.name).join(", ");
+      return {
+        title: `FASE ${stage}: PRAGAS DA CHÁCARA`,
+        instruction: `ATENÇÃO: Destrua APENAS: ${targetInsects || "Insetos alvos"}!`,
+        isValid: (insect) => insect.isTarget
+      };
+    }
+
+    function spawnTarget() {
+      if (bossActive) return;
+      const stageInsects = getInsectsForStage(currentStage);
+      const insectData = stageInsects[Math.floor(Math.random() * stageInsects.length)];
+      
+      const groundY = getGroundY();
+      const isFlying = (insectData.id === "mosquito" || insectData.id === "abelha");
+      const targetY = isFlying ? groundY - 70 - Math.random() * 80 : groundY - 35;
+      
+      targets.push({
+        x: canvas.width + Math.random() * 200,
+        y: targetY,
+        width: 35,
+        height: 35,
+        speed: 1.5 + Math.random() * 2.0,
+        insect: insectData
+      });
+    }
+
+    function setupBossForCurrentStage() {
+      bossActive = true;
+      bossState = "quiz_hq";
+      bossQuizIndex = 0;
+      bossQuizQuestions = [...portugueseQuestionsBank].sort(() => Math.random() - 0.5).slice(0, 3);
+      
+      const stageInsects = getInsectsForStage(currentStage);
+      const bossInsectData = stageInsects[0];
+      
+      const groundY = getGroundY();
+      const bossWidth = player.width * 4;   // 4 VEZES MAIOR QUE O JOGADOR
+      const bossHeight = player.height * 2; // ALTO E IMPONENTE
+
+      bossEnemy = {
+        x: canvas.width - bossWidth - 50,
+        y: groundY - bossHeight,
+        width: bossWidth,
+        height: bossHeight,
+        insect: bossInsectData,
+        speechText: bossQuizQuestions[0].q + "\n" + bossQuizQuestions[0].options.join(" | ")
+      };
+
+      playerInputAnswer = "";
+      speakText(`Atenção! Semi-Mestre ${bossInsectData.name} Gigante apareceu! Responda ao Quiz!`);
+    }
+
+    function prepareStage() {
+      stageStarted = false;
+      bossActive = false;
+      bossState = "none";
+      bossEnemy = null;
+      targets.length = 0;
+
+      const rule = getRuleForStage(currentStage);
+      stageTitle.innerText = `FASE ${currentStage} DE ${maxStages}`;
+      stageInstruction.innerText = rule.instruction;
+      stageScoreInfo.innerText = `Pontuação Atual: ${score} | Vidas: ${playerLives}`;
+      
+      bgImageCurrent = (currentStage === maxStages) ? bgImageTiger : bgImageDefault;
+
+      btnStartAction.onclick = () => {
+        panelStageStart.style.display = "none";
+        stageStarted = true;
+        startBackgroundMusic();
+        speakText(rule.instruction);
+        
+        if (currentStage % 5 === 0) {
+          setupBossForCurrentStage();
+        } else {
+          for (let i = 0; i < 6; i++) spawnTarget();
+        }
+      };
+
+      panelStageStart.style.display = "flex";
+    }
+
+    function checkAnswerInput() {
+      if (!bossActive || bossState !== "quiz_hq") return;
+      const currentQ = bossQuizQuestions[bossQuizIndex];
+      const cleanInput = playerInputAnswer.trim().toUpperCase();
+
+      if (cleanInput === currentQ.correctText.toUpperCase()) {
+        playSound('hitTarget');
+        addScore(1000);
+        bossQuizIndex++;
+        
+        if (bossQuizIndex >= bossQuizQuestions.length) {
+          bossState = "boss_walking_defeat";
+          bossEnemy.speechText = "NÃO! VOCÊ ME VENCEU!";
+          speakText("Incrível! Você venceu o Semi-Mestre!");
+          setTimeout(() => {
+            bossActive = false;
+            bossState = "none";
+            currentStage++;
+            prepareStage();
+          }, 3000);
+        } else {
+          const nextQ = bossQuizQuestions[bossQuizIndex];
+          bossEnemy.speechText = "CORRETO! Próxima: " + nextQ.q + "\n" + nextQ.options.join(" | ");
+          speakText("Resposta Correta!");
+        }
+      } else {
+        playSound('hitWrong');
+        bossEnemy.speechText = "ERROU! Tente novamente!";
+        speakText("Resposta Errada!");
+      }
+      playerInputAnswer = "";
+    }
+
+    // DRAWING INSECTS & BOSSES
+    function drawInsect(x, y, width, height, insect) {
+      ctx.font = `${height * 0.8}px 'Segoe UI Emoji', sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(insect.emoji, x + width / 2, y + height / 2);
+    }
+
+    function drawHQComicBubble(x, y, text, isPlayer) {
+      ctx.save();
+      ctx.fillStyle = isPlayer ? "#00ffff" : "#ffffff";
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 3;
+
+      const lines = text.split("\n");
+      const boxWidth = 220;
+      const boxHeight = 25 + lines.length * 18;
+
+      ctx.beginPath();
+      ctx.roundRect(x, y - boxHeight, boxWidth, boxHeight, 10);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#000000";
+      ctx.font = "bold 13px sans-serif";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+
+      lines.forEach((line, index) => {
+        ctx.fillText(line, x + 10, y - boxHeight + 8 + index * 18);
+      });
+      ctx.restore();
+    }
+
+    function drawBossEnemy(boss) {
+      ctx.save();
+      // Aura de Chefe Gigante
+      ctx.shadowColor = "#ff0055";
+      ctx.shadowBlur = 20;
+      
+      drawInsect(boss.x, boss.y, boss.width, boss.height, boss.insect);
+      
+      // Barra de Vida / Status do Boss
+      ctx.fillStyle = "#ff0055";
+      ctx.fillRect(boss.x, boss.y - 15, boss.width, 10);
+      ctx.strokeStyle = "#fff";
+      ctx.strokeRect(boss.x, boss.y - 15, boss.width, 10);
+      
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 12px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(`SEMI-MESTRE GIGANTE (${boss.insect.name.toUpperCase()})`, boss.x + boss.width / 2, boss.y - 22);
+      ctx.restore();
+    }
+
+    function drawPlayer() {
+      const groundY = getGroundY();
+      const px = player.x;
+      const py = player.y;
+
+      ctx.save();
+      ctx.fillStyle = "#00ffcc";
+      ctx.beginPath();
+      ctx.arc(px + player.width / 2, py + 12, 12, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#0088ff";
+      ctx.fillRect(px + 4, py + 24, player.width - 8, 28);
+
+      ctx.fillStyle = "#ffcc00";
+      ctx.fillRect(px + 6, py + 52, 8, 20);
+      ctx.fillRect(px + player.width - 14, py + 52, 8, 20);
+      ctx.restore();
+    }
+
+    function updateGame() {
+      if (!stageStarted || gameOver || isPausedForConfig) return;
+
+      const groundY = getGroundY();
+
+      // Mover Jogador
+      if (keys[keyBinds.left]) player.vx = -player.speed;
+      else if (keys[keyBinds.right]) player.vx = player.speed;
+      else player.vx *= player.friction;
+
+      player.x += player.vx;
+      player.y += player.vy;
+      player.vy += gravity;
+
+      if (player.y + player.height >= groundY) {
+        player.y = groundY - player.height;
+        player.vy = 0;
+        player.grounded = true;
+      }
+
+      // Mover Inimigos (Insetos)
+      targets.forEach((target, index) => {
+        target.x -= target.speed;
+
+        // Colisão com Ataque do Jogador
+        if (player.attacking) {
+          const attackRange = 70;
+          if (Math.abs(player.x - target.x) < attackRange && Math.abs(player.y - target.y) < 50) {
+            const rule = getRuleForStage(currentStage);
+            if (rule.isValid(target.insect)) {
+              playSound('hitTarget');
+              addScore(200);
+            } else {
+              playSound('hitWrong');
+              playerLives--;
+              if (playerLives <= 0) triggerGameOver("Você atacou o inseto inofensivo incorreto!");
+            }
+            targets.splice(index, 1);
+            spawnTarget();
+          }
+        }
+
+        if (target.x + target.width < 0) {
+          targets.splice(index, 1);
+          spawnTarget();
+        }
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Fundo
+      if (bgImageCurrent.complete && bgImageCurrent.naturalWidth !== 0) {
+        ctx.drawImage(bgImageCurrent, 0, 0, canvas.width, canvas.height);
+      } else {
+        ctx.fillStyle = "#111";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // Chão / Estrada
+      const groundY = getGroundY();
+      ctx.fillStyle = roadColors.main;
+      ctx.fillRect(0, groundY, canvas.width, 80);
+
+      // Desenhar Inimigos (Insetos Comuns)
+      targets.forEach(target => {
+        drawInsect(target.x, target.y, target.width, target.height, target.insect);
+      });
+
+      // Desenhar Semi-Mestre Gigante
+      if (bossActive && bossEnemy) {
+        drawBossEnemy(bossEnemy);
+
+        if (bossState === "quiz_hq") {
+          drawHQComicBubble(bossEnemy.x - 40, bossEnemy.y - 10, bossEnemy.speechText, false);
+          drawHQComicBubble(player.x + 30, player.y - 30, `Resp: ${playerInputAnswer}_ (ENTER)`, true);
+        } else if (bossState === "boss_walking_defeat") {
+          drawHQComicBubble(bossEnemy.x - 40, bossEnemy.y - 10, bossEnemy.speechText, false);
+        }
+      }
+
+      // Desenhar Jogador
+      drawPlayer();
+
+      // HUD Superior
+      const currentRule = getRuleForStage(currentStage);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 15px 'Segoe UI'";
+      ctx.textAlign = "left";
+      ctx.fillText(`${currentRule.title}`, 20, 32);
+      ctx.fillText(`PONTOS: ${score}  |  VIDAS: ❤️ x${playerLives}`, 20, 55);
+    }
+
+    function gameLoop() {
+      updateGame();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function triggerGameOver(reason) {
+      gameOver = true;
+      stopBackgroundMusic();
+      finalScoreTxt.innerText = score;
+      document.getElementById("game-over-reason").innerText = reason;
+      panelGameOver.style.display = "flex";
+    }
+
+    // EVENTOS DE TECLADO
+    window.addEventListener("keydown", (e) => {
+      keys[e.code] = true;
+
+      // Atalho Cheat "fasedoutor"
+      cheatBuffer += e.key.toLowerCase();
+      if (cheatBuffer.length > 20) cheatBuffer = cheatBuffer.slice(-20);
+      if (cheatBuffer.includes("fasedoutor")) {
+        cheatBuffer = "";
+        openCheatMenu();
+      }
+
+      // Quiz do Chefe - Digitação
+      if (bossActive && bossState === "quiz_hq") {
+        if (e.key === "Enter") {
+          checkAnswerInput();
+        } else if (e.key === "Backspace") {
+          playerInputAnswer = playerInputAnswer.slice(0, -1);
+        } else if (e.key.length === 1 && /[a-zA-Z0-9\s]/.test(e.key)) {
+          playerInputAnswer += e.key;
+        }
+      }
+
+      // Ataque
+      if (e.code === keyBinds.attack) {
+        player.attacking = true;
+        playSound('attack');
+        setTimeout(() => { player.attacking = false; }, 200);
+      }
+
+      // Pulo
+      if (e.code === keyBinds.jump || e.code === keyBinds.jump2) {
+        triggerPlayerJump();
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      keys[e.code] = false;
+    });
+
+    // CONTROLES TOUCH MOBILE
+    document.getElementById("touch-jump").addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      triggerPlayerJump();
+    });
+
+    document.getElementById("touch-attack").addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      player.attacking = true;
+      playSound('attack');
+      setTimeout(() => { player.attacking = false; }, 200);
+    });
+
+    // INICIAR JOGO
+    prepareStage();
+    requestAnimationFrame(gameLoop);
   </script>
 </body>
 </html>
