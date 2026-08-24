@@ -170,7 +170,7 @@
 
   <div id="game-container">
     <button id="btn-fullscreen" onclick="toggleFullScreen()">TELA CHEIA ⛶</button>
-    <button id="btn-config-keys" onclick="openKeyConfig()">⚙️ TECLAS (PC)</button>
+    <button id="btn-config-keys" onclick="openKeyConfig()">⚙️ CONTROLES</button>
 
     <canvas id="gameCanvas"></canvas>
 
@@ -246,21 +246,44 @@
       <button class="btn-main" onclick="resumeGameFromYt()">CONTINUAR JOGO ▶</button>
     </div>
 
-    <!-- PAINEL CONFIGURAÇÃO DE TECLAS (PC) -->
+    <!-- PAINEL CONFIGURAÇÃO COMPLETA DE CONTROLES -->
     <div id="panel-key-config" class="overlay-panel">
-      <h2>CONFIGURAÇÃO DE TECLAS</h2>
-      <div class="key-bind-row">
-        <span>Ataque:</span>
-        <button class="key-bind-btn" id="bind-attack-btn" onclick="listenKeyChange('attack')">A</button>
+      <h2>⚙️ CONFIGURAÇÃO DE CONTROLES</h2>
+      <p style="color:#00ffcc;font-weight:bold">PC • TECLADO • JOYSTICK/GAMEPAD • TOUCH</p>
+      <div class="btn-group" style="margin-bottom:6px">
+        <button class="btn-sub" onclick="applyControlPreset('classic')">⌨️ CLÁSSICO</button>
+        <button class="btn-sub" onclick="applyControlPreset('wasd')">⌨️ WASD</button>
+        <button class="btn-sub" onclick="applyControlPreset('arrows')">⌨️ SETAS</button>
+        <button class="btn-sub" onclick="resetControlSettings()">↺ PADRÃO</button>
       </div>
-      <div class="key-bind-row">
-        <span>Pulo:</span>
-        <button class="key-bind-btn" id="bind-jump-btn" onclick="listenKeyChange('jump')">S</button>
+      <div class="key-bind-row"><span>Esquerda:</span><button class="key-bind-btn" id="bind-left-btn" onclick="listenKeyChange('left')">←</button></div>
+      <div class="key-bind-row"><span>Direita:</span><button class="key-bind-btn" id="bind-right-btn" onclick="listenKeyChange('right')">→</button></div>
+      <div class="key-bind-row"><span>Cima:</span><button class="key-bind-btn" id="bind-up-btn" onclick="listenKeyChange('up')">↑</button></div>
+      <div class="key-bind-row"><span>Baixo:</span><button class="key-bind-btn" id="bind-down-btn" onclick="listenKeyChange('down')">↓</button></div>
+      <div class="key-bind-row"><span>Ataque:</span><button class="key-bind-btn" id="bind-attack-btn" onclick="listenKeyChange('attack')">A</button></div>
+      <div class="key-bind-row"><span>Pulo:</span><button class="key-bind-btn" id="bind-jump-btn" onclick="listenKeyChange('jump')">S</button></div>
+      <div class="key-bind-row"><span>Super Escudo:</span><button class="key-bind-btn" id="bind-shield-btn" onclick="listenKeyChange('shield')">D</button></div>
+      <div class="btn-group" style="margin:4px 0"><button class="btn-sub" onclick="clearKeyBinding('attack')">🗑️ Limpar ataque</button><button class="btn-sub" onclick="clearKeyBinding('jump')">🗑️ Limpar pulo</button><button class="btn-sub" onclick="clearKeyBinding('shield')">🗑️ Limpar escudo</button></div>
+      <hr style="width:100%;border-color:rgba(0,255,204,.25);margin:5px 0">
+      <h3 style="margin:4px 0;color:#ffcc00">🎮 CONFIGURAR JOYSTICK / GAMEPAD</h3>
+      <p style="font-size:.75rem;margin:2px 0;color:#ddd">Conecte o controle USB ou Bluetooth e clique em <b>CAPTURAR</b>. Depois pressione o botão desejado.</p>
+      <div class="key-bind-row"><span>Movimento:</span><b id="pad-move-label">Analógico esquerdo</b><button class="key-bind-btn" onclick="detectGamepad()">🔎 DETECTAR</button></div>
+      <div class="key-bind-row"><span>Pulo:</span><button class="key-bind-btn" id="pad-jump-btn" onclick="listenGamepadChange('jump')">CAPTURAR</button></div>
+      <div class="key-bind-row"><span>Ataque:</span><button class="key-bind-btn" id="pad-attack-btn" onclick="listenGamepadChange('attack')">CAPTURAR</button></div>
+      <div class="key-bind-row"><span>Super Escudo:</span><button class="key-bind-btn" id="pad-shield-btn" onclick="listenGamepadChange('shield')">CAPTURAR</button></div>
+      <div class="key-bind-row"><span>Voltar/Cancelar:</span><button class="key-bind-btn" id="pad-back-btn" onclick="listenGamepadChange('back')">CAPTURAR</button></div>
+      <div class="key-bind-row"><span>🎮 Vibração:</span><input id="pad-rumble" type="checkbox" checked></div>
+      <div class="key-bind-row"><span>🎮 Usar gamepad:</span><input id="pad-enabled" type="checkbox" checked></div>
+      <hr style="width:100%;border-color:rgba(0,255,204,.25);margin:5px 0">
+      <div class="key-bind-row"><span>🎮 Sensibilidade do joystick:</span><input id="joy-sensitivity" type="range" min="0.5" max="2" step="0.1" value="1" style="width:120px"></div>
+      <div class="key-bind-row"><span>🎮 Zona morta:</span><input id="joy-deadzone" type="range" min="0.05" max="0.5" step="0.05" value="0.2" style="width:120px"></div>
+      <div class="key-bind-row"><span>🔄 Inverter eixo vertical:</span><input id="joy-invert-y" type="checkbox"></div>
+      <div class="key-bind-row"><span>🔘 Mostrar controles touch:</span><input id="touch-visible" type="checkbox" checked></div>
+      <div class="btn-group">
+        <button class="btn-sub" onclick="testGamepad()">🎮 TESTAR JOYSTICK</button>
+        <button class="btn-main" onclick="saveControlSettings()">💾 SALVAR CONFIGURAÇÃO</button>
       </div>
-      <div class="key-bind-row">
-        <span>Super Escudo:</span>
-        <button class="key-bind-btn" id="bind-shield-btn" onclick="listenKeyChange('shield')">D</button>
-      </div>
+      <div id="gamepad-status" style="font-size:.75rem;color:#ffcc00;margin:4px 0">Nenhum joystick detectado.</div>
       <button class="btn-main" onclick="closeKeyConfig()">SALVAR E FECHAR</button>
     </div>
 
@@ -536,7 +559,10 @@
       }
     }
 
-    const keyBinds = { attack: "KeyA", jump: "KeyS", shield: "KeyD" };
+    const defaultKeyBinds = { left:"ArrowLeft", right:"ArrowRight", up:"ArrowUp", down:"ArrowDown", attack:"KeyA", jump:"KeyS", shield:"KeyD" };
+    const keyBinds = {...defaultKeyBinds};
+    let controlSettings = { sensitivity:1, deadzone:0.2, invertY:false, touchVisible:true, padRumble:true, padEnabled:true };
+    try { Object.assign(keyBinds, JSON.parse(localStorage.getItem('dcKeyBinds') || '{}')); Object.assign(controlSettings, JSON.parse(localStorage.getItem('dcControlSettings') || '{}')); } catch(e) {}
     let listeningKeyAction = null;
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1041,25 +1067,50 @@
       }
     }, 1000);
 
-    function openKeyConfig() {
-      closeAllPanels();
-      panelKeyConfig.style.display = "flex";
+    function openKeyConfig() { closeAllPanels(); panelKeyConfig.style.display = "flex"; updateControlButtons(); testGamepad(); }
+    function closeKeyConfig() { saveControlSettings(); panelKeyConfig.style.display = "none"; }
+    function listenKeyChange(action) { listeningKeyAction=action; const btn=document.getElementById(`bind-${action}-btn`); if(btn) btn.innerText="PRESSIONE UMA TECLA..."; }
+    function clearKeyBinding(action){ keyBinds[action]=null; updateControlButtons(); saveControlSettings(); }
+    let listeningPadAction=null;
+    let lastPadButtons=[];
+    const defaultPadBinds={jump:0,attack:2,shield:1,back:9};
+    const padBinds={...defaultPadBinds};
+    try{Object.assign(padBinds,JSON.parse(localStorage.getItem('dcPadBinds')||'{}'));}catch(e){}
+    function detectGamepad(){
+      const pads=navigator.getGamepads?navigator.getGamepads():[];
+      const pad=[...pads].find(Boolean);
+      document.getElementById('gamepad-status').innerText=pad?`🎮 Controle encontrado: ${pad.id}`:'❌ Nenhum controle encontrado. Conecte USB/Bluetooth e pressione um botão.';
+      if(pad) activeGamepadIndex=pad.index;
+      updatePadButtons();
     }
-    function closeKeyConfig() { panelKeyConfig.style.display = "none"; }
-    function listenKeyChange(action) {
-      listeningKeyAction = action;
-      const btn = document.getElementById(`bind-${action}-btn`);
-      btn.innerText = "Pressione uma tecla...";
+    function listenGamepadChange(action){
+      if(!navigator.getGamepads){alert('Seu navegador não oferece suporte a Gamepad API.');return;}
+      listeningPadAction=action;
+      const id=action==='back'?'pad-back-btn':`pad-${action}-btn`;
+      document.getElementById(id).innerText='PRESSIONE UM BOTÃO...';
+      detectGamepad();
+    }
+    function updatePadButtons(){
+      ['jump','attack','shield','back'].forEach(a=>{const b=document.getElementById(`pad-${a}-btn`);if(b&&!listeningPadAction)b.innerText=`BOTÃO ${padBinds[a]}`;});
+      const r=document.getElementById('pad-rumble'), en=document.getElementById('pad-enabled');
+      if(r)r.checked=controlSettings.padRumble!==false; if(en)en.checked=controlSettings.padEnabled!==false;
+    }
+    function savePadSettings(){
+      controlSettings.padRumble=document.getElementById('pad-rumble').checked;
+      controlSettings.padEnabled=document.getElementById('pad-enabled').checked;
+      localStorage.setItem('dcPadBinds',JSON.stringify(padBinds));
+      saveControlSettings();
     }
 
     window.addEventListener("keydown", (e) => {
       if (listeningKeyAction) {
-        keyBinds[listeningKeyAction] = e.code;
-        document.getElementById(`bind-${listeningKeyAction}-btn`).innerText = e.key.toUpperCase();
-        listeningKeyAction = null;
-        return;
+        e.preventDefault();
+        if (e.code === 'Escape') { listeningKeyAction=null; updateControlButtons(); return; }
+        keyBinds[listeningKeyAction]=e.code;
+        listeningKeyAction=null; updateControlButtons(); saveControlSettings(); return;
       }
-      keys[e.code] = true;
+      if ([keyBinds.left,keyBinds.right,keyBinds.up,keyBinds.down,'Space'].includes(e.code)) e.preventDefault();
+      keys[e.code]=true;
     });
 
     function openYoutubePromo() {
@@ -1213,18 +1264,71 @@
       let dy = e.clientY - centerY;
       const dist = Math.hypot(dx, dy);
       const maxDist = 40;
-
-      if (dist > maxDist) {
-        dx = (dx / dist) * maxDist;
-        dy = (dy / dist) * maxDist;
-      }
-
-      joyStick.style.left = `${35 + dx}px`;
-      joyStick.style.top = `${35 + dy}px`;
-
-      joyVector.x = dx / maxDist;
-      joyVector.y = dy / maxDist;
+      if (dist > maxDist) { dx = (dx / dist) * maxDist; dy = (dy / dist) * maxDist; }
+      joyStick.style.left = `${35 + dx}px`; joyStick.style.top = `${35 + dy}px`;
+      joyVector.x = dx / maxDist; joyVector.y = dy / maxDist;
     }
+
+    function updateControlButtons() {
+      const labels = {left:'←',right:'→',up:'↑',down:'↓',attack:'A',jump:'S',shield:'D'};
+      Object.keys(labels).forEach(a => { const b=document.getElementById(`bind-${a}-btn`); if(b) b.innerText=labels[a] && keyBinds[a] ? formatKey(keyBinds[a]) : labels[a]; });
+      document.getElementById('joy-sensitivity').value=controlSettings.sensitivity;
+      document.getElementById('joy-deadzone').value=controlSettings.deadzone;
+      document.getElementById('joy-invert-y').checked=controlSettings.invertY;
+      document.getElementById('touch-visible').checked=controlSettings.touchVisible;
+      const pr=document.getElementById('pad-rumble'), pe=document.getElementById('pad-enabled'); if(pr)pr.checked=controlSettings.padRumble!==false; if(pe)pe.checked=controlSettings.padEnabled!==false;
+      document.querySelector('.touch-controls').style.display=controlSettings.touchVisible?'flex':'none';
+      updatePadButtons();
+    }
+    function formatKey(code) { const m={ArrowLeft:'←',ArrowRight:'→',ArrowUp:'↑',ArrowDown:'↓',Space:'ESPAÇO'}; return m[code] || code.replace('Key','').replace('Digit',''); }
+    function saveControlSettings() {
+      controlSettings.sensitivity=parseFloat(document.getElementById('joy-sensitivity').value);
+      controlSettings.deadzone=parseFloat(document.getElementById('joy-deadzone').value);
+      controlSettings.invertY=document.getElementById('joy-invert-y').checked;
+      controlSettings.touchVisible=document.getElementById('touch-visible').checked;
+      localStorage.setItem('dcKeyBinds',JSON.stringify(keyBinds));
+      localStorage.setItem('dcControlSettings',JSON.stringify(controlSettings));
+      updateControlButtons();
+    }
+    function resetControlSettings() { Object.assign(keyBinds,defaultKeyBinds); Object.assign(padBinds,defaultPadBinds); controlSettings={sensitivity:1,deadzone:.2,invertY:false,touchVisible:true,padRumble:true,padEnabled:true}; saveControlSettings(); localStorage.setItem('dcPadBinds',JSON.stringify(padBinds)); updatePadButtons(); }
+    function applyControlPreset(type) {
+      if(type==='wasd') Object.assign(keyBinds,{left:'KeyA',right:'KeyD',up:'KeyW',down:'KeyS'});
+      else if(type==='arrows') Object.assign(keyBinds,{left:'ArrowLeft',right:'ArrowRight',up:'ArrowUp',down:'ArrowDown'});
+      else Object.assign(keyBinds,defaultKeyBinds);
+      updateControlButtons(); saveControlSettings();
+    }
+    function testGamepad() {
+      const pads=navigator.getGamepads?navigator.getGamepads():[];
+      const pad=[...pads].find(Boolean);
+      document.getElementById('gamepad-status').innerText=pad?`🎮 Joystick conectado: ${pad.id}`:'❌ Nenhum joystick encontrado. Conecte o controle e pressione um botão.';
+    }
+    let activeGamepadIndex=null;
+    window.addEventListener('gamepadconnected',e=>{activeGamepadIndex=e.gamepad.index; testGamepad();});
+    window.addEventListener('gamepaddisconnected',()=>{activeGamepadIndex=null;testGamepad();});
+    function pollGamepad(){
+      if(navigator.getGamepads && controlSettings.padEnabled!==false){
+        const pads=navigator.getGamepads(); const pad=activeGamepadIndex!=null?pads[activeGamepadIndex]:[...pads].find(Boolean);
+        if(pad){
+          const dz=controlSettings.deadzone; let x=pad.axes[0]||0,y=pad.axes[1]||0;
+          if(Math.abs(x)<dz)x=0;if(Math.abs(y)<dz)y=0; joyVector.x=x;joyVector.y=y;
+          const pressed=pad.buttons.map(b=>!!b.pressed);
+          if(listeningPadAction){
+            const idx=pressed.findIndex((v,i)=>v && !lastPadButtons[i]);
+            if(idx>=0){ padBinds[listeningPadAction]=idx; listeningPadAction=null; updatePadButtons(); savePadSettings(); playSound('powerup'); }
+          } else {
+            if(pressed[padBinds.jump] && !lastPadButtons[padBinds.jump]) triggerPlayerJump();
+            if(pressed[padBinds.attack] && !lastPadButtons[padBinds.attack] && !player.attacking){player.attacking=true;player.attackTimer=player.attackMaxTime;playSound('attack');}
+            player.bigShieldActive=!!pressed[padBinds.shield];
+            if(pressed[padBinds.back] && !lastPadButtons[padBinds.back]){ if(panelKeyConfig.style.display==='flex') closeKeyConfig(); }
+          }
+          lastPadButtons=pressed;
+        }
+      }
+      requestAnimationFrame(pollGamepad);
+    }
+    pollGamepad();
+    setTimeout(detectGamepad,300);
+
 
     document.getElementById("touch-jump").addEventListener("pointerdown", (e) => {
       e.preventDefault();
@@ -1310,8 +1414,9 @@
 
       player.bigShieldActive = !!keys[keyBinds.shield];
 
-      const moveX = joyVector.x || (keys["ArrowRight"] ? 1 : keys["ArrowLeft"] ? -1 : 0);
-      const moveY = joyVector.y || (keys["ArrowDown"] ? 1 : keys["ArrowUp"] ? -1 : 0);
+      const moveX = Math.abs(joyVector.x) > controlSettings.deadzone ? joyVector.x * controlSettings.sensitivity : (keys[keyBinds.right] ? 1 : keys[keyBinds.left] ? -1 : 0);
+      const rawJoyY = controlSettings.invertY ? -joyVector.y : joyVector.y;
+      const moveY = Math.abs(rawJoyY) > controlSettings.deadzone ? rawJoyY * controlSettings.sensitivity : (keys[keyBinds.down] ? 1 : keys[keyBinds.up] ? -1 : 0);
 
       player.aimingUp = moveY < -0.4;
       player.crouching = moveY > 0.4 && player.grounded;
@@ -1379,7 +1484,8 @@
             });
 
           } else {
-            triggerGameOverSequence(bossEnemy, `O Semi-Mestre ${currentBossChar} pegou você! Use o ESCUDO!`);
+            loseLife(`O Semi-Mestre ${currentBossChar} encostou em você! Você perdeu uma vida.`);
+            bossEnemy.x += 140;
           }
         }
         return;
@@ -1529,6 +1635,19 @@
 
         if (dart.x < -50 || dart.x > canvas.width + 50) dart.active = false;
       });
+    }
+
+    function loseLife(reason) {
+      if (collisionAnimationActive || gameOver) return;
+      playerLives = Math.max(0, playerLives - 1);
+      playSound('hitTarget');
+      player.x = Math.max(40, player.x - 90);
+      player.vx = 0; player.vy = -5;
+      if (playerLives <= 0) {
+        triggerGameOverSequence(null, reason + " Fim das vidas!");
+      } else {
+        speakText(reason + ` Restam ${playerLives} vidas.`);
+      }
     }
 
     function drawSpeechBubble(x, y, text, scaleFactor) {
@@ -2086,6 +2205,7 @@
 
     function loop() { update(); draw(); requestAnimationFrame(loop); }
     
+    updateControlButtons();
     prepareStage();
     loop();
   </script>
