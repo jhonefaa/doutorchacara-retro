@@ -142,7 +142,6 @@
       font-family: monospace; font-size: 0.8rem; background: rgba(0,0,0,0.3);
       padding: 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
     }
-    .leaderboard-item { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dashed rgba(255,255,255,0.2); }
 
     .key-bind-row { display: flex; justify-content: space-between; width: 100%; align-items: center; padding: 4px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .key-bind-btn { background: rgba(0, 0, 0, 0.6); border: 1px solid #00ffcc; color: #00ffcc; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
@@ -161,7 +160,6 @@
   <div id="game-container">
     <div id="top-left-controls">
       <button class="btn-top-bar" onclick="openKeyConfig()">⚙️ CONTROLES (PC)</button>
-      <button class="btn-top-bar" style="border-color: #ffcc00; color: #ffcc00;" onclick="skipIntro()">⏭️ PULAR INTRO</button>
     </div>
 
     <button id="btn-fullscreen" onclick="toggleFullScreen()">TELA CHEIA ⛶</button>
@@ -214,23 +212,6 @@
       <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
     </div>
 
-    <div id="panel-youtube-promo" class="overlay-panel">
-      <h2>FASE CONCLUÍDA! 🎉</h2>
-      <p>Apoie o canal do Doutor Chácara para continuar (Aperte ENTER ou clique abaixo):</p>
-      <div class="btn-group">
-        <button class="btn-main" style="background: rgba(255, 0, 0, 0.65); color:#fff;" onclick="handleYtAnswer('inscrever')">🔴 Se inscreva no canal Doutor Chácara</button>
-        <button class="btn-main" onclick="handleYtAnswer('sim')">👍 Já é inscrito</button>
-        <button class="btn-sub" id="btn-continue-game" style="background: rgba(0, 153, 255, 0.65);" onclick="handleYtAnswer('continuar')">▶ Continuar jogo (ENTER / Click)</button>
-      </div>
-      <div id="yt-feedback-msg" style="margin-top: 5px; font-weight: bold; color: #ffcc00; text-shadow: 0 0 5px #000;"></div>
-    </div>
-
-    <div id="panel-yt-return" class="overlay-panel">
-      <h2>JOGO PAUSADO ⏸️</h2>
-      <p>O jogo está pausado enquanto você visita o canal!</p>
-      <button class="btn-main" onclick="resumeGameFromYt()">CONTINUAR JOGO ▶</button>
-    </div>
-
     <div id="panel-key-config" class="overlay-panel">
       <h2>⚙️ CONFIGURAÇÃO DE CONTROLES (PC)</h2>
       <p style="font-size:0.75rem; color:#00ffcc;">Clique no botão e escolha a tecla desejada no teclado:</p>
@@ -244,28 +225,12 @@
         <button class="key-bind-btn" id="bind-right-btn" onclick="listenKeyChange('right')">KeyD</button>
       </div>
       <div class="key-bind-row">
-        <span>Mover para Cima / Mirar Cima:</span>
-        <button class="key-bind-btn" id="bind-up-btn" onclick="listenKeyChange('up')">KeyW</button>
-      </div>
-      <div class="key-bind-row">
-        <span>Mover para Baixo / Agachar:</span>
-        <button class="key-bind-btn" id="bind-down-btn" onclick="listenKeyChange('down')">KeyS</button>
-      </div>
-      <div class="key-bind-row">
         <span>Pular (Padrão Espaço):</span>
         <button class="key-bind-btn" id="bind-jump-btn" onclick="listenKeyChange('jump')">Space</button>
       </div>
       <div class="key-bind-row">
-        <span>Pulo Secundário (Letra O):</span>
-        <button class="key-bind-btn" id="bind-jump2-btn" onclick="listenKeyChange('jump2')">KeyO</button>
-      </div>
-      <div class="key-bind-row">
-        <span>Escudo de Ataque (Letra U):</span>
+        <span>Atacar (Letra U):</span>
         <button class="key-bind-btn" id="bind-attack-btn" onclick="listenKeyChange('attack')">KeyU</button>
-      </div>
-      <div class="key-bind-row">
-        <span>Escudo Especial (Letra I):</span>
-        <button class="key-bind-btn" id="bind-shield-btn" onclick="listenKeyChange('shield')">KeyI</button>
       </div>
 
       <button class="btn-main" onclick="closeKeyConfig()">SALVAR E FECHAR 💾</button>
@@ -273,25 +238,17 @@
 
     <div id="panel-victory" class="overlay-panel">
       <h2 style="color: #00ffcc;">PARABÉNS! VOCÊ ZEROU A FASE 27! 🏆</h2>
-      <p>Mensagem especial do Doutor Chácara:</p>
       <video id="victory-video" controls autoplay>
         <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
-        Seu navegador não suporta vídeos HTML5.
       </video>
-      <p>Digite seu nome para gravar seu recorde no placar para sempre:</p>
-      <input type="text" id="winner-name" placeholder="Seu Nome de Campeão" maxlength="15">
-      <button class="btn-main" onclick="saveVictoryScore()">GRAVAR NO PLACAR PARA SEMPRE 🏆</button>
+      <button class="btn-main" onclick="location.reload()">JOGAR NOVAMENTE 🏆</button>
     </div>
 
     <div id="panel-game-over" class="overlay-panel">
       <h2 style="color: #ff0055;">GAME OVER</h2>
       <p id="game-over-reason">Você perdeu a fase!</p>
       <p>Sua pontuação: <strong id="final-score">0</strong></p>
-      <input type="text" id="player-name" placeholder="Digite seu nome" maxlength="12">
-      <button class="btn-main" id="btn-save-score">SALVAR RECORD 🔄</button>
-      
-      <h3 style="margin-top: 5px; color: #ffcc00; font-size: 0.85rem;">🏆 PLACAR PERMANENTE DE RECORDES</h3>
-      <div class="leaderboard-list" id="leaderboard-list"></div>
+      <button class="btn-main" onclick="restartCurrentStage()">TENTAR NOVAMENTE 🔄</button>
     </div>
 
     <div class="touch-controls">
@@ -301,8 +258,7 @@
 
       <div class="action-buttons">
         <div class="btn-action btn-jump" id="touch-jump">PULO</div>
-        <div class="btn-action btn-attack" id="touch-attack">ESCUDO U</div>
-        <div class="btn-action btn-shield" id="touch-shield">SUPER I</div>
+        <div class="btn-action btn-attack" id="touch-attack">ATAQUE</div>
       </div>
     </div>
   </div>
@@ -326,19 +282,9 @@
 
     let bgImageCurrent = bgImageDefault;
 
-    const gamingBackgrounds = [
-      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80"
-    ];
-
     const panelStageStart = document.getElementById("panel-stage-start");
     const panelGameOver = document.getElementById("panel-game-over");
     const panelVictory = document.getElementById("panel-victory");
-    const panelYtPromo = document.getElementById("panel-youtube-promo");
-    const panelYtReturn = document.getElementById("panel-yt-return");
     const panelKeyConfig = document.getElementById("panel-key-config");
     const panelPixOverlay = document.getElementById("panel-pix-overlay");
     const panelCommentsOverlay = document.getElementById("panel-comments-overlay");
@@ -348,20 +294,14 @@
     const stageInstruction = document.getElementById("stage-instruction");
     const stageScoreInfo = document.getElementById("stage-score-info");
     const finalScoreTxt = document.getElementById("final-score");
-    const playerNameInput = document.getElementById("player-name");
-    const leaderboardList = document.getElementById("leaderboard-list");
     const btnStartAction = document.getElementById("btn-start-action");
-    const btnSaveScore = document.getElementById("btn-save-score");
     const instantCommentsList = document.getElementById("instant-comments-list");
 
     let isPausedForConfig = false;
     let isMusicEnabled = true;
     let isVoiceEnabled = true;
-
-    // VARIÁVEIS DE DETECÇÃO DO CHEAT "fasedoutor"
     let cheatBuffer = "";
 
-    // INSETOS DA CHÁCARA
     const ALL_INSECTS = [
       { id: "formiga", name: "Formiga", emoji: "🐜", isTarget: true },
       { id: "aranha", name: "Aranha", emoji: "🕷️", isTarget: false },
@@ -377,83 +317,46 @@
       { id: "barata", name: "Barata", emoji: "🪳", isTarget: false }
     ];
 
-    // DEFINIÇÃO DOS INSETOS PRESENTES EM CADA FASE (1 a 26)
     function getInsectsForStage(stage) {
-      if (stage >= 26) return ALL_INSECTS; // Fase 26 tem TODOS os insetos
+      if (stage >= 26) return ALL_INSECTS;
       const index1 = ((stage - 1) * 2) % ALL_INSECTS.length;
       const index2 = ((stage - 1) * 2 + 1) % ALL_INSECTS.length;
       const index3 = ((stage - 1) * 2 + 2) % ALL_INSECTS.length;
       return [ALL_INSECTS[index1], ALL_INSECTS[index2], ALL_INSECTS[index3]];
     }
 
-    // VARIÁVEIS DO SEMI-MESTRE
     let bossActive = false;
     let bossState = "none";
     let bossQuizIndex = 0;
     let bossQuizQuestions = [];
     let bossEnemy = null;
     let playerInputAnswer = "";
-    let hqAnimTimer = 0;
 
-    // SISTEMA DE VIDAS E PONTUAÇÃO DE VIDAS EXTRAS
     let playerLives = 3;
     let nextExtraLifeScore = 10000;
-    let nextVehicleScore = 10000;
-
-    // OBJETOS ESCOLARES E VEÍCULOS
-    let schoolItems = [];
-    let schoolItemsCollected = 0;
-    let specialVehicle = null;
-    let isUsingVehicle = false;
-    let vehicleType = 'aviao';
 
     const portugueseQuestionsBank = [
       { q: "Qual palavra tem DÍGRAFO?", options: ["CHUVA", "PRATO", "ESCOLA", "PEDRA"], correctText: "CHUVA" },
       { q: "Qual palavra tem apenas VOGAIS?", options: ["AEIOU", "BCDEF", "FGHIJ", "LMNOP"], correctText: "AEIOU" },
-      { q: "Qual palavra e PROPAROXITONA?", options: ["LAMPADA", "CAFE", "MESA", "COMPUTADOR"], correctText: "LAMPADA" },
-      { q: "Qual palavra tem ENCONTRO VOCALICO?", options: ["PEIXE", "GATO", "CACHORRO", "LIVRO"], correctText: "PEIXE" },
-      { q: "Qual e o PLURAL de CAO?", options: ["CAES", "CAOS", "CAOSES", "CAIS"], correctText: "CAES" }
+      { q: "Qual palavra é PROPAROXÍTONA?", options: ["LAMPADA", "CAFE", "MESA", "COMPUTADOR"], correctText: "LAMPADA" },
+      { q: "Qual palavra tem ENCONTRO VOCÁLICO?", options: ["PEIXE", "GATO", "CACHORRO", "LIVRO"], correctText: "PEIXE" },
+      { q: "Qual é o PLURAL de CÃO?", options: ["CAES", "CAOS", "CAOSES", "CAIS"], correctText: "CAES" }
     ];
 
     function addScore(amount) {
-      if (isUsingVehicle) return;
       score += amount;
-      
       while (score >= nextExtraLifeScore) {
         playerLives++;
         nextExtraLifeScore += 10000;
         playSound('powerup');
         speakText("Vida extra!");
       }
-
-      if (score >= nextVehicleScore && !specialVehicle && !isUsingVehicle) {
-        spawnSpecialVehicle();
-        nextVehicleScore += 10000;
-      }
-    }
-
-    function spawnSpecialVehicle() {
-      const types = ['aviao', 'carro', 'moto'];
-      vehicleType = types[Math.floor(Math.random() * types.length)];
-      const groundY = getGroundY();
-      specialVehicle = {
-        x: player.x + 300,
-        y: groundY - 40,
-        width: 45,
-        height: 30,
-        type: vehicleType,
-        active: true
-      };
-      playSound('powerup');
-      speakText(`Veículo especial ${vehicleType} apareceu!`);
     }
 
     function closeAllPanels() {
       panelStageStart.style.display = "none";
       panelGameOver.style.display = "none";
       panelVictory.style.display = "none";
-      panelYtPromo.style.display = "none";
-      panelYtReturn.style.display = "none";
       panelKeyConfig.style.display = "none";
       panelPixOverlay.style.display = "none";
       panelCommentsOverlay.style.display = "none";
@@ -473,7 +376,7 @@
 
     function copyPixKey() {
       navigator.clipboard.writeText("jhonemercadopago2023@gmail.com");
-      alert("Chave Pix copiada com sucesso!");
+      alert("Chave Pix copiada!");
     }
 
     function openCommentsOverlay() {
@@ -486,74 +389,59 @@
       const stored = localStorage.getItem("dr_chacara_comments") || "[]";
       const comments = JSON.parse(stored);
       if (comments.length === 0) {
-        instantCommentsList.innerHTML = `<div class="instant-item">Nenhum comentário enviado ainda.</div>`;
+        instantCommentsList.innerHTML = `<div class="instant-item">Sem comentários.</div>`;
         return;
       }
       instantCommentsList.innerHTML = comments.map(c => `
-        <div class="instant-item">
-          <strong>${c.author}:</strong> ${c.text}
-        </div>
+        <div class="instant-item"><strong>${c.author}:</strong> ${c.text}</div>
       `).join('');
     }
 
     function saveNewComment() {
-      const authorInput = document.getElementById("comm-author");
-      const textInput = document.getElementById("comm-text");
-      const author = authorInput.value.trim() || "Anônimo";
-      const text = textInput.value.trim();
+      const author = document.getElementById("comm-author").value.trim() || "Anônimo";
+      const text = document.getElementById("comm-text").value.trim();
+      if (!text) return;
 
-      if (!text) { alert("Digite sua mensagem antes de enviar!"); return; }
-
-      const stored = localStorage.getItem("dr_chacara_comments") || "[]";
-      const comments = JSON.parse(stored);
+      const comments = JSON.parse(localStorage.getItem("dr_chacara_comments") || "[]");
       comments.unshift({ author, text });
       localStorage.setItem("dr_chacara_comments", JSON.stringify(comments.slice(0, 30)));
 
-      textInput.value = "";
-      alert("Comentário enviado e adicionado ao jogo!");
+      document.getElementById("comm-text").value = "";
       loadAndRenderComments();
       closeAllPanels();
     }
 
-    window.addEventListener("storage", loadAndRenderComments);
     loadAndRenderComments();
 
     function takeScreenshot() {
-      const dataURL = canvas.toDataURL("image/png");
       const link = document.createElement("a");
-      link.download = `doutor-chacara-print-${Date.now()}.png`;
-      link.href = dataURL;
+      link.download = `doutor-chacara-${Date.now()}.png`;
+      link.href = canvas.toDataURL("image/png");
       link.click();
     }
 
     function toggleMusic() {
       isMusicEnabled = !isMusicEnabled;
-      const btn = document.getElementById("btn-toggle-music");
-      if (isMusicEnabled) {
-        btn.innerText = "🎵 Música: ON";
-        btn.classList.remove("off");
-        startBackgroundMusic();
-      } else {
-        btn.innerText = "🔇 Música: OFF";
-        btn.classList.add("off");
-        stopBackgroundMusic();
-      }
+      document.getElementById("btn-toggle-music").innerText = isMusicEnabled ? "🎵 Música: ON" : "🔇 Música: OFF";
+      if (isMusicEnabled) startBackgroundMusic(); else stopBackgroundMusic();
     }
 
     function toggleVoice() {
       isVoiceEnabled = !isVoiceEnabled;
-      const btn = document.getElementById("btn-toggle-voice");
-      if (isVoiceEnabled) {
-        btn.innerText = "🔊 Voz: ON";
-        btn.classList.remove("off");
-      } else {
-        btn.innerText = "🔇 Voz: OFF";
-        btn.classList.add("off");
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-      }
+      document.getElementById("btn-toggle-voice").innerText = isVoiceEnabled ? "🔊 Voz: ON" : "🔇 Voz: OFF";
+      if (!isVoiceEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
     }
 
-    // MENU DE CHEAT: "fasedoutor"
+    function openKeyConfig() {
+      closeAllPanels();
+      panelKeyConfig.style.display = "flex";
+      isPausedForConfig = true;
+    }
+
+    function closeKeyConfig() {
+      closeAllPanels();
+    }
+
     function openCheatMenu() {
       closeAllPanels();
       const select = document.getElementById("cheat-stage-select");
@@ -570,212 +458,116 @@
     }
 
     function jumpToSelectedStage() {
-      const select = document.getElementById("cheat-stage-select");
-      currentStage = parseInt(select.value);
+      currentStage = parseInt(document.getElementById("cheat-stage-select").value);
       closeAllPanels();
       prepareStage();
     }
 
-    // CONTROLES DE TECLADO
-    let keyBinds = { 
-      left: "KeyA", right: "KeyD", up: "KeyW", down: "KeyS", 
-      jump: "Space", jump2: "KeyO", attack: "KeyU", shield: "KeyI" 
-    };
-
-    function loadSavedKeyBinds() {
-      const saved = localStorage.getItem("dr_chacara_keybinds_v24");
-      if (saved) {
-        try { keyBinds = Object.assign(keyBinds, JSON.parse(saved)); } catch(e){}
-      }
-    }
-    loadSavedKeyBinds();
-
-    function saveKeyBinds() {
-      localStorage.setItem("dr_chacara_keybinds_v24", JSON.stringify(keyBinds));
-    }
-    
-    let listeningKeyAction = null;
-
-    function updateKeyButtonsUI() {
-      for (let act in keyBinds) {
-        const btn = document.getElementById(`bind-${act}-btn`);
-        if (btn) btn.innerText = keyBinds[act];
-      }
-    }
+    let keyBinds = { left: "KeyA", right: "KeyD", jump: "Space", attack: "KeyU" };
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let bgMusicTimer = null;
-    let bgMusicNoteIndex = 0;
-
-    const stageScales = [
-      [261.63, 293.66, 329.63, 349.23, 392.00, 440.00],
-      [293.66, 329.63, 369.99, 392.00, 440.00, 493.88],
-      [329.63, 369.99, 392.00, 440.00, 493.88, 523.25],
-      [349.23, 392.00, 440.00, 466.16, 523.25, 587.33],
-      [392.00, 440.00, 493.88, 523.25, 587.33, 659.25]
-    ];
 
     function startBackgroundMusic() {
       if (!isMusicEnabled || bgMusicTimer) return;
-      
       bgMusicTimer = setInterval(() => {
         if (!isMusicEnabled || gameOver || !stageStarted || isPausedForConfig) return;
         if (audioCtx.state === 'suspended') audioCtx.resume();
 
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.type = (currentStage % 2 === 0) ? 'triangle' : 'sine';
-        
-        const scale = stageScales[(currentStage - 1) % stageScales.length];
-        const note = scale[bgMusicNoteIndex % scale.length];
-        bgMusicNoteIndex++;
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(300 + (currentStage * 10), audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
 
-        osc.frequency.setValueAtTime(note, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.002, audioCtx.currentTime + 0.35);
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.35);
-      }, 350);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      }, 400);
     }
 
     function stopBackgroundMusic() {
-      if (bgMusicTimer) {
-        clearInterval(bgMusicTimer);
-        bgMusicTimer = null;
-      }
+      if (bgMusicTimer) { clearInterval(bgMusicTimer); bgMusicTimer = null; }
     }
 
     function playSound(type) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
+      osc.connect(gain); gain.connect(audioCtx.destination);
 
       if (type === 'jump') {
-        osc.type = 'sine';
         osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(750, audioCtx.currentTime + 0.3);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
       } else if (type === 'attack') {
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
         gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
         osc.start(); osc.stop(audioCtx.currentTime + 0.15);
       } else if (type === 'hitTarget') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.25);
-        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
       } else if (type === 'hitWrong') {
         osc.type = 'square';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-      } else if (type === 'powerup') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.2);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+        osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.25);
       }
     }
 
-    function speakText(text, onEndCallback) {
-      if (!isVoiceEnabled) {
-        if (onEndCallback) setTimeout(onEndCallback, 3000);
-        return;
-      }
+    function speakText(text) {
+      if (!isVoiceEnabled) return;
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'pt-BR';
-        utterance.rate = 1.0;
-        if (onEndCallback) utterance.onend = onEndCallback;
         window.speechSynthesis.speak(utterance);
-      } else if (onEndCallback) {
-        setTimeout(onEndCallback, 3000);
       }
     }
 
     function toggleFullScreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        document.exitFullscreen().catch(() => {});
-      }
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+      else document.exitFullscreen().catch(() => {});
     }
 
-    // VARIÁVEIS DE JOGO
     let currentStage = 1;
     const maxStages = 27;
     let score = 0;
     let gameOver = false;
     let stageStarted = false;
-    let stageMissionText = "";
-    let walkCycle = 0;
-    let sunAngle = 0;
-    let gameTimerSeconds = 0;
-    let roadColors = { main: "#8B4513", accent: "#5C2E0B", edge: "#2e7d32" };
 
     const player = {
-      x: 50, y: 280, width: 33, height: 71.5, vx: 0, vy: 0, speed: 4.5,
-      friction: 0.82, grounded: false, crouching: false, facing: 'right',
-      aimingUp: false, attacking: false, attackTimer: 0, attackMaxTime: 12,
-      hasImmunityColor: false, shieldPowerUp: false, bigShieldActive: false, isKnockedDown: false
+      x: 50, y: 0, width: 35, height: 70, vx: 0, vy: 0, speed: 5,
+      friction: 0.8, grounded: false, facing: 'right', attacking: false
     };
 
+    const gravity = 0.65;
+    const targets = [];
+    const keys = {};
+
+    function getGroundY() { return canvas.height - 80; }
+
     function triggerPlayerJump() {
-      if ((player.grounded || isUsingVehicle) && stageStarted && !gameOver && !isPausedForConfig && !player.isKnockedDown) {
-        player.vy = isUsingVehicle ? -8 : -12;
+      if (player.grounded && stageStarted && !gameOver && !isPausedForConfig) {
+        player.vy = -12;
         player.grounded = false;
         playSound('jump');
       }
     }
 
-    const gravity = 0.65;
-    const weapon = { x: 0, y: 0, length: 0, baseMaxLength: 70 };
-    const targets = [];
-    const keys = {};
-
-    function getGroundY() {
-      return canvas.height - 80;
-    }
-
     function getRuleForStage(stage) {
-      if (stage === 26) {
-        return {
-          title: "FASE 26: INVASÃO TOTAL DE INSETOS!",
-          instruction: "ATENÇÃO: Destrua as FORMIGAS, GAFANHOTOS, MOSQUITOS, CENTOPÉIAS E JOANINHAS!",
-          isValid: (insect) => insect.isTarget
-        };
-      }
-      if (stage === maxStages) {
-        return {
-          title: "FASE 27: O DESAFIO FINAL DO TIGRE",
-          instruction: "ATENÇÃO: Vença o tigre final acertando os insetos corretos!",
-          isValid: (insect) => insect.isTarget
-        };
-      }
+      if (stage === 26) return { title: "FASE 26: PRAGAS EM MASSA!", instruction: "Elimine insetos nocivos!", isValid: (i) => i.isTarget };
+      if (stage === maxStages) return { title: "FASE 27: DESAFIO FINAL!", instruction: "Derrote as pragas e vença o Tigre!", isValid: (i) => i.isTarget };
       const stageInsects = getInsectsForStage(stage);
       const targetInsects = stageInsects.filter(i => i.isTarget).map(i => i.name).join(", ");
       return {
         title: `FASE ${stage}: PRAGAS DA CHÁCARA`,
-        instruction: `ATENÇÃO: Destrua APENAS: ${targetInsects || "Insetos alvos"}!`,
-        isValid: (insect) => insect.isTarget
+        instruction: `Destrua APENAS: ${targetInsects || "Insetos alvos"}!`,
+        isValid: (i) => i.isTarget
       };
     }
 
@@ -783,18 +575,13 @@
       if (bossActive) return;
       const stageInsects = getInsectsForStage(currentStage);
       const insectData = stageInsects[Math.floor(Math.random() * stageInsects.length)];
-      
       const groundY = getGroundY();
       const isFlying = (insectData.id === "mosquito" || insectData.id === "abelha");
-      const targetY = isFlying ? groundY - 70 - Math.random() * 80 : groundY - 35;
       
       targets.push({
-        x: canvas.width + Math.random() * 200,
-        y: targetY,
-        width: 35,
-        height: 35,
-        speed: 1.5 + Math.random() * 2.0,
-        insect: insectData
+        x: canvas.width + Math.random() * 150,
+        y: isFlying ? groundY - 80 - Math.random() * 60 : groundY - 35,
+        width: 35, height: 35, speed: 2 + Math.random() * 2, insect: insectData
       });
     }
 
@@ -803,178 +590,112 @@
       bossState = "quiz_hq";
       bossQuizIndex = 0;
       bossQuizQuestions = [...portugueseQuestionsBank].sort(() => Math.random() - 0.5).slice(0, 3);
-      
-      const stageInsects = getInsectsForStage(currentStage);
-      const bossInsectData = stageInsects[0];
-      
-      const groundY = getGroundY();
-      const bossWidth = player.width * 4;   // 4 VEZES MAIOR QUE O JOGADOR
-      const bossHeight = player.height * 2; // ALTO E IMPONENTE
+      const bossInsectData = getInsectsForStage(currentStage)[0];
+      const bossWidth = player.width * 4;
+      const bossHeight = player.height * 2;
 
       bossEnemy = {
-        x: canvas.width - bossWidth - 50,
-        y: groundY - bossHeight,
-        width: bossWidth,
-        height: bossHeight,
-        insect: bossInsectData,
+        x: canvas.width - bossWidth - 50, y: getGroundY() - bossHeight,
+        width: bossWidth, height: bossHeight, insect: bossInsectData,
         speechText: bossQuizQuestions[0].q + "\n" + bossQuizQuestions[0].options.join(" | ")
       };
-
       playerInputAnswer = "";
-      speakText(`Atenção! Semi-Mestre ${bossInsectData.name} Gigante apareceu! Responda ao Quiz!`);
+      speakText(`Boss ${bossInsectData.name} apareceu!`);
     }
 
     function prepareStage() {
-      stageStarted = false;
-      bossActive = false;
-      bossState = "none";
-      bossEnemy = null;
-      targets.length = 0;
-
+      stageStarted = false; bossActive = false; bossState = "none"; bossEnemy = null; targets.length = 0;
       const rule = getRuleForStage(currentStage);
-      stageTitle.innerText = `FASE ${currentStage} DE ${maxStages}`;
+      stageTitle.innerText = rule.title;
       stageInstruction.innerText = rule.instruction;
-      stageScoreInfo.innerText = `Pontuação Atual: ${score} | Vidas: ${playerLives}`;
-      
+      stageScoreInfo.innerText = `Pontos: ${score} | Vidas: ${playerLives}`;
       bgImageCurrent = (currentStage === maxStages) ? bgImageTiger : bgImageDefault;
 
       btnStartAction.onclick = () => {
-        panelStageStart.style.display = "none";
+        closeAllPanels();
         stageStarted = true;
         startBackgroundMusic();
         speakText(rule.instruction);
-        
-        if (currentStage % 5 === 0) {
-          setupBossForCurrentStage();
-        } else {
-          for (let i = 0; i < 6; i++) spawnTarget();
-        }
+        if (currentStage % 5 === 0) setupBossForCurrentStage();
+        else for (let i = 0; i < 5; i++) spawnTarget();
       };
-
       panelStageStart.style.display = "flex";
+    }
+
+    function restartCurrentStage() {
+      gameOver = false;
+      playerLives = 3;
+      prepareStage();
     }
 
     function checkAnswerInput() {
       if (!bossActive || bossState !== "quiz_hq") return;
       const currentQ = bossQuizQuestions[bossQuizIndex];
-      const cleanInput = playerInputAnswer.trim().toUpperCase();
-
-      if (cleanInput === currentQ.correctText.toUpperCase()) {
-        playSound('hitTarget');
-        addScore(1000);
-        bossQuizIndex++;
-        
+      if (playerInputAnswer.trim().toUpperCase() === currentQ.correctText.toUpperCase()) {
+        playSound('hitTarget'); addScore(1000); bossQuizIndex++;
         if (bossQuizIndex >= bossQuizQuestions.length) {
           bossState = "boss_walking_defeat";
-          bossEnemy.speechText = "NÃO! VOCÊ ME VENCEU!";
-          speakText("Incrível! Você venceu o Semi-Mestre!");
+          bossEnemy.speechText = "VOCÊ ME VENCEU!";
+          speakText("Parabéns! Boss Derrotado!");
           setTimeout(() => {
             bossActive = false;
-            bossState = "none";
             currentStage++;
-            prepareStage();
-          }, 3000);
+            if (currentStage > maxStages) panelVictory.style.display = "flex";
+            else prepareStage();
+          }, 2500);
         } else {
-          const nextQ = bossQuizQuestions[bossQuizIndex];
-          bossEnemy.speechText = "CORRETO! Próxima: " + nextQ.q + "\n" + nextQ.options.join(" | ");
-          speakText("Resposta Correta!");
+          bossEnemy.speechText = bossQuizQuestions[bossQuizIndex].q + "\n" + bossQuizQuestions[bossQuizIndex].options.join(" | ");
         }
       } else {
         playSound('hitWrong');
-        bossEnemy.speechText = "ERROU! Tente novamente!";
-        speakText("Resposta Errada!");
+        bossEnemy.speechText = "ERROU! Tente de novo!";
       }
       playerInputAnswer = "";
     }
 
-    // DRAWING INSECTS & BOSSES
     function drawInsect(x, y, width, height, insect) {
-      ctx.font = `${height * 0.8}px 'Segoe UI Emoji', sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+      ctx.font = `${height * 0.8}px sans-serif`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.fillText(insect.emoji, x + width / 2, y + height / 2);
     }
 
-    function drawHQComicBubble(x, y, text, isPlayer) {
+    function drawHQComicBubble(x, y, text) {
       ctx.save();
-      ctx.fillStyle = isPlayer ? "#00ffff" : "#ffffff";
-      ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 3;
-
+      ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#000000"; ctx.lineWidth = 2;
       const lines = text.split("\n");
-      const boxWidth = 220;
-      const boxHeight = 25 + lines.length * 18;
-
-      ctx.beginPath();
-      ctx.roundRect(x, y - boxHeight, boxWidth, boxHeight, 10);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = "#000000";
-      ctx.font = "bold 13px sans-serif";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "top";
-
-      lines.forEach((line, index) => {
-        ctx.fillText(line, x + 10, y - boxHeight + 8 + index * 18);
-      });
-      ctx.restore();
-    }
-
-    function drawBossEnemy(boss) {
-      ctx.save();
-      // Aura de Chefe Gigante
-      ctx.shadowColor = "#ff0055";
-      ctx.shadowBlur = 20;
-      
-      drawInsect(boss.x, boss.y, boss.width, boss.height, boss.insect);
-      
-      // Barra de Vida / Status do Boss
-      ctx.fillStyle = "#ff0055";
-      ctx.fillRect(boss.x, boss.y - 15, boss.width, 10);
-      ctx.strokeStyle = "#fff";
-      ctx.strokeRect(boss.x, boss.y - 15, boss.width, 10);
-      
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold 12px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(`SEMI-MESTRE GIGANTE (${boss.insect.name.toUpperCase()})`, boss.x + boss.width / 2, boss.y - 22);
+      ctx.beginPath(); ctx.roundRect(x, y - 50, 220, 15 + lines.length * 18, 8);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#000"; ctx.font = "bold 12px sans-serif";
+      lines.forEach((l, i) => ctx.fillText(l, x + 10, y - 40 + (i * 18)));
       ctx.restore();
     }
 
     function drawPlayer() {
-      const groundY = getGroundY();
-      const px = player.x;
-      const py = player.y;
-
       ctx.save();
       ctx.fillStyle = "#00ffcc";
-      ctx.beginPath();
-      ctx.arc(px + player.width / 2, py + 12, 12, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#0088ff";
-      ctx.fillRect(px + 4, py + 24, player.width - 8, 28);
-
-      ctx.fillStyle = "#ffcc00";
-      ctx.fillRect(px + 6, py + 52, 8, 20);
-      ctx.fillRect(px + player.width - 14, py + 52, 8, 20);
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+      if (player.attacking) {
+        ctx.fillStyle = "#ff0055";
+        const attackX = player.facing === 'right' ? player.x + player.width : player.x - 30;
+        ctx.fillRect(attackX, player.y + 20, 30, 15);
+      }
       ctx.restore();
     }
 
     function updateGame() {
       if (!stageStarted || gameOver || isPausedForConfig) return;
-
       const groundY = getGroundY();
 
-      // Mover Jogador
-      if (keys[keyBinds.left]) player.vx = -player.speed;
-      else if (keys[keyBinds.right]) player.vx = player.speed;
+      if (keys[keyBinds.left]) { player.vx = -player.speed; player.facing = 'left'; }
+      else if (keys[keyBinds.right]) { player.vx = player.speed; player.facing = 'right'; }
       else player.vx *= player.friction;
 
       player.x += player.vx;
       player.y += player.vy;
       player.vy += gravity;
+
+      if (player.x < 0) player.x = 0;
+      if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
 
       if (player.y + player.height >= groundY) {
         player.y = groundY - player.height;
@@ -982,148 +703,91 @@
         player.grounded = true;
       }
 
-      // Mover Inimigos (Insetos)
       targets.forEach((target, index) => {
         target.x -= target.speed;
 
-        // Colisão com Ataque do Jogador
         if (player.attacking) {
-          const attackRange = 70;
-          if (Math.abs(player.x - target.x) < attackRange && Math.abs(player.y - target.y) < 50) {
+          const attackX = player.facing === 'right' ? player.x + player.width : player.x - 30;
+          if (attackX < target.x + target.width && attackX + 30 > target.x &&
+              player.y < target.y + target.height && player.y + player.height > target.y) {
             const rule = getRuleForStage(currentStage);
             if (rule.isValid(target.insect)) {
-              playSound('hitTarget');
-              addScore(200);
+              playSound('hitTarget'); addScore(200);
             } else {
-              playSound('hitWrong');
-              playerLives--;
-              if (playerLives <= 0) triggerGameOver("Você atacou o inseto inofensivo incorreto!");
+              playSound('hitWrong'); playerLives--;
+              if (playerLives <= 0) triggerGameOver("Você atacou o inseto inofensivo!");
             }
-            targets.splice(index, 1);
-            spawnTarget();
+            targets.splice(index, 1); spawnTarget();
           }
         }
 
         if (target.x + target.width < 0) {
-          targets.splice(index, 1);
-          spawnTarget();
+          targets.splice(index, 1); spawnTarget();
         }
       });
     }
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Fundo
       if (bgImageCurrent.complete && bgImageCurrent.naturalWidth !== 0) {
         ctx.drawImage(bgImageCurrent, 0, 0, canvas.width, canvas.height);
-      } else {
-        ctx.fillStyle = "#111";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
+      ctx.fillStyle = "#5C2E0B"; ctx.fillRect(0, getGroundY(), canvas.width, 80);
 
-      // Chão / Estrada
-      const groundY = getGroundY();
-      ctx.fillStyle = roadColors.main;
-      ctx.fillRect(0, groundY, canvas.width, 80);
+      targets.forEach(t => drawInsect(t.x, t.y, t.width, t.height, t.insect));
 
-      // Desenhar Inimigos (Insetos Comuns)
-      targets.forEach(target => {
-        drawInsect(target.x, target.y, target.width, target.height, target.insect);
-      });
-
-      // Desenhar Semi-Mestre Gigante
       if (bossActive && bossEnemy) {
-        drawBossEnemy(bossEnemy);
-
-        if (bossState === "quiz_hq") {
-          drawHQComicBubble(bossEnemy.x - 40, bossEnemy.y - 10, bossEnemy.speechText, false);
-          drawHQComicBubble(player.x + 30, player.y - 30, `Resp: ${playerInputAnswer}_ (ENTER)`, true);
-        } else if (bossState === "boss_walking_defeat") {
-          drawHQComicBubble(bossEnemy.x - 40, bossEnemy.y - 10, bossEnemy.speechText, false);
-        }
+        drawInsect(bossEnemy.x, bossEnemy.y, bossEnemy.width, bossEnemy.height, bossEnemy.insect);
+        drawHQComicBubble(bossEnemy.x - 50, bossEnemy.y, bossEnemy.speechText);
       }
 
-      // Desenhar Jogador
       drawPlayer();
 
-      // HUD Superior
-      const currentRule = getRuleForStage(currentStage);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 15px 'Segoe UI'";
-      ctx.textAlign = "left";
-      ctx.fillText(`${currentRule.title}`, 20, 32);
-      ctx.fillText(`PONTOS: ${score}  |  VIDAS: ❤️ x${playerLives}`, 20, 55);
+      ctx.fillStyle = "#fff"; ctx.font = "bold 14px sans-serif"; ctx.textAlign = "left";
+      ctx.fillText(`FASE ${currentStage} | PONTOS: ${score} | VIDAS: ❤️ x${playerLives}`, 20, 30);
     }
 
     function gameLoop() {
-      updateGame();
-      draw();
+      updateGame(); draw();
       requestAnimationFrame(gameLoop);
     }
 
     function triggerGameOver(reason) {
-      gameOver = true;
-      stopBackgroundMusic();
+      gameOver = true; stopBackgroundMusic();
       finalScoreTxt.innerText = score;
       document.getElementById("game-over-reason").innerText = reason;
       panelGameOver.style.display = "flex";
     }
 
-    // EVENTOS DE TECLADO
     window.addEventListener("keydown", (e) => {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
       keys[e.code] = true;
 
-      // Atalho Cheat "fasedoutor"
       cheatBuffer += e.key.toLowerCase();
-      if (cheatBuffer.length > 20) cheatBuffer = cheatBuffer.slice(-20);
-      if (cheatBuffer.includes("fasedoutor")) {
-        cheatBuffer = "";
-        openCheatMenu();
-      }
+      if (cheatBuffer.includes("fasedoutor")) { cheatBuffer = ""; openCheatMenu(); }
 
-      // Quiz do Chefe - Digitação
       if (bossActive && bossState === "quiz_hq") {
-        if (e.key === "Enter") {
-          checkAnswerInput();
-        } else if (e.key === "Backspace") {
-          playerInputAnswer = playerInputAnswer.slice(0, -1);
-        } else if (e.key.length === 1 && /[a-zA-Z0-9\s]/.test(e.key)) {
-          playerInputAnswer += e.key;
-        }
+        if (e.key === "Enter") { e.preventDefault(); checkAnswerInput(); }
+        else if (e.key === "Backspace") playerInputAnswer = playerInputAnswer.slice(0, -1);
+        else if (e.key.length === 1 && /[a-zA-Z0-9\s]/.test(e.key)) playerInputAnswer += e.key;
+        return;
       }
 
-      // Ataque
       if (e.code === keyBinds.attack) {
-        player.attacking = true;
-        playSound('attack');
-        setTimeout(() => { player.attacking = false; }, 200);
+        player.attacking = true; playSound('attack');
+        setTimeout(() => player.attacking = false, 200);
       }
-
-      // Pulo
-      if (e.code === keyBinds.jump || e.code === keyBinds.jump2) {
-        triggerPlayerJump();
-      }
+      if (e.code === keyBinds.jump) triggerPlayerJump();
     });
 
-    window.addEventListener("keyup", (e) => {
-      keys[e.code] = false;
-    });
+    window.addEventListener("keyup", (e) => { keys[e.code] = false; });
 
-    // CONTROLES TOUCH MOBILE
-    document.getElementById("touch-jump").addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      triggerPlayerJump();
-    });
-
+    document.getElementById("touch-jump").addEventListener("touchstart", (e) => { e.preventDefault(); triggerPlayerJump(); });
     document.getElementById("touch-attack").addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      player.attacking = true;
-      playSound('attack');
-      setTimeout(() => { player.attacking = false; }, 200);
+      e.preventDefault(); player.attacking = true; playSound('attack');
+      setTimeout(() => player.attacking = false, 200);
     });
 
-    // INICIAR JOGO
     prepareStage();
     requestAnimationFrame(gameLoop);
   </script>
