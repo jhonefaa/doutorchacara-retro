@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Doutor Chácara - Alfabetização Arcade Mobile v2.6</title>
+  <title>Doutor Chácara - Pragas da Chácara v3.0</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
     html, body {
@@ -11,21 +11,16 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       text-align: center; overflow: hidden; user-select: none;
     }
-    
     #game-container {
       position: relative; width: 100vw; height: 100vh;
       display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000;
     }
-    #gameCanvas {
-      background: #000; width: 100vw; height: 100vh; object-fit: fill; display: block;
-    }
-
+    #gameCanvas { background: #000; width: 100vw; height: 100vh; object-fit: fill; display: block; }
     .touch-controls {
       position: absolute; bottom: 65px; left: 0; width: 100%;
       display: flex; justify-content: space-between; align-items: flex-end;
       padding: 0 30px; pointer-events: none; z-index: 5;
     }
-    
     #joystick-zone {
       width: 120px; height: 120px; background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(0, 255, 204, 0.3); border-radius: 50%; position: relative;
@@ -33,312 +28,93 @@
     }
     #joystick-stick {
       width: 50px; height: 50px; background: rgba(0, 255, 204, 0.4); border-radius: 50%;
-      position: absolute; top: 35px; left: 35px;
-      box-shadow: 0 0 8px rgba(0, 255, 204, 0.5); pointer-events: none;
+      position: absolute; top: 35px; left: 35px; box-shadow: 0 0 8px rgba(0, 255, 204, 0.5); pointer-events: none;
     }
-
     .action-buttons { display: flex; gap: 10px; pointer-events: auto; }
     .btn-action {
       width: 60px; height: 60px; border-radius: 50%; font-size: 0.75rem; font-weight: bold;
       border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 0 8px rgba(255,255,255,0.2);
-      display: flex; justify-content: center; align-items: center; color: #fff;
-      opacity: 0.75; cursor: pointer;
+      display: flex; justify-content: center; align-items: center; color: #fff; opacity: 0.75; cursor: pointer;
     }
     .btn-jump { background: rgba(0, 136, 255, 0.4); }
     .btn-attack { background: rgba(255, 0, 85, 0.4); }
     .btn-shield { background: rgba(255, 140, 0, 0.4); border-color: rgba(255, 140, 0, 0.6); }
-
-    #top-left-controls {
-      position: absolute; top: 15px; left: 15px; display: flex; gap: 8px; z-index: 10;
-    }
-
+    #top-left-controls { position: absolute; top: 15px; left: 15px; display: flex; gap: 8px; z-index: 10; }
     #btn-fullscreen {
       position: absolute; top: 15px; right: 15px; background: rgba(0, 255, 204, 0.08);
       border: 1px solid rgba(0, 255, 204, 0.3); color: #00ffcc; padding: 6px 12px; border-radius: 20px;
-      font-size: 0.75rem; font-weight: bold; cursor: pointer; z-index: 10;
-      backdrop-filter: blur(4px);
+      font-size: 0.75rem; font-weight: bold; cursor: pointer; z-index: 10; backdrop-filter: blur(4px);
     }
-    
     .btn-top-bar {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.3); color: #fff; padding: 6px 12px; border-radius: 20px;
-      font-size: 0.75rem; cursor: pointer; backdrop-filter: blur(4px); font-weight: bold;
+      background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; cursor: pointer;
+      backdrop-filter: blur(4px); font-weight: bold;
     }
-    .btn-top-bar:hover { background: rgba(0, 255, 204, 0.2); border-color: #00ffcc; }
-
     .bottom-bar {
       position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 8px; background: rgba(10, 10, 18, 0.25);
-      backdrop-filter: blur(5px); padding: 5px 10px; border-radius: 20px;
-      border: 1px solid rgba(0, 255, 204, 0.25); z-index: 15; max-width: 95vw; overflow-x: auto;
+      display: flex; gap: 8px; background: rgba(10, 10, 18, 0.25); backdrop-filter: blur(5px);
+      padding: 5px 10px; border-radius: 20px; border: 1px solid rgba(0, 255, 204, 0.25); z-index: 15; max-width: 95vw; overflow-x: auto;
     }
-
     .btn-tool {
       background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 5px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;
-      cursor: pointer; display: flex; align-items: center; gap: 5px; white-space: nowrap;
-      transition: all 0.2s ease;
+      padding: 5px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; cursor: pointer;
+      display: flex; align-items: center; gap: 5px; white-space: nowrap; transition: all 0.2s ease;
     }
-    .btn-tool:hover { background: rgba(0, 255, 204, 0.2); border-color: #00ffcc; }
-    .btn-tool.off { background: rgba(100, 100, 100, 0.3); opacity: 0.5; }
-
     .overlay-panel {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: rgba(10, 10, 18, 0.85); 
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(0, 255, 204, 0.4);
+      background: rgba(10, 10, 18, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(0, 255, 204, 0.4);
       border-radius: 20px; padding: 20px; box-shadow: 0 0 25px rgba(0, 255, 204, 0.2);
       z-index: 2000; display: none; flex-direction: column; align-items: center; gap: 12px;
       width: 90%; max-width: 480px; color: #fff;
     }
-
-    .overlay-panel h2 { color: #00ffcc; font-size: 1.3rem; text-shadow: 0 0 6px #000; }
-    .overlay-panel p { font-size: 0.9rem; line-height: 1.3; text-shadow: 0 0 6px #000; }
-    
     .btn-main {
       background: rgba(0, 255, 204, 0.65); color: #000; font-size: 0.95rem; font-weight: bold;
       padding: 8px 20px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.4); cursor: pointer;
-      box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); margin: 3px;
-      width: 100%; max-width: 320px; backdrop-filter: blur(4px);
+      width: 100%; max-width: 320px;
     }
-
-    .btn-sub {
-      background: rgba(255, 0, 85, 0.65); color: #fff; font-size: 0.9rem; font-weight: bold;
-      padding: 8px 18px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.4); cursor: pointer;
-      box-shadow: 0 0 8px rgba(255, 0, 85, 0.3); margin: 3px;
-      width: 100%; max-width: 320px; backdrop-filter: blur(4px);
-    }
-
-    .btn-back {
-      background: rgba(255, 204, 0, 0.7); color: #000; font-size: 0.9rem; font-weight: bold;
-      padding: 8px 18px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.4); cursor: pointer;
-      box-shadow: 0 0 10px rgba(255, 204, 0, 0.4); margin-top: 8px; width: 100%; max-width: 320px;
-      backdrop-filter: blur(4px);
-    }
-
-    .btn-group { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
-
-    input[type="text"], textarea, select {
-      padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(0, 255, 204, 0.5);
-      background: rgba(0, 0, 0, 0.8); color: #fff; font-size: 0.9rem; text-align: center; width: 90%;
-      backdrop-filter: blur(4px);
-    }
-
-    textarea { text-align: left; resize: none; height: 55px; }
-
-    .instant-comments-box {
-      position: absolute; top: 55px; right: 15px; width: 210px; max-height: 170px;
-      background: rgba(0, 0, 0, 0.12); backdrop-filter: blur(4px);
-      border: 1px solid rgba(0, 255, 204, 0.25); border-radius: 12px;
-      padding: 8px; z-index: 12; display: flex; flex-direction: column; text-align: left;
-    }
-    .instant-comments-header { font-size: 0.7rem; font-weight: bold; color: #00ffcc; margin-bottom: 4px; border-bottom: 1px solid rgba(0,255,204,0.2); padding-bottom: 2px; text-shadow: 0 0 4px #000; }
-    .instant-comments-list { overflow-y: auto; max-height: 130px; font-size: 0.7rem; display: flex; flex-direction: column; gap: 4px; }
-    .instant-item { background: rgba(0, 0, 0, 0.15); padding: 4px 6px; border-radius: 6px; word-break: break-word; text-shadow: 0 0 3px #000; }
-    .instant-item strong { color: #ffcc00; }
-
-    .leaderboard-list {
-      width: 100%; max-height: 110px; overflow-y: auto; text-align: left;
-      font-family: monospace; font-size: 0.8rem; background: rgba(0,0,0,0.3);
-      padding: 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
-    }
-    .leaderboard-item { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dashed rgba(255,255,255,0.2); }
-
-    .key-bind-row { display: flex; justify-content: space-between; width: 100%; align-items: center; padding: 4px 0; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .key-bind-btn { background: rgba(0, 0, 0, 0.6); border: 1px solid #00ffcc; color: #00ffcc; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-    
-    .pix-box {
-      background: rgba(0, 255, 204, 0.08); border: 1px dashed rgba(0, 255, 204, 0.5);
-      padding: 8px; border-radius: 10px; word-break: break-all; font-weight: bold;
-      color: #00ffcc; margin: 4px 0; width: 100%; font-size: 0.8rem;
-    }
-
-    video { width: 100%; border-radius: 12px; border: 1px solid #00ffcc; margin-top: 5px; }
-
-    .quiz-options-container { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 10px; }
-    .quiz-opt-btn {
-      background: rgba(0, 255, 204, 0.2); border: 1px solid #00ffcc; color: #fff;
-      padding: 10px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.9rem;
-      transition: all 0.2s;
-    }
-    .quiz-opt-btn:hover { background: rgba(0, 255, 204, 0.5); }
   </style>
 </head>
 <body>
-
   <div id="game-container">
     <div id="top-left-controls">
-      <button class="btn-top-bar" onclick="openKeyConfig()">⚙️ CONTROLES (PC)</button>
-      <button class="btn-top-bar" style="border-color: #ffcc00; color: #ffcc00;" onclick="skipIntro()">⏭️ PULAR INTRO</button>
+      <button class="btn-top-bar" onclick="skipIntro()">⏭️ PULAR INTRO</button>
     </div>
-
     <button id="btn-fullscreen" onclick="toggleFullScreen()">TELA CHEIA ⛶</button>
-
     <canvas id="gameCanvas"></canvas>
 
-    <!-- MENU DE COMENTÁRIOS INSTANTÂNEOS -->
-    <div class="instant-comments-box">
-      <div class="instant-comments-header">💬 COMENTÁRIOS AO VIVO</div>
-      <div class="instant-comments-list" id="instant-comments-list"></div>
-    </div>
-
-    <!-- BARRA INFERIOR DE RECURSOS E AÇÕES -->
     <div class="bottom-bar">
-      <button class="btn-tool" onclick="takeScreenshot()">📸 Print</button>
       <button class="btn-tool" onclick="openYoutubeChannel()">🔴 YouTube</button>
-      <button class="btn-tool" onclick="openPixOverlay()">⚡ Pix</button>
-      <button class="btn-tool" onclick="openCommentsOverlay()">💬 Comentários</button>
       <button class="btn-tool" id="btn-toggle-music" onclick="toggleMusic()">🎵 Música: ON</button>
       <button class="btn-tool" id="btn-toggle-voice" onclick="toggleVoice()">🔊 Voz: ON</button>
     </div>
 
-    <!-- PAINEL DESAFIO DO SEMI-MESTRE (ACEITAR OU RECUSAR) -->
-    <div id="panel-boss-accept" class="overlay-panel">
-      <h2 id="boss-accept-title">DESAFIO DO SEMI-MESTRE!</h2>
-      <p>O Semi-Mestre te desafia para passar de fase!</p>
-      <div class="btn-group">
-        <button class="btn-main" onclick="acceptBossChallenge()">ACEITAR O DESAFIO! 👍</button>
-        <button class="btn-sub" onclick="declineBossChallenge()">RECUSAR (Perder 1 Vida) 👎</button>
-      </div>
-    </div>
-
-    <!-- PAINEL PERGUNTAS DO SEMI-MESTRE -->
-    <div id="panel-boss-quiz" class="overlay-panel">
-      <h2 id="boss-quiz-title">PERGUNTA 1 DE 5</h2>
-      <p id="boss-quiz-question" style="color:#ffcc00; font-weight:bold;"></p>
-      <div id="boss-quiz-options" class="quiz-options-container"></div>
-    </div>
-
-    <!-- PAINEL OVERLAY: PIX -->
-    <div id="panel-pix-overlay" class="overlay-panel">
-      <h2>APOIE O JOGO COM PIX ⚡</h2>
-      <p>Sua ajuda garante novos conteúdos e melhorias para o jogo!</p>
-      <div class="pix-box" id="pixKey">jhonemercadopago2023@gmail.com</div>
-      <button class="btn-main" onclick="copyPixKey()">COPIAR CHAVE PIX 📋</button>
-      <button class="btn-back" onclick="closeAllPanels()">◀ VOLTAR AO JOGO</button>
-    </div>
-
-    <!-- PAINEL OVERLAY: CHEAT / MENU DE FASES (fasedoutor) -->
-    <div id="panel-cheat-stage" class="overlay-panel">
-      <h2>SELEÇÃO DE FASES 🧪</h2>
-      <p>Escolha a fase para onde deseja se transportar:</p>
-      <select id="cheat-stage-select"></select>
-      <button class="btn-main" onclick="jumpToSelectedStage()">TELEPORTAR ▶</button>
-      <button class="btn-back" onclick="closeAllPanels()">◀ CANCELAR</button>
-    </div>
-
-    <!-- PAINEL OVERLAY: DEIXAR COMENTÁRIO -->
-    <div id="panel-comments-overlay" class="overlay-panel">
-      <h2>DEIXE SEU COMENTÁRIO 💬</h2>
-      <p>Envie sua mensagem para aparecer no jogo!</p>
-      <input type="text" id="comm-author" placeholder="Seu Nome" maxlength="15">
-      <textarea id="comm-text" placeholder="Escreva seu comentário..." maxlength="120"></textarea>
-      <button class="btn-main" onclick="saveNewComment()">ENVIAR COMENTÁRIO 📝</button>
-      <button class="btn-back" onclick="closeAllPanels()">◀ VOLTAR AO JOGO</button>
-    </div>
-
-    <!-- PAINEL INICIAR FASE / TRANSIÇÃO -->
+    <!-- INICIAR FASE -->
     <div id="panel-stage-start" class="overlay-panel">
       <h2 id="stage-title">FASE 1</h2>
-      <p id="stage-instruction">Destrua os alvos solicitados!</p>
+      <p id="stage-instruction">Elimine os insetos da chácara!</p>
       <div id="stage-score-info"></div>
       <button class="btn-main" id="btn-start-action">INICIAR FASE ▶</button>
     </div>
 
-    <!-- PAINEL INTERAÇÃO YOUTUBE -->
+    <!-- PAINEL YOUTUBE / TRANSIÇÃO -->
     <div id="panel-youtube-promo" class="overlay-panel">
       <h2>FASE CONCLUÍDA! 🎉</h2>
-      <p>Apoie o canal do Doutor Chácara para continuar (Aperte ENTER ou clique abaixo):</p>
-      <div class="btn-group">
-        <button class="btn-main" style="background: rgba(255, 0, 0, 0.65); color:#fff;" onclick="handleYtAnswer('inscrever')">🔴 Se inscreva no canal Doutor Chácara</button>
-        <button class="btn-main" onclick="handleYtAnswer('sim')">👍 Já é inscrito</button>
-        <button class="btn-sub" id="btn-continue-game" style="background: rgba(0, 153, 255, 0.65);" onclick="handleYtAnswer('continuar')">▶ Continuar jogo (ENTER / Click)</button>
-      </div>
-      <div id="yt-feedback-msg" style="margin-top: 5px; font-weight: bold; color: #ffcc00; text-shadow: 0 0 5px #000;"></div>
+      <p>Apoie o canal do Doutor Chácara para continuar:</p>
+      <button class="btn-main" onclick="handleYtAnswer('continuar')">▶ CONTINUAR JOGO</button>
     </div>
 
-    <!-- PAINEL PAUSA YOUTUBE RETORNO -->
-    <div id="panel-yt-return" class="overlay-panel">
-      <h2>JOGO PAUSADO ⏸️</h2>
-      <p>O jogo está pausado enquanto você visita o canal!</p>
-      <button class="btn-main" onclick="resumeGameFromYt()">CONTINUAR JOGO ▶</button>
-    </div>
-
-    <!-- CONFIGURAÇÃO DE CONTROLES DO PC -->
-    <div id="panel-key-config" class="overlay-panel">
-      <h2>⚙️ CONFIGURAÇÃO DE CONTROLES (PC)</h2>
-      <p style="font-size:0.75rem; color:#00ffcc;">Clique no botão e escolha a tecla desejada no teclado:</p>
-      
-      <div class="key-bind-row">
-        <span>Mover para Esquerda:</span>
-        <button class="key-bind-btn" id="bind-left-btn" onclick="listenKeyChange('left')">KeyA</button>
-      </div>
-      <div class="key-bind-row">
-        <span>Mover para Direita:</span>
-        <button class="key-bind-btn" id="bind-right-btn" onclick="listenKeyChange('right')">KeyD</button>
-      </div>
-      <div class="key-bind-row">
-        <span>Mover para Cima / Mirar Cima:</span>
-        <button class="key-bind-btn" id="bind-up-btn" onclick="listenKeyChange('up')">KeyW</button>
-      </div>
-      <div class="key-bind-row">
-        <span>Mover para Baixo / Agachar:</span>
-        <button class="key-bind-btn" id="bind-down-btn" onclick="listenKeyChange('down')">KeyS</button>
-      </div>
-      <div class="key-bind-row">
-        <span>Pular (Padrão Espaço):</span>
-        <button class="key-bind-btn" id="bind-jump-btn" onclick="listenKeyChange('jump')">Space</button>
-      </div>
-      <div class="key-bind-row">
-        <span>Pulo Secundário (Letra O):</span>
-        <button class="key-bind-btn" id="bind-jump2-btn" onclick="listenKeyChange('jump2')">KeyO</button>
-      </div>
-      <div class="key-bind-row">
-        <span>Escudo de Ataque (Letra U):</span>
-        <button class="key-bind-btn" id="bind-attack-btn" onclick="listenKeyChange('attack')">KeyU</button>
-      </div>
-      <div class="key-bind-row">
-        <span>Escudo Especial (Letra I):</span>
-        <button class="key-bind-btn" id="bind-shield-btn" onclick="listenKeyChange('shield')">KeyI</button>
-      </div>
-
-      <button class="btn-main" onclick="closeKeyConfig()">SALVAR E FECHAR 💾</button>
-    </div>
-
-    <!-- PAINEL VITÓRIA FINAL -->
-    <div id="panel-victory" class="overlay-panel">
-      <h2 style="color: #00ffcc;">PARABÉNS! VOCÊ ZEROU A FASE 27! 🏆</h2>
-      <p>Mensagem especial do Doutor Chácara:</p>
-      <video id="victory-video" controls autoplay>
-        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
-        Seu navegador não suporta vídeos HTML5.
-      </video>
-      <p>Digite seu nome para gravar seu recorde no placar para sempre:</p>
-      <input type="text" id="winner-name" placeholder="Seu Nome de Campeão" maxlength="15">
-      <button class="btn-main" onclick="saveVictoryScore()">GRAVAR NO PLACAR PARA SEMPRE 🏆</button>
-    </div>
-
-    <!-- PAINEL GAME OVER -->
+    <!-- GAME OVER -->
     <div id="panel-game-over" class="overlay-panel">
       <h2 style="color: #ff0055;">GAME OVER</h2>
-      <p id="game-over-reason">Você perdeu a fase!</p>
-      <p>Sua pontuação: <strong id="final-score">0</strong></p>
-      <input type="text" id="player-name" placeholder="Digite seu nome" maxlength="12">
-      <button class="btn-main" id="btn-save-score">SALVAR RECORD 🔄</button>
-      
-      <h3 style="margin-top: 5px; color: #ffcc00; font-size: 0.85rem;">🏆 PLACAR PERMANENTE DE RECORDES</h3>
-      <div class="leaderboard-list" id="leaderboard-list"></div>
+      <p id="game-over-reason">Você perdeu!</p>
+      <button class="btn-main" onclick="resetGame()">TENTAR NOVAMENTE 🔄</button>
     </div>
 
     <div class="touch-controls">
-      <div id="joystick-zone">
-        <div id="joystick-stick"></div>
-      </div>
-
+      <div id="joystick-zone"><div id="joystick-stick"></div></div>
       <div class="action-buttons">
         <div class="btn-action btn-jump" id="touch-jump">PULO</div>
-        <div class="btn-action btn-attack" id="touch-attack">ESCUDO U</div>
-        <div class="btn-action btn-shield" id="touch-shield">SUPER I</div>
+        <div class="btn-action btn-attack" id="touch-attack">ESCUDO</div>
       </div>
     </div>
   </div>
@@ -347,1867 +123,304 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
-    
-    const bgImageDefault = new Image();
-    bgImageDefault.src = "fundo.jpg.jpg";
-
-    const bgImageTiger = new Image();
-    bgImageTiger.src = "https://images.unsplash.com/photo-1561731216-c3a4d99437d5?auto=format&fit=crop&w=1200&q=80";
-
-    let bgImageCurrent = bgImageDefault;
-
-    const gamingBackgrounds = [
-      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80"
-    ];
 
     const panelStageStart = document.getElementById("panel-stage-start");
     const panelGameOver = document.getElementById("panel-game-over");
-    const panelVictory = document.getElementById("panel-victory");
     const panelYtPromo = document.getElementById("panel-youtube-promo");
-    const panelYtReturn = document.getElementById("panel-yt-return");
-    const panelKeyConfig = document.getElementById("panel-key-config");
-    const panelPixOverlay = document.getElementById("panel-pix-overlay");
-    const panelCommentsOverlay = document.getElementById("panel-comments-overlay");
-    const panelCheatStage = document.getElementById("panel-cheat-stage");
-    const panelBossAccept = document.getElementById("panel-boss-accept");
-    const panelBossQuiz = document.getElementById("panel-boss-quiz");
-    
     const stageTitle = document.getElementById("stage-title");
     const stageInstruction = document.getElementById("stage-instruction");
     const stageScoreInfo = document.getElementById("stage-score-info");
-    const finalScoreTxt = document.getElementById("final-score");
-    const playerNameInput = document.getElementById("player-name");
-    const leaderboardList = document.getElementById("leaderboard-list");
     const btnStartAction = document.getElementById("btn-start-action");
-    const btnSaveScore = document.getElementById("btn-save-score");
-    const instantCommentsList = document.getElementById("instant-comments-list");
 
-    let isPausedForConfig = false;
     let isMusicEnabled = true;
     let isVoiceEnabled = true;
 
-    // DETECÇÃO CHEAT "fasedoutor"
-    let cheatBuffer = "";
-
-    // VARIÁVEIS DO SEMI-MESTRE
-    let bossActive = false;
-    let bossState = "none"; // 'none', 'approaching', 'questioning', 'quiz_menu', 'retreating', 'boss_walking_defeat', 'player_walking_defeat'
-    let currentBossChar = "A";
-    let bossQuizIndex = 0;
-    let bossQuizQuestions = [];
-    let bossEnemy = null;
-    let hqAnimTimer = 0;
-    const bossSpeechPhrase = "Para passar por mim tem que ter conhecimentos e abilidades, quer tentar?";
-
-    // SISTEMA DE VIDAS E PONTUAÇÃO DE VIDAS EXTRAS
-    let playerLives = 3;
-    let nextExtraLifeScore = 10000;
-    let nextVehicleScore = 10000;
-
-    // OBJETOS ESCOLARES E VEÍCULOS
-    let schoolItems = [];
-    let schoolItemsCollected = 0;
-    let specialVehicle = null;
-    let isUsingVehicle = false;
-    let vehicleType = 'aviao';
-
-    const portugueseQuestionsBank = [
-      { q: "Qual palavra tem DÍGRAFO?", options: ["CHUVA", "PRATO", "ESCOLA", "PEDRA"], correctText: "CHUVA" },
-      { q: "Qual palavra tem apenas VOGAIS?", options: ["AEIOU", "BCDEF", "FGHIJ", "LMNOP"], correctText: "AEIOU" },
-      { q: "Qual palavra é PROPAROXÍTONA?", options: ["LÂMPADA", "CAFÉ", "MESA", "COMPUTADOR"], correctText: "LÂMPADA" },
-      { q: "Qual palavra tem ENCONTRO VOCÁLICO?", options: ["PEIXE", "GATO", "CACHORRO", "LIVRO"], correctText: "PEIXE" },
-      { q: "Qual é o PLURAL de CÃO?", options: ["CÃES", "CÃOS", "CÃOSES", "CÂIS"], correctText: "CÃES" }
+    // DEFINIÇÃO DOS INSETOS DA CHÁCARA
+    const INSECT_TYPES = [
+      { name: "Formiga", emoji: "🐜", size: 35 },
+      { name: "Aranha", emoji: "🕷️", size: 40 },
+      { name: "Gafanhoto", emoji: "🦗", size: 42 },
+      { name: "Besouro", emoji: "🪲", size: 38 },
+      { name: "Mosquito", emoji: "🦟", size: 30 },
+      { name: "Lagarta", emoji: "🐛", size: 45 },
+      { name: "Vespa", emoji: "🐝", size: 36 },
+      { name: "Cupim", emoji: "🦟", size: 32 },
+      { name: "Percevejo", emoji: "🪳", size: 36 },
+      { name: "Barata", emoji: "🪳", size: 40 }
     ];
 
-    function addScore(amount) {
-      if (isUsingVehicle) return;
-      score += amount;
-      
-      while (score >= nextExtraLifeScore) {
-        playerLives++;
-        nextExtraLifeScore += 10000;
-        playSound('powerup');
-        speakText("Vida extra!");
-      }
-
-      if (score >= nextVehicleScore && !specialVehicle && !isUsingVehicle) {
-        spawnSpecialVehicle();
-        nextVehicleScore += 10000;
-      }
+    function getInsectsForStage(stage) {
+      if (stage === 26) return INSECT_TYPES; // FASE 26: TODOS OS INSETOS
+      const count = Math.min(2 + Math.floor(stage / 2), INSECT_TYPES.length);
+      return INSECT_TYPES.slice(0, count);
     }
 
-    function spawnSpecialVehicle() {
-      const types = ['aviao', 'carro', 'moto'];
-      vehicleType = types[Math.floor(Math.random() * types.length)];
-      const groundY = getGroundY();
-      specialVehicle = {
-        x: player.x + 300,
-        y: groundY - 40,
-        width: 45,
-        height: 30,
-        type: vehicleType,
-        active: true
-      };
-      playSound('powerup');
-      speakText(`Veículo especial ${vehicleType} apareceu!`);
-    }
-
-    function closeAllPanels() {
-      panelStageStart.style.display = "none";
-      panelGameOver.style.display = "none";
-      panelVictory.style.display = "none";
-      panelYtPromo.style.display = "none";
-      panelYtReturn.style.display = "none";
-      panelKeyConfig.style.display = "none";
-      panelPixOverlay.style.display = "none";
-      panelCommentsOverlay.style.display = "none";
-      panelCheatStage.style.display = "none";
-      panelBossAccept.style.display = "none";
-      panelBossQuiz.style.display = "none";
-      isPausedForConfig = false;
-    }
-
-    function openYoutubeChannel() {
-      window.open("https://www.youtube.com/@DoutorChacara", "_blank");
-    }
-
-    function openPixOverlay() {
-      closeAllPanels();
-      panelPixOverlay.style.display = "flex";
-      isPausedForConfig = true;
-    }
-
-    function copyPixKey() {
-      navigator.clipboard.writeText("jhonemercadopago2023@gmail.com");
-      alert("Chave Pix copiada com sucesso!");
-    }
-
-    function openCommentsOverlay() {
-      closeAllPanels();
-      panelCommentsOverlay.style.display = "flex";
-      isPausedForConfig = true;
-    }
-
-    function loadAndRenderComments() {
-      const stored = localStorage.getItem("dr_chacara_comments") || "[]";
-      const comments = JSON.parse(stored);
-      if (comments.length === 0) {
-        instantCommentsList.innerHTML = `<div class="instant-item">Nenhum comentário enviado ainda.</div>`;
-        return;
-      }
-      instantCommentsList.innerHTML = comments.map(c => `
-        <div class="instant-item">
-          <strong>${c.author}:</strong> ${c.text}
-        </div>
-      `).join('');
-    }
-
-    function saveNewComment() {
-      const authorInput = document.getElementById("comm-author");
-      const textInput = document.getElementById("comm-text");
-      const author = authorInput.value.trim() || "Anônimo";
-      const text = textInput.value.trim();
-
-      if (!text) { alert("Digite sua mensagem antes de enviar!"); return; }
-
-      const stored = localStorage.getItem("dr_chacara_comments") || "[]";
-      const comments = JSON.parse(stored);
-      comments.unshift({ author, text });
-      localStorage.setItem("dr_chacara_comments", JSON.stringify(comments.slice(0, 30)));
-
-      textInput.value = "";
-      alert("Comentário enviado e adicionado ao jogo!");
-      loadAndRenderComments();
-      closeAllPanels();
-    }
-
-    window.addEventListener("storage", loadAndRenderComments);
-    loadAndRenderComments();
-
-    function takeScreenshot() {
-      const dataURL = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.download = `doutor-chacara-print-${Date.now()}.png`;
-      link.href = dataURL;
-      link.click();
-    }
-
-    function toggleMusic() {
-      isMusicEnabled = !isMusicEnabled;
-      const btn = document.getElementById("btn-toggle-music");
-      if (isMusicEnabled) {
-        btn.innerText = "🎵 Música: ON";
-        btn.classList.remove("off");
-        startBackgroundMusic();
-      } else {
-        btn.innerText = "🔇 Música: OFF";
-        btn.classList.add("off");
-        stopBackgroundMusic();
-      }
-    }
-
-    function toggleVoice() {
-      isVoiceEnabled = !isVoiceEnabled;
-      const btn = document.getElementById("btn-toggle-voice");
-      if (isVoiceEnabled) {
-        btn.innerText = "🔊 Voz: ON";
-        btn.classList.remove("off");
-      } else {
-        btn.innerText = "🔇 Voz: OFF";
-        btn.classList.add("off");
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-      }
-    }
-
-    // CHEAT MENU
-    function openCheatMenu() {
-      closeAllPanels();
-      const select = document.getElementById("cheat-stage-select");
-      select.innerHTML = "";
-      for (let i = 1; i <= maxStages; i++) {
-        const opt = document.createElement("option");
-        opt.value = i;
-        opt.innerText = `Fase ${i} ${i % 5 === 0 ? '(Semi-Mestre)' : ''}`;
-        if (i === currentStage) opt.selected = true;
-        select.appendChild(opt);
-      }
-      panelCheatStage.style.display = "flex";
-      isPausedForConfig = true;
-    }
-
-    function jumpToSelectedStage() {
-      const select = document.getElementById("cheat-stage-select");
-      currentStage = parseInt(select.value);
-      closeAllPanels();
-      prepareStage();
-    }
-
-    // TECLADO BIND
-    let keyBinds = { 
-      left: "KeyA", right: "KeyD", up: "KeyW", down: "KeyS", 
-      jump: "Space", jump2: "KeyO", attack: "KeyU", shield: "KeyI" 
-    };
-
-    function loadSavedKeyBinds() {
-      const saved = localStorage.getItem("dr_chacara_keybinds_v24");
-      if (saved) {
-        try { keyBinds = Object.assign(keyBinds, JSON.parse(saved)); } catch(e){}
-      }
-    }
-    loadSavedKeyBinds();
-
-    function saveKeyBinds() {
-      localStorage.setItem("dr_chacara_keybinds_v24", JSON.stringify(keyBinds));
-    }
-    
-    let listeningKeyAction = null;
-
-    function updateKeyButtonsUI() {
-      for (let act in keyBinds) {
-        const btn = document.getElementById(`bind-${act}-btn`);
-        if (btn) btn.innerText = keyBinds[act];
-      }
-    }
-
+    // AUDIO SYNTHESIZER (SEM DIREITOS AUTORAIS)
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let bgMusicTimer = null;
-    let bgMusicNoteIndex = 0;
+    let currentMusicType = 'normal'; // 'normal', 'suspense'
 
-    const stageScales = [
-      [261.63, 293.66, 329.63, 349.23, 392.00, 440.00],
-      [293.66, 329.63, 369.99, 392.00, 440.00, 493.88],
-      [329.63, 369.99, 392.00, 440.00, 493.88, 523.25],
-      [349.23, 392.00, 440.00, 466.16, 523.25, 587.33],
-      [392.00, 440.00, 493.88, 523.25, 587.33, 659.25]
-    ];
+    function playNote(freq, type, duration, vol=0.1) {
+      if (!isMusicEnabled || audioCtx.state === 'suspended') return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + duration);
+    }
 
-    function startBackgroundMusic() {
-      if (!isMusicEnabled || bgMusicTimer) return;
-      
+    function startBackgroundMusic(type = 'normal') {
+      stopBackgroundMusic();
+      currentMusicType = type;
+      if (!isMusicEnabled) return;
+
+      let step = 0;
       bgMusicTimer = setInterval(() => {
-        if (!isMusicEnabled || gameOver || !stageStarted || isPausedForConfig) return;
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = (currentStage % 2 === 0) ? 'triangle' : 'sine';
-        
-        const scale = stageScales[(currentStage - 1) % stageScales.length];
-        const note = scale[bgMusicNoteIndex % scale.length];
-        bgMusicNoteIndex++;
-
-        osc.frequency.setValueAtTime(note, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.002, audioCtx.currentTime + 0.35);
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.35);
-      }, 350);
+        if (!stageStarted || gameOver) return;
+        if (currentMusicType === 'suspense') {
+          // TRILHA DE SUSPENSE PARA O SEMI-MESTRE (MEDO)
+          const suspenseNotes = [110, 116.54, 110, 103.83]; // A2, A#2, A2, G#2
+          playNote(suspenseNotes[step % suspenseNotes.length], 'sawtooth', 0.5, 0.25);
+        } else {
+          // TRILHA NORMAL DA CHÁCARA
+          const normalNotes = [261.63, 329.63, 392.00, 523.25];
+          playNote(normalNotes[step % normalNotes.length], 'sine', 0.3, 0.08);
+        }
+        step++;
+      }, currentMusicType === 'suspense' ? 250 : 350);
     }
 
     function stopBackgroundMusic() {
-      if (bgMusicTimer) {
-        clearInterval(bgMusicTimer);
-        bgMusicTimer = null;
-      }
+      if (bgMusicTimer) { clearInterval(bgMusicTimer); bgMusicTimer = null; }
     }
 
-    function playSound(type) {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      if (type === 'jump') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(750, audioCtx.currentTime + 0.3);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-      } else if (type === 'attack') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-      } else if (type === 'hitTarget') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.25);
-        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.25);
-      } else if (type === 'hitWrong') {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-      } else if (type === 'powerup') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.2);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-      } else if (type === 'ufo') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 1.5);
-        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
-        osc.start(); osc.stop(audioCtx.currentTime + 1.5);
-      } else if (type === 'dart') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(300, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-      } else if (type === 'block') {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-      }
+    function playVictoryMusic() {
+      stopBackgroundMusic();
+      if (!isMusicEnabled) return;
+      // MUSICA DE ALEGRIA ALTA
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, i) => {
+        setTimeout(() => playNote(freq, 'triangle', 0.4, 0.3), i * 150);
+      });
     }
 
-    function speakText(text, onEndCallback) {
-      if (!isVoiceEnabled) {
-        if (onEndCallback) setTimeout(onEndCallback, 3000);
-        return;
-      }
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'pt-BR';
-        utterance.rate = 1.0;
-        if (onEndCallback) {
-          utterance.onend = onEndCallback;
-        }
-        window.speechSynthesis.speak(utterance);
-      } else if (onEndCallback) {
-        setTimeout(onEndCallback, 3000);
-      }
-    }
-
-    function toggleFullScreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        document.exitFullscreen().catch(() => {});
-      }
-    }
-
-    // VARIÁVEIS DO JOGO
     let currentStage = 1;
-    const maxStages = 27;
+    const maxStages = 26;
     let score = 0;
     let gameOver = false;
     let stageStarted = false;
-    let stageMissionText = "";
-    let walkCycle = 0;
-    let sunAngle = 0;
-    let gameTimerSeconds = 0;
+    let playerLives = 3;
 
-    let roadColors = { main: "#8B4513", accent: "#5C2E0B", edge: "#2e7d32" };
-    let pitHole = { x: 0, width: 0, active: false };
-
-    let collisionAnimationActive = false;
-    let collisionAnimTimer = 0;
-    let playerSpeechBubble = "";
-    let enemySpeechBubble = "";
-    let mockingEnemy = null;
-
-    const positiveFrases = [
-      "Vou ficar mais atento!",
-      "Cada erro é um aprendizado!",
-      "Não desisto, vou conseguir!",
-      "Atenção dobrada na próxima!",
-      "A prática leva à perfeição!"
-    ];
-
-    let isIntroPlaying = false;
-    let ufoState = { x: -100, y: 50, beamOpacity: 0, playerY: -100, step: 0 };
-
-    function skipIntro() {
-      if (isIntroPlaying) {
-        isIntroPlaying = false;
-        stageStarted = true;
-        startBackgroundMusic();
-        player.x = 100; player.y = getGroundY() - player.height;
-        const currentRule = getRuleForStage(currentStage);
-        speakText(`${currentRule.title}. ${currentRule.instruction}`);
-      }
-    }
-
-    function getGroundY() {
-      return canvas.height - 80;
-    }
+    function getGroundY() { return canvas.height - 80; }
 
     const player = {
       x: 50, y: 280, width: 33, height: 71.5,
       vx: 0, vy: 0, speed: 4.5, friction: 0.82,
-      grounded: false, crouching: false, facing: 'right', aimingUp: false,
-      attacking: false, attackTimer: 0, attackMaxTime: 12,
-      hasImmunityColor: false,
-      shieldPowerUp: false,
-      bigShieldActive: false,
-      isKnockedDown: false
+      grounded: false, facing: 'right', attacking: false
     };
 
-    function triggerPlayerJump() {
-      if ((player.grounded || isUsingVehicle) && stageStarted && !gameOver && !isPausedForConfig && !player.isKnockedDown) {
-        player.vy = isUsingVehicle ? -8 : -12;
-        player.grounded = false;
-        playSound('jump');
-      }
+    let enemies = [];
+    let bossEnemy = null;
+    let bossActive = false;
+
+    function closeAllPanels() {
+      panelStageStart.style.display = "none";
+      panelGameOver.style.display = "none";
+      panelYtPromo.style.display = "none";
     }
-
-    const gravity = 0.65;
-    const weapon = { x: 0, y: 0, length: 0, baseMaxLength: 70 };
-    const aerialSymbols = ['plane', 'helicopter', 'balloon', 'rocket', 'ufo_mini', 'bird', 'dragon', 'blimp'];
-    const darts = [];
-
-    const stageRules = {
-      1: {
-        title: "FASE 1: LETRAS MINÚSCULAS",
-        instruction: "ATENÇÃO: Destrua APENAS as letras MINÚSCULAS (a-f)!",
-        isValid: (char) => char === char.toLowerCase() && isNaN(char),
-        generateChar: () => ['A','B','C','D','E','F','a','b','c','d','e','f'][Math.floor(Math.random() * 12)]
-      },
-      2: {
-        title: "FASE 2: NÚMEROS PARES",
-        instruction: "ATENÇÃO: Destrua APENAS os NÚMEROS PARES!",
-        isValid: (char) => !isNaN(char) && parseInt(char) % 2 === 0,
-        generateChar: () => ['1','2','3','4','5','6','7','8','9'][Math.floor(Math.random() * 9)]
-      }
-    };
-
-    function getRuleForStage(stage) {
-      if (stageRules[stage]) return stageRules[stage];
-      if (stage === maxStages) {
-        return {
-          title: "FASE 27: O DESAFIO FINAL DO TIGRE",
-          instruction: "ATENÇÃO: Destrua APENAS as VOGAIS para VENCER O JOGO!",
-          isValid: (char) => ['A','E','I','O','U'].includes(char.toUpperCase()),
-          generateChar: () => ['A','B','E','F','I','K','O','P','U'][Math.floor(Math.random() * 9)]
-        };
-      }
-      return {
-        title: `FASE ${stage}: DESAFIO DE VOGAIS`,
-        instruction: "ATENÇÃO: Destrua APENAS as VOGAIS!",
-        isValid: (char) => ['A','E','I','O','U'].includes(char.toUpperCase()),
-        generateChar: () => ['A','B','E','F','I','K','O','P','U'][Math.floor(Math.random() * 9)]
-      };
-    }
-
-    const enemies = [];
-    let aerialVehicle = { x: -100, y: 80, speed: 1.5, type: 'plane' };
 
     function prepareStage() {
-      enemies.length = 0;
-      darts.length = 0;
-      schoolItems.length = 0;
-      closeAllPanels();
-      bossActive = false;
-      bossState = "none";
+      enemies = [];
       bossEnemy = null;
-      isUsingVehicle = false;
-      specialVehicle = null;
-      player.isKnockedDown = false;
+      bossActive = false;
+      closeAllPanels();
 
       const groundY = getGroundY();
+      const availableInsects = getInsectsForStage(currentStage);
 
-      if (currentStage <= 20) {
-        const itemIcons = ['📖', '✏️', '📝', '🧹'];
-        for (let k = 0; k < 4; k++) {
-          schoolItems.push({
-            x: 220 + k * 180 + Math.random() * 50,
-            y: groundY - 25, width: 22, height: 22, icon: itemIcons[k % itemIcons.length], active: true
-          });
-        }
-      }
-
+      // FASE DO SEMI-MESTRE (A CADA 5 FASES)
       if (currentStage % 5 === 0) {
         bossActive = true;
-        bossState = "approaching";
-        const bossCharIndex = (currentStage / 5) - 1;
-        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        currentBossChar = alphabet[bossCharIndex % alphabet.length];
-
-        stageTitle.innerText = `FASE ${currentStage}: BATALHA DO SEMI-MESTRE ${currentBossChar}`;
-        stageInstruction.innerText = `Vença o Semi-Mestre ${currentBossChar} no desafio de perguntas!`;
+        const bossInsect = availableInsects[Math.floor(Math.random() * availableInsects.length)];
         
-        const topRecord = getTopScores()[0] || { name: 'Ninguém', score: 0 };
-        stageScoreInfo.innerHTML = `Pontuação Atual: <strong>${score}</strong> | Vidas: <strong>❤️ x${playerLives}</strong><br>Recorde do Jogo: <strong>${topRecord.score}</strong> (${topRecord.name})`;
-        panelStageStart.style.display = "flex";
-
-        player.x = 100;
-        player.y = groundY - player.height;
+        // TAMANHO 4 VEZES MAIOR QUE O JOGADOR
+        const bossW = player.width * 4;
+        const bossH = player.height * 4;
 
         bossEnemy = {
-          x: canvas.width + 50,
-          y: groundY - 143,
-          width: 66,
-          height: 143,
-          symbol: currentBossChar,
-          speed: 2.0,
-          alive: true,
-          isKnockedDown: false,
-          speechText: ""
+          x: canvas.width - bossW - 50,
+          y: groundY - bossH,
+          width: bossW,
+          height: bossH,
+          insect: bossInsect,
+          hp: 10,
+          alive: true
         };
-        return;
-      }
 
-      const currentRule = getRuleForStage(currentStage);
-      stageMissionText = currentRule.instruction;
-      stageStarted = false;
-
-      if (currentStage === maxStages) {
-        bgImageCurrent = bgImageTiger;
-      } else if (currentStage % 2 === 0) {
-        bgImageCurrent = bgImageDefault;
+        stageTitle.innerText = `FASE ${currentStage}: SEMI-MESTRE ${bossInsect.name.toUpperCase()} GIGANTE!`;
+        stageInstruction.innerText = "Cuidado! Encare o inseto gigante da chácara!";
+        startBackgroundMusic('suspense');
       } else {
-        const randomImgUrl = gamingBackgrounds[((currentStage - 1) / 2) % gamingBackgrounds.length];
-        bgImageCurrent = new Image();
-        bgImageCurrent.src = randomImgUrl;
+        stageTitle.innerText = `FASE ${currentStage}: PRAGAS DA CHÁCARA`;
+        stageInstruction.innerText = "Limpe a chácara eliminando todos os insetos!";
+        
+        const count = 4 + currentStage;
+        for (let i = 0; i < count; i++) {
+          const ins = availableInsects[i % availableInsects.length];
+          enemies.push({
+            x: 350 + i * 120,
+            y: groundY - ins.size,
+            width: ins.size,
+            height: ins.size,
+            insect: ins,
+            speed: 1.2 + (currentStage * 0.1),
+            dir: -1,
+            alive: true
+          });
+        }
+        startBackgroundMusic('normal');
       }
 
-      const mainEarthColors = ["#8B4513", "#A0522D", "#6B4226", "#B8860B", "#795548", "#5D4037"];
-      const accentEarthColors = ["#5C2E0B", "#5C3A21", "#4A2E1B", "#8B6508", "#4E342E", "#3E2723"];
-      const edgeGrassColors = ["#2e7d32", "#388e3c", "#1b5e20", "#43a047", "#2e7d32", "#1b5e20"];
-
-      const colorIdx = (currentStage - 1) % mainEarthColors.length;
-      roadColors = {
-        main: mainEarthColors[colorIdx],
-        accent: accentEarthColors[colorIdx],
-        edge: edgeGrassColors[colorIdx]
-      };
-
-      if (currentStage % 2 !== 0) {
-        pitHole = { x: 320 + Math.random() * 160, width: 80 + Math.random() * 40, active: true };
-      } else {
-        pitHole = { x: 0, width: 0, active: false };
-      }
-
-      stageTitle.innerText = currentRule.title;
-      stageInstruction.innerText = currentRule.instruction;
-      
-      const topRecord = getTopScores()[0] || { name: 'Ninguém', score: 0 };
-      stageScoreInfo.innerHTML = `Pontuação Atual: <strong>${score}</strong> | Vidas: <strong>❤️ x${playerLives}</strong><br>Recorde do Jogo: <strong>${topRecord.score}</strong> (${topRecord.name})`;
-      
+      stageScoreInfo.innerHTML = `Pontos: <strong>${score}</strong> | Vidas: <strong>❤️ x${playerLives}</strong>`;
       panelStageStart.style.display = "flex";
-
-      if (currentStage > 1) {
-        const symbolType = aerialSymbols[(currentStage - 2) % aerialSymbols.length];
-        aerialVehicle = { x: -80, y: 60 + Math.random() * 40, speed: 1.2 + Math.random() * 0.8, type: symbolType };
-      }
-
-      const count = 4 + Math.floor(currentStage * 0.5);
-      
-      for (let i = 0; i < count; i++) {
-        const charSymbol = currentRule.generateChar();
-        let spawnX = 450 + i * 150 + Math.random() * 30;
-        if (pitHole.active && spawnX > pitHole.x - 30 && spawnX < pitHole.x + pitHole.width + 30) {
-          spawnX += pitHole.width + 40;
-        }
-
-        const isPurpleSpecial = (currentStage >= 4 && i === 0);
-
-        enemies.push({
-          x: spawnX, y: groundY - 55, width: 40, height: 55,
-          speed: 1.4 + (currentStage * 0.1), alive: true,
-          symbol: charSymbol, isTarget: currentRule.isValid(charSymbol),
-          dir: -1, expression: 'normal', mockOffset: 0,
-          isPurple: isPurpleSpecial,
-          shootCooldown: Math.floor(Math.random() * 100) + 100
-        });
-      }
-    }
-
-    function initBossQuizMenu() {
-      bossQuizIndex = 0;
-      const shuffled = [...portugueseQuestionsBank].sort(() => 0.5 - Math.random());
-      bossQuizQuestions = shuffled.slice(0, 5);
-      renderBossQuizQuestion();
-    }
-
-    function renderBossQuizQuestion() {
-      if (bossQuizIndex >= 5) {
-        // VITÓRIA NO DESAFIO DO SEMI-MESTRE
-        closeAllPanels();
-        bossEnemy.speechText = "";
-        speakText("sou um campeao e vou seguir em frente ate o final");
-        playerSpeechBubble = "sou um campeao e vou seguir em frente ate o final";
-        bossState = "player_walking_defeat";
-        return;
-      }
-
-      const q = bossQuizQuestions[bossQuizIndex];
-      document.getElementById("boss-quiz-title").innerText = `PERGUNTA ${bossQuizIndex + 1} DE 5`;
-      document.getElementById("boss-quiz-question").innerText = q.q;
-
-      const optsContainer = document.getElementById("boss-quiz-options");
-      optsContainer.innerHTML = "";
-
-      q.options.forEach(opt => {
-        const btn = document.createElement("button");
-        btn.className = "quiz-opt-btn";
-        btn.innerText = opt;
-        btn.onclick = () => selectQuizAnswer(opt);
-        optsContainer.appendChild(btn);
-      });
-
-      speakText(q.q);
-      panelBossQuiz.style.display = "flex";
-    }
-
-    function selectQuizAnswer(selectedOption) {
-      const q = bossQuizQuestions[bossQuizIndex];
-      if (selectedOption === q.correctText) {
-        playSound('powerup');
-        addScore(200);
-        bossQuizIndex++;
-        renderBossQuizQuestion();
-      } else {
-        // ERROU UMA PERGUNTA
-        playSound('hitWrong');
-        playerLives--;
-
-        if (playerLives <= 0) {
-          closeAllPanels();
-          bossState = "boss_walking_defeat";
-          bossEnemy.speechText = "estude mais e tente novamente me vencer";
-          speakText("estude mais e tente novamente me vencer");
-        } else {
-          speakText(`Resposta incorreta! Você perdeu uma vida. Vidas restantes: ${playerLives}`);
-          renderBossQuizQuestion();
-        }
-      }
-    }
-
-    function acceptBossChallenge() {
-      panelBossAccept.style.display = "none";
-      bossState = "retreating";
-      bossEnemy.speechText = "";
-      speakText("Desafio aceito! Responda as 5 perguntas!");
-    }
-
-    function declineBossChallenge() {
-      panelBossAccept.style.display = "none";
-      playerLives--;
-      playSound('hitWrong');
-
-      if (playerLives <= 0) {
-        bossState = "boss_walking_defeat";
-        bossEnemy.speechText = "estude mais e tente novamente me vencer";
-        speakText("estude mais e tente novamente me vencer");
-      } else {
-        speakText(`Você recusou o desafio e perdeu 1 vida! Vidas restantes: ${playerLives}`);
-        bossState = "approaching";
-        bossEnemy.x = canvas.width + 50;
-      }
     }
 
     function startStage() {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
       closeAllPanels();
-      
-      if (bossActive) {
-        stageStarted = true;
-        bossState = "approaching";
-        return;
-      }
-
-      if (currentStage === 1) {
-        isIntroPlaying = true;
-        ufoState = { x: -100, y: 80, beamOpacity: 0, playerY: 80, step: 0 };
-        playSound('ufo');
-        speakText("Doutor Chácara foi trazido pelo Disco Voador. Prepare-se!");
-      } else {
-        stageStarted = true;
-        startBackgroundMusic();
-        const currentRule = getRuleForStage(currentStage);
-        speakText(`${currentRule.title}. ${currentRule.instruction}`);
-      }
+      stageStarted = true;
     }
 
     btnStartAction.addEventListener("click", startStage);
-    btnSaveScore.addEventListener("click", saveScoreAndRestart);
-
-    setInterval(() => {
-      if (stageStarted && !gameOver && !isIntroPlaying && !isPausedForConfig) {
-        gameTimerSeconds++;
-      }
-    }, 1000);
-
-    function openKeyConfig() {
-      closeAllPanels();
-      updateKeyButtonsUI();
-      panelKeyConfig.style.display = "flex";
-      isPausedForConfig = true;
-    }
-    
-    function closeKeyConfig() { 
-      saveKeyBinds();
-      panelKeyConfig.style.display = "none"; 
-      isPausedForConfig = false;
-    }
-    
-    function listenKeyChange(action) {
-      listeningKeyAction = action;
-      const btn = document.getElementById(`bind-${action}-btn`);
-      btn.innerText = "Pressione uma tecla...";
-    }
-
-    // CAPTURA DO TECLADO
-    window.addEventListener("keydown", (e) => {
-      if (e.key.length === 1) {
-        cheatBuffer += e.key.toLowerCase();
-        if (cheatBuffer.length > 20) cheatBuffer = cheatBuffer.slice(-20);
-        if (cheatBuffer.includes("fasedoutor")) {
-          cheatBuffer = "";
-          openCheatMenu();
-          return;
-        }
-      }
-
-      if (panelYtPromo.style.display === "flex" && e.code === "Enter") {
-        handleYtAnswer('continuar');
-        return;
-      }
-
-      if (listeningKeyAction) {
-        keyBinds[listeningKeyAction] = e.code;
-        document.getElementById(`bind-${listeningKeyAction}-btn`).innerText = e.code;
-        listeningKeyAction = null;
-        saveKeyBinds();
-        return;
-      }
-      keys[e.code] = true;
-    });
-
-    function openYoutubePromo() {
-      closeAllPanels();
-      document.getElementById("yt-feedback-msg").innerText = "";
-
-      const btnContinue = document.getElementById("btn-continue-game");
-      if (currentStage > 20) {
-        btnContinue.style.display = "none";
-      } else {
-        btnContinue.style.display = "inline-block";
-      }
-
-      panelYtPromo.style.display = "flex";
-      speakText("Fase concluída! Se inscreva no canal do Doutor Chácara ou aperte Enter para continuar!");
-    }
-
-    function handleYtAnswer(option) {
-      const msgBox = document.getElementById("yt-feedback-msg");
-      if (option === 'inscrever') {
-        window.open("https://www.youtube.com/@DoutorChacara", "_blank");
-        closeAllPanels();
-        panelYtReturn.style.display = "flex";
-        isPausedForConfig = true;
-      } else if (option === 'sim') {
-        msgBox.innerText = "Muito obrigado por fazer parte do nosso canal! 💙";
-        speakText("Muito obrigado por fazer parte do nosso canal!");
-        setTimeout(() => { closeAllPanels(); advanceToNextStage(); }, 1500);
-      } else if (option === 'continuar') {
-        closeAllPanels();
-        advanceToNextStage();
-      }
-    }
-
-    function resumeGameFromYt() {
-      closeAllPanels();
-      advanceToNextStage();
-    }
-
-    function advanceToNextStage() {
-      currentStage++; player.x = 20;
-      prepareStage();
-    }
-
-    function showVictoryOverlay() {
-      stopBackgroundMusic();
-      stageStarted = false;
-      closeAllPanels();
-      
-      speakText("Parabéns! Você zerou a Fase 27! O Doutor Chácara agradece e te parabeniza por esta grande vitória!");
-      panelVictory.style.display = "flex";
-    }
-
-    function saveVictoryScore() {
-      const winnerNameInput = document.getElementById("winner-name");
-      const name = winnerNameInput.value.trim() || "Campeão Absoluto";
-      
-      const scores = getTopScores();
-      scores.push({ name: `🏆 ${name}`, score: score + 10000 });
-      scores.sort((a, b) => b.score - a.score);
-      localStorage.setItem("dr_chacara_scores", JSON.stringify(scores));
-
-      alert("Recorde imortalizado no placar para sempre!");
-      resetGame();
-    }
-
-    function getTopScores() {
-      const data = localStorage.getItem("dr_chacara_scores");
-      return data ? JSON.parse(data) : [];
-    }
-
-    function renderLeaderboard() {
-      const scores = getTopScores();
-      leaderboardList.innerHTML = scores.map((s, i) => `
-        <div class="leaderboard-item">
-          <span>#${i+1} ${s.name}</span>
-          <span>${s.score} pts</span>
-        </div>
-      `).join('') || '<div>Nenhum recorde ainda!</div>';
-    }
-
-    function saveScoreAndRestart() {
-      const name = playerNameInput.value.trim() || "Jogador";
-      const scores = getTopScores();
-      scores.push({ name: name, score: score });
-      scores.sort((a, b) => b.score - a.score);
-      localStorage.setItem("dr_chacara_scores", JSON.stringify(scores));
-
-      resetGame();
-    }
-
-    function triggerGameOverSequence(enemyRef, reason) {
-      playerLives--;
-
-      if (playerLives > 0) {
-        playSound('hitWrong');
-        speakText(`Você perdeu uma vida! Restam ${playerLives} vidas.`);
-        player.x = 50;
-        player.y = getGroundY() - player.height;
-        player.vx = 0; player.vy = 0;
-        player.isKnockedDown = false;
-        return;
-      }
-
-      collisionAnimationActive = true;
-      collisionAnimTimer = 0;
-      mockingEnemy = enemyRef;
-      
-      playerSpeechBubble = positiveFrases[Math.floor(Math.random() * positiveFrases.length)];
-      enemySpeechBubble = enemyRef ? "Você não consegue me vencer! Kkkk" : "Cuidado com o perigo!";
-      
-      playSound('hitWrong');
-      speakText(playerSpeechBubble);
-
-      let animInterval = setInterval(() => {
-        collisionAnimTimer += 0.2;
-        if (mockingEnemy) mockingEnemy.mockOffset = Math.sin(collisionAnimTimer * 5) * 8;
-        
-        if (collisionAnimTimer >= 3.5) {
-          clearInterval(animInterval);
-          collisionAnimationActive = false;
-          gameOver = true;
-          stopBackgroundMusic();
-          closeAllPanels();
-          document.getElementById("game-over-reason").innerText = reason;
-          finalScoreTxt.innerText = score;
-          renderLeaderboard();
-          panelGameOver.style.display = "flex";
-        }
-      }, 50);
-    }
-
-    const joyZone = document.getElementById("joystick-zone");
-    const joyStick = document.getElementById("joystick-stick");
-    let joyActive = false;
-    let joyVector = { x: 0, y: 0 };
-
-    joyZone.addEventListener("pointerdown", (e) => { joyActive = true; updateJoystick(e); });
-    window.addEventListener("pointermove", (e) => { if (joyActive) updateJoystick(e); });
-    window.addEventListener("pointerup", () => {
-      joyActive = false; joyVector = { x: 0, y: 0 };
-      joyStick.style.top = "35px"; joyStick.style.left = "35px";
-    });
-
-    function updateJoystick(e) {
-      const rect = joyZone.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      let dx = e.clientX - centerX;
-      let dy = e.clientY - centerY;
-      const dist = Math.hypot(dx, dy);
-      const maxDist = 40;
-
-      if (dist > maxDist) {
-        dx = (dx / dist) * maxDist;
-        dy = (dy / dist) * maxDist;
-      }
-
-      joyStick.style.left = `${35 + dx}px`;
-      joyStick.style.top = `${35 + dy}px`;
-
-      joyVector.x = dx / maxDist;
-      joyVector.y = dy / maxDist;
-    }
-
-    document.getElementById("touch-jump").addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      triggerPlayerJump();
-    });
-
-    document.getElementById("touch-attack").addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      if (!player.attacking && stageStarted && !gameOver && !isPausedForConfig) {
-        player.attacking = true; player.attackTimer = player.attackMaxTime;
-        playSound('attack');
-      }
-    });
-
-    const touchShieldBtn = document.getElementById("touch-shield");
-    touchShieldBtn.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      if (stageStarted && !gameOver && !isPausedForConfig) player.bigShieldActive = true;
-    });
-    touchShieldBtn.addEventListener("pointerup", (e) => {
-      e.preventDefault();
-      player.bigShieldActive = false;
-    });
-    touchShieldBtn.addEventListener("pointerleave", (e) => {
-      e.preventDefault();
-      player.bigShieldActive = false;
-    });
-
-    function resetGame() {
-      gameOver = false; score = 0; currentStage = 1; gameTimerSeconds = 0;
-      playerLives = 3; nextExtraLifeScore = 10000; nextVehicleScore = 10000;
-      schoolItemsCollected = 0;
-      player.x = 50; player.y = getGroundY() - player.height; player.vx = 0; player.vy = 0;
-      player.hasImmunityColor = false; player.shieldPowerUp = false; player.bigShieldActive = false; player.isKnockedDown = false;
-      prepareStage();
-    }
-
-    const keys = {};
-    window.addEventListener("keyup", (e) => { keys[e.code] = false; });
-
-    let gamepadState = { x: 0, y: 0, jump: false, attack: false, shield: false };
-
-    function pollGamepad() {
-      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-      let gp = null;
-      for (let i = 0; i < gamepads.length; i++) {
-        if (gamepads[i]) { gp = gamepads[i]; break; }
-      }
-
-      if (gp) {
-        const threshold = 0.2;
-        let axisX = gp.axes[0] || 0;
-        let axisY = gp.axes[1] || 0;
-
-        if (Math.abs(axisX) < threshold) axisX = 0;
-        if (Math.abs(axisY) < threshold) axisY = 0;
-
-        if (gp.buttons[14] && gp.buttons[14].pressed) axisX = -1;
-        if (gp.buttons[15] && gp.buttons[15].pressed) axisX = 1;
-        if (gp.buttons[12] && gp.buttons[12].pressed) axisY = -1;
-        if (gp.buttons[13] && gp.buttons[13].pressed) axisY = 1;
-
-        const btnJump = gp.buttons[0] && gp.buttons[0].pressed;
-        const btnAttack = gp.buttons[1] && gp.buttons[1].pressed;
-        const btnShield = gp.buttons[2] && gp.buttons[2].pressed;
-
-        if (btnJump && !gamepadState.jump) triggerPlayerJump();
-        if (btnAttack && !player.attacking && stageStarted && !gameOver && !isPausedForConfig) {
-          player.attacking = true;
-          player.attackTimer = player.attackMaxTime;
-          playSound('attack');
-        }
-
-        gamepadState = { x: axisX, y: axisY, jump: btnJump, attack: btnAttack, shield: btnShield };
-      } else {
-        gamepadState = { x: 0, y: 0, jump: false, attack: false, shield: false };
-      }
-    }
-
-    function updateIntro() {
-      if (!isIntroPlaying) return;
-      const groundY = getGroundY();
-
-      if (ufoState.step === 0) {
-        ufoState.x += 3;
-        if (ufoState.x >= 100) ufoState.step = 1;
-      } else if (ufoState.step === 1) {
-        ufoState.beamOpacity += 0.05;
-        if (ufoState.beamOpacity >= 1) ufoState.step = 2;
-      } else if (ufoState.step === 2) {
-        ufoState.playerY += 2.5;
-        if (ufoState.playerY >= groundY - player.height) {
-          ufoState.playerY = groundY - player.height;
-          ufoState.step = 3;
-        }
-      } else if (ufoState.step === 3) {
-        ufoState.beamOpacity -= 0.05;
-        if (ufoState.beamOpacity <= 0) {
-          ufoState.x += 4;
-          if (ufoState.x > canvas.width + 100) {
-            isIntroPlaying = false;
-            stageStarted = true;
-            startBackgroundMusic();
-            player.x = 100; player.y = groundY - player.height;
-            const currentRule = getRuleForStage(currentStage);
-            speakText(`${currentRule.title}. ${currentRule.instruction}`);
-          }
-        }
-      }
-    }
 
     function update() {
-      pollGamepad();
+      if (!stageStarted || gameOver) return;
 
-      if (isPausedForConfig) return;
-
-      sunAngle += 0.01;
       const groundY = getGroundY();
 
-      if (currentStage > 1) {
-        aerialVehicle.x += aerialVehicle.speed;
-        if (aerialVehicle.x > canvas.width + 100) aerialVehicle.x = -100;
-      }
+      // MOVIMENTAÇÃO DO JOGADOR
+      player.vx *= player.friction;
+      player.x += player.vx;
+      player.vy += 0.65;
+      player.y += player.vy;
 
-      if (isIntroPlaying) { updateIntro(); return; }
-      if (gameOver || !stageStarted || collisionAnimationActive) return;
-
-      // COMPORTAMENTO SEMI-MESTRE
-      if (bossActive && bossEnemy) {
-        if (bossState === "approaching") {
-          bossEnemy.x -= bossEnemy.speed;
-          if (bossEnemy.x <= player.x + 120) {
-            bossState = "questioning";
-            bossEnemy.speechText = bossSpeechPhrase;
-            speakText(bossSpeechPhrase, () => {
-              if (bossState === "questioning") {
-                panelBossAccept.style.display = "flex";
-              }
-            });
-          }
-          return;
-        }
-
-        if (bossState === "retreating") {
-          bossEnemy.x += bossEnemy.speed * 1.5;
-          if (bossEnemy.x >= canvas.width - 150) {
-            bossState = "quiz_menu";
-            initBossQuizMenu();
-          }
-          return;
-        }
-
-        if (bossState === "boss_walking_defeat") {
-          bossEnemy.x -= bossEnemy.speed * 1.2;
-          
-          if (bossEnemy.x <= player.x + 30) {
-            player.isKnockedDown = true;
-            player.x -= 3; // Empurra o jogador para o lado
-          }
-
-          if (bossEnemy.x < -100) {
-            triggerGameOverSequence(bossEnemy, "estude mais e tente novamente me vencer");
-          }
-          return;
-        }
-
-        if (bossState === "player_walking_defeat") {
-          player.x += player.speed * 1.2;
-          walkCycle += 0.22;
-
-          if (player.x >= bossEnemy.x - 20) {
-            bossEnemy.isKnockedDown = true;
-          }
-
-          if (player.x >= canvas.width + 50) {
-            bossActive = false;
-            stageStarted = false;
-            stopBackgroundMusic();
-            openYoutubePromo();
-          }
-          return;
-        }
-
-        if (bossState === "questioning" || bossState === "quiz_menu") {
-          return;
-        }
-      }
-
-      player.bigShieldActive = !!keys[keyBinds.shield] || gamepadState.shield;
-
-      const moveLeft = keys[keyBinds.left];
-      const moveRight = keys[keyBinds.right];
-      const moveUp = keys[keyBinds.up];
-      const moveDown = keys[keyBinds.down];
-
-      const moveX = joyVector.x || gamepadState.x || (moveRight ? 1 : moveLeft ? -1 : 0);
-      const moveY = joyVector.y || gamepadState.y || (moveDown ? 1 : moveUp ? -1 : 0);
-
-      player.aimingUp = moveY < -0.4;
-      player.crouching = moveY > 0.4 && player.grounded && !isUsingVehicle;
-
-      if (Math.abs(moveX) > 0.2 && !player.crouching && !player.isKnockedDown) {
-        player.vx = moveX * (isUsingVehicle ? 6 : player.speed);
-        player.facing = moveX > 0 ? 'right' : 'left';
-        walkCycle += 0.22;
-      } else {
-        walkCycle = 0;
-      }
-
-      if (isUsingVehicle) {
-        if (moveUp || moveY < -0.4) player.y -= 4;
-        if (moveDown || moveY > 0.4) player.y += 4;
+      if (player.y + player.height >= groundY) {
+        player.y = groundY - player.height;
         player.vy = 0;
-      } else {
-        if ((keys[keyBinds.jump] || keys[keyBinds.jump2]) && player.grounded) {
-          triggerPlayerJump();
-        }
+        player.grounded = true;
       }
 
-      if (keys[keyBinds.attack] && !player.attacking && !player.isKnockedDown) {
-        player.attacking = true; player.attackTimer = player.attackMaxTime;
-        playSound('attack');
-      }
-
-      player.vx *= player.friction; player.x += player.vx;
-      if (!isUsingVehicle) {
-        player.vy += gravity; player.y += player.vy;
-      }
-
-      const pCenterX = player.x + player.width / 2;
-      const isOverPit = pitHole.active && (pCenterX > pitHole.x && pCenterX < pitHole.x + pitHole.width);
-
-      if (!isUsingVehicle) {
-        if (!isOverPit) {
-          if (player.y + player.height >= groundY) {
-            player.y = groundY - player.height; player.vy = 0; player.grounded = true;
-          }
-        } else {
-          player.grounded = false;
-          if (player.y > canvas.height) {
-            triggerGameOverSequence(null, "Você caiu no buraco!");
-            return;
-          }
-        }
-      }
-
-      if (player.x < 0) player.x = 0;
-
-      schoolItems.forEach(item => {
-        if (item.active &&
-            player.x < item.x + item.width && player.x + player.width > item.x &&
-            player.y < item.y + item.height && player.y + player.height > item.y) {
-          
-          item.active = false;
-          schoolItemsCollected++;
-          playSound('powerup');
-
-          if (schoolItemsCollected >= 3) {
-            player.hasImmunityColor = true;
-            speakText("3 Itens Coletados! Doutor Chácara agora tem imunidade!");
-          }
-        }
-      });
-
-      if (specialVehicle && specialVehicle.active) {
-        if (player.x < specialVehicle.x + specialVehicle.width && player.x + player.width > specialVehicle.x &&
-            player.y < specialVehicle.y + specialVehicle.height && player.y + player.height > specialVehicle.y) {
-          
-          specialVehicle.active = false;
-          isUsingVehicle = true;
-          playSound('powerup');
-          speakText(`Você pegou o ${specialVehicle.type}! Agora você pode voar e finalizar a fase!`);
-        }
-      }
-
-      if (player.x + player.width >= canvas.width && !bossActive) {
-        if (currentStage < maxStages) {
-          stageStarted = false;
-          stopBackgroundMusic();
-          openYoutubePromo();
-        } else {
-          showVictoryOverlay();
-        }
-      }
-
-      if (player.attacking) {
-        player.attackTimer--;
-        const maxLen = player.shieldPowerUp ? weapon.baseMaxLength * 1.5 : weapon.baseMaxLength;
-        const progress = 1 - (player.attackTimer / player.attackMaxTime);
-        weapon.length = Math.sin(progress * Math.PI) * maxLen;
-
-        if (player.aimingUp) {
-          weapon.x = player.x + player.width / 2; weapon.y = player.y - weapon.length;
-        } else if (player.crouching) {
-          weapon.y = player.y + player.height - 20;
-          weapon.x = (player.facing === 'right') ? player.x + player.width + weapon.length : player.x - weapon.length;
-        } else {
-          weapon.y = player.y + 25;
-          weapon.x = (player.facing === 'right') ? player.x + player.width + weapon.length : player.x - weapon.length;
-        }
-
-        if (player.attackTimer <= 0) player.attacking = false;
-      }
-
+      // COLISÃO COM INIMIGOS COMUNS
       enemies.forEach(enemy => {
         if (!enemy.alive) return;
-
         enemy.x += enemy.speed * enemy.dir;
-        if (enemy.x < -50) enemy.x = canvas.width + 50;
+        if (enemy.x < 100 || enemy.x > canvas.width - 50) enemy.dir *= -1;
 
-        if (enemy.isPurple) {
-          enemy.shootCooldown--;
-          if (enemy.shootCooldown <= 0) {
-            enemy.shootCooldown = 150 + Math.random() * 80;
-            const dirX = (player.x + player.width/2) < enemy.x ? -1 : 1;
-            darts.push({
-              x: enemy.x + (dirX === -1 ? -10 : enemy.width + 10),
-              y: enemy.y + enemy.height / 2,
-              vx: dirX * 6,
-              active: true
-            });
-            playSound('dart');
-          }
+        // ATAQUE DO JOGADOR
+        if (player.attacking && Math.abs(player.x - enemy.x) < 50) {
+          enemy.alive = false;
+          score += 100;
         }
 
-        if (player.attacking) {
-          const hit = (enemy.x < weapon.x + 25 && enemy.x + enemy.width > weapon.x - 25 &&
-                       enemy.y < weapon.y + 25 && enemy.y + enemy.height > weapon.y - 25);
-          if (hit) {
-            if (enemy.isTarget) {
-              enemy.expression = 'sad';
-              playSound('hitTarget');
-              addScore(500);
-              setTimeout(() => { enemy.alive = false; }, 120);
-            } else {
-              enemy.expression = 'sad';
-              triggerGameOverSequence(enemy, "Você destruiu o elemento incorreto!");
-            }
-          }
-        }
-
-        const padding = 5;
-        const playerBox = { left: player.x + padding, right: player.x + player.width - padding, top: player.y + padding, bottom: player.y + player.height };
-        const enemyBox = { left: enemy.x + padding, right: enemy.x + enemy.width - padding, top: enemy.y + padding, bottom: enemy.y + enemy.height };
-
-        if (enemy.alive &&
-            playerBox.left < enemyBox.right && playerBox.right > enemyBox.left &&
-            playerBox.top < enemyBox.bottom && playerBox.bottom > enemyBox.top) {
-          
-          if (player.hasImmunityColor) {
-            player.hasImmunityColor = false;
-            schoolItemsCollected = 0;
-            enemy.x += 80;
-            playSound('powerup');
-            speakText("Imunidade usada!");
+        // DANO AO JOGADOR
+        if (Math.abs(player.x - enemy.x) < 30 && Math.abs(player.y - enemy.y) < 30) {
+          playerLives--;
+          if (playerLives <= 0) {
+            gameOver = true;
+            panelGameOver.style.display = "flex";
           } else {
-            enemy.expression = 'happy';
-            triggerGameOverSequence(enemy, "A letra encostou em você!");
+            player.x = 50;
           }
         }
       });
 
-      darts.forEach(dart => {
-        if (!dart.active) return;
-        dart.x += dart.vx;
+      // CONCLUIR FASE COMUM
+      if (!bossActive && enemies.every(e => !e.alive)) {
+        stageStarted = false;
+        playVictoryMusic();
+        panelYtPromo.style.display = "flex";
+      }
 
-        const pCenterX = player.x + player.width / 2;
-        const pCenterY = player.y + player.height / 2;
-        const distToPlayer = Math.hypot(dart.x - pCenterX, dart.y - pCenterY);
-
-        if (distToPlayer < player.width + 10) {
-          if (player.bigShieldActive) {
-            dart.active = false;
-            playSound('block');
-            return;
-          }
-
-          if (player.attacking) {
-            const distToWeapon = Math.hypot(dart.x - weapon.x, dart.y - weapon.y);
-            if (distToWeapon < 40) {
-              dart.active = false;
-              playSound('block');
-              return;
-            }
-          }
-
-          dart.active = false;
-          if (player.hasImmunityColor) {
-            player.hasImmunityColor = false;
-            schoolItemsCollected = 0;
-            playSound('powerup');
-            speakText("Imunidade usada!");
-          } else {
-            triggerGameOverSequence(null, "Você foi atingido pelo dardo da letra roxa!");
+      // COMBATE SEMI-MESTRE
+      if (bossActive && bossEnemy && bossEnemy.alive) {
+        if (player.attacking && Math.abs(player.x - bossEnemy.x) < 100) {
+          bossEnemy.hp--;
+          player.attacking = false;
+          if (bossEnemy.hp <= 0) {
+            bossEnemy.alive = false;
+            score += 1000;
+            playVictoryMusic();
+            stageStarted = false;
+            panelYtPromo.style.display = "flex";
           }
         }
-
-        if (dart.x < -50 || dart.x > canvas.width + 50) dart.active = false;
-      });
-    }
-
-    function drawHQComicBubble(x, y, text, isPlayerBubble = false) {
-      if (!text) return;
-      ctx.save();
-      ctx.translate(x, y);
-
-      ctx.font = "bold 12px 'Segoe UI'";
-      const textWidth = ctx.measureText(text).width;
-      const bw = Math.max(textWidth + 30, 140);
-      const bh = 60;
-
-      ctx.fillStyle = "#ffffff";
-      ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 3;
-
-      ctx.beginPath();
-      ctx.ellipse(0, -bh/2, bw/2, bh/2, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.beginPath();
-      if (isPlayerBubble) {
-        ctx.moveTo(10, -5); ctx.lineTo(25, 15); ctx.lineTo(-5, -5);
-      } else {
-        ctx.moveTo(-10, -5); ctx.lineTo(-25, 15); ctx.lineTo(5, -5);
-      }
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = "#000000";
-      ctx.font = "bold 11px 'Segoe UI'";
-      ctx.textAlign = "center";
-      
-      const words = text.split(" ");
-      let line = "";
-      let lines = [];
-      for (let i = 0; i < words.length; i++) {
-        let testLine = line + words[i] + " ";
-        if (ctx.measureText(testLine).width > bw - 20 && i > 0) {
-          lines.push(line);
-          line = words[i] + " ";
-        } else {
-          line = testLine;
-        }
-      }
-      lines.push(line);
-
-      let startY = -bh/2 - ((lines.length - 1) * 6);
-      lines.forEach((l, idx) => {
-        ctx.fillText(l.trim(), 0, startY + (idx * 13));
-      });
-
-      ctx.restore();
-    }
-
-    function drawSpeechBubble(x, y, text, scaleFactor) {
-      ctx.save();
-      ctx.translate(x, y);
-
-      ctx.font = "bold 11px 'Segoe UI'";
-      const textWidth = ctx.measureText(text).width;
-      const bw = Math.max(textWidth + 16, 90) * scaleFactor;
-      const bh = 38 * scaleFactor;
-
-      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-      ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 1.5;
-
-      ctx.beginPath();
-      ctx.roundRect(-bw / 2, -bh - 12, bw, bh, 8);
-      ctx.fill(); ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(-4, -12); ctx.lineTo(0, 0); ctx.lineTo(4, -12);
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = "#000000";
-      ctx.font = `bold ${9 * scaleFactor}px 'Segoe UI'`;
-      ctx.textAlign = "center";
-      ctx.fillText(text, 0, -bh / 2 - 8);
-
-      ctx.restore();
-    }
-
-    function drawAnimatedSun(x, y, radius) {
-      ctx.save();
-      ctx.translate(x, y);
-
-      ctx.strokeStyle = "rgba(255, 204, 0, 0.4)";
-      ctx.lineWidth = 2;
-      const numRays = 12;
-      for (let i = 0; i < numRays; i++) {
-        const angle = sunAngle + (i * Math.PI * 2) / numRays;
-        ctx.beginPath();
-        ctx.moveTo(Math.cos(angle) * (radius + 4), Math.sin(angle) * (radius + 4));
-        ctx.lineTo(Math.cos(angle) * (radius + 16), Math.sin(angle) * (radius + 16));
-        ctx.stroke();
-      }
-
-      const pulse = Math.sin(sunAngle * 3) * 2;
-      ctx.fillStyle = "rgba(255, 204, 0, 0.85)";
-      ctx.beginPath();
-      ctx.arc(0, 0, radius + pulse, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.restore();
-    }
-
-    function drawAerialVehicle(vehicle) {
-      ctx.save();
-      ctx.translate(vehicle.x, vehicle.y);
-      ctx.fillStyle = "#ffffff";
-      ctx.strokeStyle = "#00ffcc";
-      ctx.lineWidth = 1.5;
-
-      if (vehicle.type === 'plane') {
-        ctx.beginPath(); ctx.ellipse(0, 0, 20, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillRect(-4, -14, 6, 28); ctx.fillRect(-18, -8, 5, 10);
-      } else if (vehicle.type === 'helicopter') {
-        ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillRect(-16, -2, 14, 3);
-        const prop = Math.sin(Date.now() * 0.05) * 16; ctx.strokeRect(-prop, -13, prop * 2, 2);
-      } else if (vehicle.type === 'balloon') {
-        ctx.beginPath(); ctx.arc(0, -8, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#ff0055"; ctx.fillRect(-3, 8, 6, 6);
-      } else if (vehicle.type === 'rocket') {
-        ctx.beginPath(); ctx.ellipse(0, 0, 16, 5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#ffcc00"; ctx.fillRect(-20, -2, 6, 4);
-      }
-
-      ctx.restore();
-    }
-
-    function drawShieldWeapon(x, y) {
-      ctx.save();
-      ctx.translate(x, y);
-
-      const w = player.shieldPowerUp ? 42 : 32;
-      const h = player.shieldPowerUp ? 50 : 38;
-      ctx.fillStyle = player.shieldPowerUp ? "#ffcc00" : "#00ffcc";
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2;
-
-      ctx.beginPath();
-      ctx.moveTo(-w/2, -h/2);
-      ctx.lineTo(w/2, -h/2);
-      ctx.lineTo(w/2, 0);
-      ctx.quadraticCurveTo(w/2, h/2, 0, h/2 + 5);
-      ctx.quadraticCurveTo(-w/2, h/2, -w/2, 0);
-      ctx.closePath();
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = "#000000";
-      ctx.font = "bold 9px 'Segoe UI'";
-      ctx.textAlign = "center";
-      ctx.fillText("Dr.", 0, -5);
-      ctx.font = "bold 8px 'Segoe UI'";
-      ctx.fillText("Chácara", 0, 6);
-
-      ctx.restore();
-    }
-
-    function drawBigShieldWithDigitalClock(centerX, centerY) {
-      ctx.save();
-      ctx.translate(centerX, centerY);
-
-      const radius = 60;
-      
-      ctx.fillStyle = "rgba(0, 255, 204, 0.25)";
-      ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.strokeStyle = "rgba(0, 255, 204, 0.9)";
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.fillStyle = "#00ffcc";
-      ctx.font = "bold 11px 'Segoe UI'";
-      ctx.textAlign = "center";
-      ctx.fillText("ESCUDO ESPECIAL", 0, -20);
-
-      const now = new Date();
-      const timeStr = now.toTimeString().split(' ')[0];
-
-      ctx.fillStyle = "#000";
-      ctx.fillRect(-35, -8, 70, 22);
-      ctx.strokeStyle = "#00ffcc";
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(-35, -8, 70, 22);
-
-      ctx.fillStyle = "#ffcc00";
-      ctx.font = "bold 13px monospace";
-      ctx.fillText(timeStr, 0, 8);
-
-      ctx.restore();
-    }
-
-    function drawDrChacaraSide(x, y, facing, crouching) {
-      ctx.save();
-      ctx.translate(x + player.width / 2, y);
-      if (facing === 'left') ctx.scale(-1, 1);
-
-      if (player.isKnockedDown) {
-        ctx.rotate(Math.PI / 2);
-      }
-
-      const leg1Angle = Math.sin(walkCycle) * 0.6;
-      const leg2Angle = Math.sin(walkCycle + Math.PI) * 0.6;
-      const arm1Angle = Math.sin(walkCycle + Math.PI) * 0.5;
-      const arm2Angle = Math.sin(walkCycle) * 0.5;
-
-      const h = crouching ? 50 : 71.5;
-
-      ctx.save();
-      ctx.translate(-3, h - 28);
-      ctx.rotate(leg2Angle);
-      ctx.strokeStyle = "#12121a"; ctx.lineWidth = 5.5; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 14); ctx.stroke();
-      
-      ctx.translate(0, 14);
-      const knee2Angle = Math.max(0, -leg2Angle * 0.8);
-      ctx.rotate(knee2Angle);
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(2, 12); ctx.stroke();
-      
-      ctx.fillStyle = "#1a1a1a";
-      ctx.fillRect(-1, 10, 9, 4);
-      ctx.restore();
-
-      ctx.save();
-      ctx.translate(-2, crouching ? 20 : 24);
-      ctx.rotate(arm2Angle);
-      ctx.strokeStyle = "#f3c099"; ctx.lineWidth = 4.5;
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-2, 14); ctx.stroke();
-      ctx.restore();
-
-      ctx.fillStyle = "#0066cc";
-      ctx.fillRect(-8, crouching ? 18 : 22, 16, 24);
-
-      ctx.fillStyle = player.hasImmunityColor ? "#00ffcc" : "#ffffff";
-      ctx.fillRect(-10, crouching ? 12 : 18, 20, crouching ? 20 : 28);
-
-      ctx.fillStyle = "#f3c099"; ctx.fillRect(-3, 0, 16, 18);
-      ctx.fillStyle = "#111111"; ctx.fillRect(-5, -1, 18, 4);
-      ctx.fillStyle = "#5A5A66"; ctx.fillRect(-6, -7, 20, 7);
-      
-      ctx.strokeStyle = "#000"; ctx.lineWidth = 1.8; ctx.strokeRect(3, 3, 7, 6);
-      ctx.beginPath(); ctx.moveTo(-3, 5); ctx.lineTo(3, 5); ctx.stroke();
-
-      ctx.save();
-      ctx.translate(3, h - 28);
-      ctx.rotate(leg1Angle);
-      ctx.strokeStyle = "#1a1a24"; ctx.lineWidth = 6; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 14); ctx.stroke();
-      
-      ctx.translate(0, 14);
-      const knee1Angle = Math.max(0, -leg1Angle * 0.8);
-      ctx.rotate(knee1Angle);
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(2, 12); ctx.stroke();
-      
-      ctx.fillStyle = "#0a0a0a";
-      ctx.fillRect(-1, 10, 10, 4.5);
-      ctx.restore();
-
-      ctx.save();
-      ctx.translate(3, crouching ? 20 : 24);
-      ctx.rotate(arm1Angle);
-      ctx.strokeStyle = "#f3c099"; ctx.lineWidth = 5; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(3, 14); ctx.stroke();
-      ctx.restore();
-
-      if (isUsingVehicle) {
-        ctx.fillStyle = "#ffcc00";
-        ctx.font = "24px sans-serif";
-        ctx.fillText("✈️", -12, h + 10);
-      }
-
-      ctx.restore();
-    }
-
-    function drawLetterEnemy(enemy) {
-      if (!enemy.alive) return;
-
-      ctx.save();
-      ctx.translate(enemy.x + enemy.width / 2, enemy.y + (enemy.mockOffset || 0));
-
-      const legCycle = Math.sin(Date.now() * 0.01 + enemy.x) * 8;
-
-      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(-6, enemy.height - 8); ctx.lineTo(-6 + legCycle, enemy.height); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(6, enemy.height - 8); ctx.lineTo(6 - legCycle, enemy.height); ctx.stroke();
-
-      if (enemy.isPurple) {
-        ctx.fillStyle = "#a020f0";
-        ctx.shadowColor = "#9370db";
-        ctx.shadowBlur = 8;
-      } else {
-        ctx.fillStyle = enemy.isTarget ? "#00ffcc" : "#ff0055";
-      }
-
-      ctx.font = "bold 40px 'Segoe UI'"; ctx.textAlign = "center";
-      ctx.fillText(enemy.symbol, 0, enemy.height - 10);
-
-      ctx.fillStyle = "#ffffff"; ctx.font = "bold 12px 'Segoe UI'";
-      if (enemy.expression === 'happy') {
-        ctx.fillText(":D", 14, 14);
-      } else if (enemy.expression === 'sad') {
-        ctx.fillText(":(", 14, 14);
-      }
-
-      ctx.restore();
-    }
-
-    function drawBossEnemy(boss) {
-      if (!boss || !boss.alive) return;
-
-      ctx.save();
-      ctx.translate(boss.x + boss.width / 2, boss.y);
-
-      if (boss.isKnockedDown) {
-        ctx.rotate(-Math.PI / 2);
-      }
-
-      const legCycle = Math.sin(Date.now() * 0.015) * 14;
-
-      ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 7; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(-15, boss.height - 20); ctx.lineTo(-15 + legCycle, boss.height); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(15, boss.height - 20); ctx.lineTo(15 - legCycle, boss.height); ctx.stroke();
-
-      ctx.fillStyle = "#ff0055";
-      ctx.shadowColor = "#ff3300";
-      ctx.shadowBlur = 15;
-
-      ctx.font = "bold 110px 'Segoe UI'";
-      ctx.textAlign = "center";
-      ctx.fillText(boss.symbol, 0, boss.height - 20);
-
-      ctx.fillStyle = "#ffcc00";
-      ctx.beginPath();
-      ctx.moveTo(-20, -10); ctx.lineTo(-10, -25); ctx.lineTo(0, -10); ctx.lineTo(10, -25); ctx.lineTo(20, -10);
-      ctx.closePath(); ctx.fill();
-
-      ctx.restore();
-    }
-
-    function drawDarts() {
-      darts.forEach(dart => {
-        if (!dart.active) return;
-        ctx.save();
-        ctx.translate(dart.x, dart.y);
-        ctx.fillStyle = "#a020f0";
-        ctx.strokeStyle = "#ff00ff";
-        ctx.lineWidth = 1.5;
-
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(dart.vx > 0 ? 14 : -14, -3);
-        ctx.lineTo(dart.vx > 0 ? 14 : -14, 3);
-        ctx.closePath();
-        ctx.fill(); ctx.stroke();
-
-        ctx.restore();
-      });
-    }
-
-    function drawDirtRoad() {
-      const groundY = getGroundY();
-
-      ctx.fillStyle = roadColors.edge;
-      ctx.fillRect(0, groundY - 5, canvas.width, 8);
-
-      if (!pitHole.active) {
-        ctx.fillStyle = roadColors.main;
-        ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
-
-        ctx.fillStyle = roadColors.accent;
-        for (let x = 10; x < canvas.width; x += 30) {
-          const waveHeight = ((x * currentStage) % 7) + 2;
-          ctx.fillRect(x, groundY + waveHeight, 14, 3);
-          ctx.fillRect(x + 10, groundY + 22, 8, 3);
-        }
-      } else {
-        ctx.fillStyle = roadColors.main;
-        ctx.fillRect(0, groundY, pitHole.x, canvas.height - groundY);
-
-        ctx.fillRect(pitHole.x + pitHole.width, groundY, canvas.width - (pitHole.x + pitHole.width), canvas.height - groundY);
-
-        ctx.fillStyle = roadColors.accent;
-        for (let x = 10; x < pitHole.x - 10; x += 30) {
-          ctx.fillRect(x, groundY + 4, 14, 3);
-        }
-        for (let x = pitHole.x + pitHole.width + 10; x < canvas.width; x += 30) {
-          ctx.fillRect(x, groundY + 4, 14, 3);
-        }
-
-        ctx.fillStyle = "#080503";
-        ctx.fillRect(pitHole.x, groundY, pitHole.width, canvas.height - groundY);
-
-        ctx.fillStyle = "#221105";
-        ctx.fillRect(pitHole.x - 3, groundY, 3, canvas.height - groundY);
-        ctx.fillRect(pitHole.x + pitHole.width, groundY, 3, canvas.height - groundY);
       }
     }
 
     function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       const groundY = getGroundY();
 
-      if (bgImageCurrent.complete && bgImageCurrent.naturalWidth !== 0) {
-        ctx.drawImage(bgImageCurrent, 0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "rgba(10, 10, 18, 0.4)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      } else {
-        const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        grad.addColorStop(0, "#120826"); grad.addColorStop(0.6, "#7a223b"); grad.addColorStop(1, "#2e1200");
-        ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // CHÃO DA CHÁCARA
+      ctx.fillStyle = "#5C2E0B";
+      ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+
+      // JOGADOR
+      ctx.fillStyle = "#00ffcc";
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+
+      // ESCUDO / ATAQUE
+      if (player.attacking) {
+        ctx.fillStyle = "#ff0055";
+        ctx.fillRect(player.x + (player.facing === 'right' ? player.width : -20), player.y + 20, 20, 20);
       }
 
-      drawAnimatedSun(canvas.width - 110, 110, 36);
-
-      if (currentStage > 1) drawAerialVehicle(aerialVehicle);
-
-      drawDirtRoad();
-
-      schoolItems.forEach(item => {
-        if (item.active) {
-          ctx.font = "20px sans-serif";
-          ctx.fillText(item.icon, item.x, item.y + 18);
-        }
+      // DESENHAR INSECTOS COMUNS
+      enemies.forEach(enemy => {
+        if (!enemy.alive) return;
+        ctx.font = `${enemy.height}px sans-serif`;
+        ctx.fillText(enemy.insect.emoji, enemy.x, enemy.y + enemy.height);
       });
 
-      if (specialVehicle && specialVehicle.active) {
-        ctx.font = "28px sans-serif";
-        const vIcon = specialVehicle.type === 'aviao' ? '✈️' : specialVehicle.type === 'carro' ? '🚗' : '🏍️';
-        ctx.fillText(vIcon, specialVehicle.x, specialVehicle.y + 20);
+      // DESENHAR SEMI-MESTRE GIGANTE
+      if (bossActive && bossEnemy && bossEnemy.alive) {
+        ctx.font = `${bossEnemy.height}px sans-serif`;
+        ctx.fillText(bossEnemy.insect.emoji, bossEnemy.x, bossEnemy.y + bossEnemy.height);
+        
+        // BARRA DE VIDA DO SEMI-MESTRE
+        ctx.fillStyle = "#ff0000";
+        ctx.fillRect(bossEnemy.x, bossEnemy.y - 20, bossEnemy.width, 10);
+        ctx.fillStyle = "#00ff00";
+        ctx.fillRect(bossEnemy.x, bossEnemy.y - 20, (bossEnemy.width * (bossEnemy.hp / 10)), 10);
       }
+    }
 
-      if (isIntroPlaying) {
-        if (ufoState.beamOpacity > 0) {
-          ctx.fillStyle = `rgba(0, 255, 204, ${ufoState.beamOpacity * 0.35})`;
-          ctx.beginPath();
-          ctx.moveTo(ufoState.x - 12, ufoState.y); ctx.lineTo(ufoState.x + 12, ufoState.y);
-          ctx.lineTo(ufoState.x + 35, groundY); ctx.lineTo(ufoState.x - 35, groundY);
-          ctx.closePath(); ctx.fill();
-        }
+    function handleYtAnswer(action) {
+      currentStage++;
+      if (currentStage > maxStages) currentStage = 1;
+      prepareStage();
+    }
 
-        ctx.fillStyle = "#00ffcc"; ctx.beginPath(); ctx.ellipse(ufoState.x, ufoState.y, 30, 10, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(ufoState.x, ufoState.y - 5, 12, 0, Math.PI, true); ctx.fill();
-
-        drawDrChacaraSide(ufoState.x - player.width / 2, ufoState.playerY, 'right', false);
-      } else {
-        drawDrChacaraSide(player.x, player.y, player.facing, player.crouching);
-
-        if (player.bigShieldActive) {
-          drawBigShieldWithDigitalClock(player.x + player.width / 2, player.y + player.height / 2);
-        }
-      }
-
-      if (player.attacking && !isIntroPlaying) {
-        ctx.strokeStyle = "#ff0055"; ctx.lineWidth = 3; ctx.beginPath();
-        ctx.moveTo(player.x + player.width / 2, player.y + 25); ctx.lineTo(weapon.x, weapon.y); ctx.stroke();
-        drawShieldWeapon(weapon.x, weapon.y);
-      }
-
-      enemies.forEach(enemy => drawLetterEnemy(enemy));
-      drawDarts();
-
-      if (bossActive && bossEnemy) {
-        drawBossEnemy(bossEnemy);
-
-        if (bossEnemy.speechText) {
-          drawHQComicBubble(bossEnemy.x + bossEnemy.width / 2, bossEnemy.y - 15, bossEnemy.speechText, false);
-        }
-        if (bossState === "player_walking_defeat") {
-          drawHQComicBubble(player.x + player.width / 2, player.y - 15, "sou um campeao e vou seguir em frente ate o final", true);
-        }
-      }
-
-      if (collisionAnimationActive) {
-        drawSpeechBubble(player.x + player.width / 2, player.y - 20, playerSpeechBubble, 1.5);
-        if (mockingEnemy) {
-          drawSpeechBubble(mockingEnemy.x + mockingEnemy.width / 2, mockingEnemy.y - 20, enemySpeechBubble, 1.5);
-        }
-      }
-
-      const currentRule = getRuleForStage(currentStage);
-      ctx.fillStyle = "#ffffff"; ctx.font = "bold 15px 'Segoe UI'"; ctx.textAlign = "left";
-      ctx.fillText(`${currentRule.title}`, 20, 32);
-      ctx.fillText(`PONTOS: ${score}  |  VIDAS: ❤️ x${playerLives}  |  ESCOLARES: 📚 x${schoolItemsCollected}/3`, canvas.width - 400, 32);
-
-      ctx.fillStyle = "rgba(0, 255, 204, 0.85)";
-      ctx.font = "bold 12px monospace";
-      ctx.textAlign = "left";
-      ctx.fillText("Versão 2.6", 12, canvas.height - 12);
+    function resetGame() {
+      score = 0; playerLives = 3; currentStage = 1;
+      prepareStage();
     }
 
     function loop() { update(); draw(); requestAnimationFrame(loop); }
     
+    // JOYSTICK E TECLAS
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "KeyD") { player.vx = player.speed; player.facing = 'right'; }
+      if (e.code === "KeyA") { player.vx = -player.speed; player.facing = 'left'; }
+      if (e.code === "Space" && player.grounded) { player.vy = -12; player.grounded = false; }
+      if (e.code === "KeyU") { player.attacking = true; setTimeout(() => player.attacking = false, 200); }
+    });
+
     prepareStage();
     loop();
   </script>
