@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Doutor Chácara & Família - Online Multiplayer Arcade</title>
+  <!-- Socket.io para Comunicação Online -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
+    html, body {
+      width: 100vw; height: 100vh; background-color: #000; color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center; overflow: hidden; user-select: none;
+    }
+    
+    #game-container {
+      position: relative; width: 100vw; height: 100vh;
+      display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000;
+    }
+    #gameCanvas {
+      background: #000; width: 100vw; height: 100vh; object-fit: fill; display: block;
+    }
+
+    /* CHAT SUPERIOR NO TOPO */
+    .top-chat-box {
+      position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+      width: 90%; max-width: 550px; height: 85px;
+      background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(8px);
+      border: 1px solid rgba(0, 255, 204, 0.4); border-radius: 12px;
+      padding: 6px 10px; z-index: 50; display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .top-chat-list {
+      overflow-y: auto; max-height: 48px; font-size: 0.75rem; text-align: left;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .chat-item { background: rgba(255, 255, 255, 0.08); padding: 2px 6px; border-radius: 4px; }
+    .chat-item strong { color: #00ffcc; }
+    .top-chat-input-row { display: flex; gap: 6px; }
+    .top-chat-input-row input {
+      flex: 1; padding: 3px 8px; border-radius: 6px; border: 1px solid #00ffcc;
+      background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 0.75rem;
+    }
+    .top-chat-input-row button {
+      background: #00ffcc; color: #000; font-weight: bold; border: none;
+      padding: 3px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;
+    }
+
+    /* CONTROLES TOUCH TRANSPARENTES */
+    .touch-controls {
+      position: absolute; bottom: 65px; left: 0; width: 100%;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      padding: 0 30px; pointer-events: none; z-index: 5;
+    }
+    #joystick-zone {
+      width: 120px; height: 120px; background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(0, 255, 204, 0.3); border-radius: 50%; position: relative;
+      pointer-events: auto; touch-action: none;
+    }
+    #joystick-stick {
+      width: 50px; height: 50px; background: rgba(0, 255, 204, 0.4); border-radius: 50%;
+      position: absolute; top: 35px; left: 35px; pointer-events: none;
+    }
+    .action-buttons { display: flex; gap: 10px; pointer-events: auto; }
+    .btn-action {
+      width: 60px; height: 60px; border-radius: 50%; font-size: 0.75rem; font-weight: bold;
+      border: 1px solid rgba(255,255,255,0.4); display: flex; justify-content: center; align-items: center;
+      color: #fff; opacity: 0.75; cursor: pointer;
+    }
+    .btn-jump { background: rgba(0, 136, 255, 0.4); }
+    .btn-attack { background: rgba(255, 0, 85, 0.4); }
+    .btn-shield { background: rgba(255, 140, 0, 0.4); }
+
+    #btn-fullscreen {
+      position: absolute; top: 105px; right: 15px; background: rgba(0, 255, 204, 0.1);
+      border: 1px solid rgba(0, 255, 204, 0.4); color: #00ffcc; padding: 6px 12px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: bold; cursor: pointer; z-index: 10;
+    }
+    #btn-config-keys {
+      position: absolute; top: 105px; left: 15px; background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.4); color: #fff; padding: 6px 12px; border-radius: 20px;
+      font-size: 0.75rem; cursor: pointer; z-index: 10;
+    }
+
+    /* OVERLAYS E MENUS */
+    .overlay-panel {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(10, 10, 18, 0.92); backdrop-filter: blur(14px);
+      border: 1px solid rgba(0, 255, 204, 0.4); border-radius: 20px; padding: 20px;
+      z-index: 2000; display: none; flex-direction: column; align-items: center; gap: 12px;
+      width: 90%; max-width: 440px; color: #fff;
+    }
+
+    /* MENU LOGIN ONLINE */
+    #panel-login-menu { display: flex; }
+    .menu-game-banner {
+      width: 100%; height: 130px; border-radius: 12px; object-fit: cover;
+      border: 1px solid #00ffcc; margin-bottom: 5px;
+    }
+    .char-selector { display: flex; gap: 8px; overflow-x: auto; width: 100%; padding: 5px 0; }
+    .char-card {
+      flex: 0 0 75px; height: 85px; background: rgba(255,255,255,0.05); border: 1px solid #444;
+      border-radius: 10px; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; cursor: pointer; font-size: 0.7rem; gap: 4px;
+    }
+    .char-card.selected { border-color: #00ffcc; background: rgba(0, 255, 204, 0.2); }
+    .char-card img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+
+    .btn-main {
+      background: rgba(0, 255, 204, 0.75); color: #000; font-size: 0.95rem; font-weight: bold;
+      padding: 8px 20px; border-radius: 25px; border: none; cursor: pointer; width: 100%;
+    }
+    .btn-back {
+      background: rgba(255, 204, 0, 0.7); color: #000; font-size: 0.9rem; font-weight: bold;
+      padding: 8px 18px; border-radius: 25px; border: none; cursor: pointer; width: 100%;
+    }
+
+    input[type="text"], input[type="password"] {
+      padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(0, 255, 204, 0.5);
+      background: rgba(0, 0, 0, 0.5); color: #fff; font-size: 0.85rem; text-align: center; width: 100%;
+    }
+    
+    .key-bind-row { display: flex; justify-content: space-between; width: 100%; align-items: center; font-size: 0.85rem; }
+    .key-bind-btn { background: rgba(0,0,0,0.5); border: 1px solid #00ffcc; color: #00ffcc; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <div id="game-container">
+    <button id="btn-fullscreen" onclick="toggleFullScreen()">TELA CHEIA ⛶</button>
+    <button id="btn-config-keys" onclick="openKeyConfig()">⚙️ CONTROLES & PAUSA</button>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- CHAT INSTANTÂNEO NO TOPO DA TELA -->
+    <div class="top-chat-box">
+      <div class="top-chat-list" id="top-chat-list">
+        <div class="chat-item"><strong>Sistema:</strong> Bem-vindo ao modo Online da Família Chácara!</div>
+      </div>
+      <div class="top-chat-input-row">
+        <input type="text" id="chat-msg-input" placeholder="Digite uma mensagem online..." maxlength="70">
+        <button onclick="sendChatMessage()">ENVIAR</button>
+      </div>
+    </div>
+
+    <!-- TELA DE MENU / LOGIN -->
+    <div id="panel-login-menu" class="overlay-panel">
+      <h2>ENTRAR NA SALA ONLINE (MÁX 6)</h2>
+      <!-- Imagem de Game Famoso Sem Direitos Autorais (Pixel Art Retro) -->
+      <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80" class="menu-game-banner" alt="Game Banner">
+      
+      <input type="text" id="login-user" placeholder="Usuário / Nick" maxlength="12">
+      <input type="password" id="login-pass" placeholder="Senha da Sala" maxlength="12">
+      
+      <p style="font-size:0.75rem; color:#00ffcc;">Escolha seu Personagem:</p>
+      <div class="char-selector" id="char-selector">
+        <div class="char-card selected" onclick="selectChar('pai', this)">
+          <span>👨‍🌾</span><strong>Pai (Dr. Chácara)</strong>
+        </div>
+        <div class="char-card" onclick="selectChar('esposa', this)">
+          <span>👩‍🌾</span><strong>Esposa</strong>
+        </div>
+        <div class="char-card" onclick="selectChar('filho', this)">
+          <span>👦</span><strong>Filho</strong>
+        </div>
+        <div class="char-card" onclick="selectChar('filha', this)">
+          <span>👧</span><strong>Filha</strong>
+        </div>
+        <div class="char-card" onclick="selectChar('tio', this)">
+          <span>🧔</span><strong>Tio</strong>
+        </div>
+      </div>
+
+      <button class="btn-main" onclick="connectOnlineRoom()">ENTRAR E JOGAR ONLINE 🌐</button>
+    </div>
+
+    <!-- PAINEL CONFIGURAÇÃO DE CONTROLES (COM PAUSE) -->
+    <div id="panel-key-config" class="overlay-panel">
+      <h2>CONFIGURAR CONTROLES (PAUSADO)</h2>
+      <p style="font-size:0.75rem; color:#ffcc00;">O jogo está em pausa para você enquanto ajusta seus comandos.</p>
+      
+      <div class="key-bind-row">
+        <span>Ataque:</span>
+        <button class="key-bind-btn" id="bind-attack-btn" onclick="listenKeyChange('attack')">A</button>
+      </div>
+      <div class="key-bind-row">
+        <span>Pulo:</span>
+        <button class="key-bind-btn" id="bind-jump-btn" onclick="listenKeyChange('jump')">S</button>
+      </div>
+      <div class="key-bind-row">
+        <span>Escudo:</span>
+        <button class="key-bind-btn" id="bind-shield-btn" onclick="listenKeyChange('shield')">D</button>
+      </div>
+      <button class="btn-main" onclick="saveKeyConfig()">SALVAR E CONTINUAR 💾</button>
+    </div>
+
+    <!-- CONTROLES TOUCH MOBILE -->
+    <div class="touch-controls">
+      <div id="joystick-zone"><div id="joystick-stick"></div></div>
+      <div class="action-buttons">
+        <div class="btn-action btn-jump" id="touch-jump">PULO</div>
+        <div class="btn-action btn-attack" id="touch-attack">ATAQUE</div>
+        <div class="btn-action btn-shield" id="touch-shield">ESCUDO</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    // FUNDO COM IMAGEM ENVIADA PARA FASES PARES
+    const bgImageDefault = new Image();
+    bgImageDefault.src = "fundo.jpg.jpg";[cite: 1]
+
+    // FUNDOS DE GAMES PARA FASES ÍMPARES (Royalty-free)
+    const oddGamingBgs = [
+      "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80"
+    ];
+
+    // VARIAVEIS ONLINE & JOGO
+    let socket = null;
+    let localPlayerId = null;
+    let selectedRole = 'pai';
+    let currentStage = 1;
+    let isPaused = false;
+    let onlinePlayers = {}; // Guarda até 6 jogadores conectados
+
+    const characterStyles = {
+      pai: { name: "Dr. Chácara", color: "#0066cc", hat: "#5A5A66" },
+      esposa: { name: "Dona Chácara", color: "#e91e63", hat: "#f48fb1" },
+      filho: { name: "Chacarinha", color: "#ff9800", hat: "#ffe082" },
+      filha: { name: "Chacarida", color: "#9c27b0", hat: "#e1bee7" },
+      tio: { name: "Tio Chácara", color: "#4caf50", hat: "#a5d6a7" }
+    };
+
+    const myPlayer = {
+      id: null,
+      username: "Jogador",
+      role: 'pai',
+      x: 50, y: 280, width: 33, height: 71.5,
+      vx: 0, vy: 0, speed: 4.5, grounded: false,
+      facing: 'right', attacking: false, lives: 3, alive: true
+    };
+
+    function getGroundY() { return canvas.height - 80; }
+
+    function selectChar(role, element) {
+      selectedRole = role;
+      document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
+      element.classList.add('selected');
+    }
+
+    /* SISTEMA AUDIO / MÚSICA SUAVE SEM DIREITOS AUTORAIS */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let bgMusicTimer = null;
+
+    function playSoftStageMusic(stage) {
+      if (bgMusicTimer) clearInterval(bgMusicTimer);
+      const frequencies = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88];
+      let noteIndex = 0;
+
+      bgMusicTimer = setInterval(() => {
+        if (isPaused) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = (stage % 2 === 0) ? 'sine' : 'triangle';
+        
+        // Varia o tom da música conforme a fase
+        const baseFreq = frequencies[(stage + noteIndex) % frequencies.length];
+        osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+        
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+        noteIndex++;
+      }, 450);
+    }
+
+    /* CONEXÃO MULTIJOGADOR ONLINE (MÁX 6) */
+    function connectOnlineRoom() {
+      const user = document.getElementById("login-user").value.trim() || "ChácaraPlayer";
+      myPlayer.username = user;
+      myPlayer.role = selectedRole;
+
+      // Inicialização do WebSocket (Substituir pela sua URL se tiver servidor próprio)
+      socket = io("https://your-online-game-server.com", { autoConnect: false });
+      socket.connect();
+
+      localPlayerId = "p_" + Math.floor(Math.random() * 899999 + 100000);
+      myPlayer.id = localPlayerId;
+      onlinePlayers[localPlayerId] = myPlayer;
+
+      document.getElementById("panel-login-menu").style.display = "none";
+      playSoftStageMusic(currentStage);
+
+      // Eventos de rede
+      socket.on("roomState", (data) => {
+        onlinePlayers = data.players;
+        currentStage = data.stage;
+      });
+
+      socket.on("chatMessage", (data) => {
+        appendChatMessage(data.user, data.msg);
+      });
+    }
+
+    /* SISTEMA DE CHAT INSTANTÂNEO */
+    function sendChatMessage() {
+      const input = document.getElementById("chat-msg-input");
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      appendChatMessage(myPlayer.username, msg);
+      if (socket) socket.emit("sendChat", { user: myPlayer.username, msg: msg });
+      input.value = "";
+    }
+
+    function appendChatMessage(user, msg) {
+      const list = document.getElementById("top-chat-list");
+      const item = document.createElement("div");
+      item.className = "chat-item";
+      item.innerHTML = `<strong>${user}:</strong> ${msg}`;
+      list.appendChild(item);
+      list.scrollTop = list.scrollHeight;
+    }
+
+    /* GERENCIAMENTO DE CONTROLES E PAUSE */
+    let keyBinds = { attack: "KeyA", jump: "KeyS", shield: "KeyD" };
+    function openKeyConfig() {
+      isPaused = true;
+      document.getElementById("panel-key-config").style.display = "flex";
+    }
+
+    function saveKeyConfig() {
+      isPaused = false;
+      document.getElementById("panel-key-config").style.display = "none";
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+      else document.exitFullscreen().catch(() => {});
+    }
+
+    /* LOOP E ATUALIZAÇÃO DO JOGO */
+    const keys = {};
+    window.addEventListener("keydown", (e) => { keys[e.code] = true; });
+    window.addEventListener("keyup", (e) => { keys[e.code] = false; });
+
+    function update() {
+      if (isPaused) return;
+
+      const groundY = getGroundY();
+
+      // Movimentação
+      if (keys["ArrowRight"] || keys["KeyD"]) { myPlayer.vx = myPlayer.speed; myPlayer.facing = 'right'; }
+      else if (keys["ArrowLeft"] || keys["KeyA"]) { myPlayer.vx = -myPlayer.speed; myPlayer.facing = 'left'; }
+      else { myPlayer.vx *= 0.8; }
+
+      if (keys[keyBinds.jump] && myPlayer.grounded) {
+        myPlayer.vy = -12; myPlayer.grounded = false;
+      }
+
+      myPlayer.vy += 0.65;
+      myPlayer.x += myPlayer.vx;
+      myPlayer.y += myPlayer.vy;
+
+      if (myPlayer.y + myPlayer.height >= groundY) {
+        myPlayer.y = groundY - myPlayer.height;
+        myPlayer.vy = 0;
+        myPlayer.grounded = true;
+      }
+
+      // CONDIÇÃO MULTIJOGADOR: TODOS OS JOGADORES DEVEM PASSAR COM VIDA E CHEGAR JUNTOS AO FIM DA TELA
+      let allReachedEnd = true;
+      let allAlive = true;
+
+      Object.values(onlinePlayers).forEach(p => {
+        if (!p.alive) allAlive = false;
+        if (p.x < canvas.width - 60) allReachedEnd = false;
+      });
+
+      if (allReachedEnd && allAlive && Object.keys(onlinePlayers).length > 0) {
+        currentStage++;
+        myPlayer.x = 20;
+        playSoftStageMusic(currentStage);
+        appendChatMessage("Sistema", `Toda a família sobreviveu! Avançando para a Fase ${currentStage}!`);
+      }
+    }
+
+    /* DESENHO DOS PERSONAGENS DA FAMÍLIA */
+    function drawFamilyCharacter(p) {
+      const style = characterStyles[p.role] || characterStyles.pai;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+
+      // Nome do Personagem acima da cabeça
+      ctx.fillStyle = "#fff"; ctx.font = "bold 10px Segoe UI"; ctx.textAlign = "center";
+      ctx.fillText(p.username, p.width / 2, -10);
+
+      // Corpo / Roupa
+      ctx.fillStyle = style.color;
+      ctx.fillRect(0, 20, p.width, 35);
+
+      // Cabeça
+      ctx.fillStyle = "#f3c099";
+      ctx.fillRect(4, 0, 25, 20);
+
+      // Chapéu / Cabelo
+      ctx.fillStyle = style.hat;
+      ctx.fillRect(2, -4, 29, 6);
+
+      // Pernas
+      ctx.fillStyle = "#111";
+      ctx.fillRect(5, 55, 8, 16);
+      ctx.fillRect(20, 55, 8, 16);
+
+      ctx.restore();
+    }
+
+    function draw() {
+      // Alternância de Fundos Fases Pares vs Ímpares
+      if (currentStage % 2 === 0) {
+        if (bgImageDefault.complete && bgImageDefault.naturalWidth !== 0) {
+          ctx.drawImage(bgImageDefault, 0, 0, canvas.width, canvas.height);[cite: 1]
+        } else {
+          ctx.fillStyle = "#2e1200"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+      } else {
+        ctx.fillStyle = "#101820"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#00ffcc"; ctx.font = "bold 14px Segoe UI";
+        ctx.fillText("FASE RETRO GAMING ÍMPAR", canvas.width / 2 - 90, 130);
+      }
+
+      // Chão
+      const groundY = getGroundY();
+      ctx.fillStyle = "#4a2e1b"; ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+
+      // Desenhar todos os Jogadores Conectados
+      Object.values(onlinePlayers).forEach(p => drawFamilyCharacter(p));
+
+      // HUD de Informações
+      ctx.fillStyle = "#fff"; ctx.font = "bold 14px Segoe UI"; ctx.textAlign = "left";
+      ctx.fillText(`FASE: ${currentStage} | JOGADORES NA SALA: ${Object.keys(onlinePlayers).length}/6`, 20, 130);
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>
