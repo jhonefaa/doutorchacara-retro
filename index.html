@@ -1,4 +1,4 @@
-html_content = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -27,12 +27,12 @@ html_content = """<!DOCTYPE html>
     }
     .hud-box { background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 12px; border: 1px solid #00ffcc; }
 
-    /* MENU LOGIN E SELEÇÃO DE PERSONAGEM */
+    /* MENU LOGIN / CADASTRO E SELEÇÃO DE PERSONAGEM */
     #auth-menu {
       position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(10, 10, 18, 0.95); backdrop-filter: blur(10px);
       z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 15px; color: #fff; padding: 20px;
+      gap: 12px; color: #fff; padding: 20px; overflow-y: auto;
     }
 
     #auth-menu h1 { color: #00ffcc; font-size: 2.2rem; text-shadow: 0 0 12px #00ffcc; letter-spacing: 1px; }
@@ -42,72 +42,92 @@ html_content = """<!DOCTYPE html>
       color: #fff; text-align: center; font-size: 1rem; outline: none;
     }
 
+    .auth-toggle {
+      display: flex; gap: 10px; margin-bottom: 5px;
+    }
+    .btn-tab {
+      background: transparent; color: #888; border: none; font-size: 1rem; font-weight: bold;
+      cursor: pointer; padding: 5px 15px; border-bottom: 2px solid transparent;
+    }
+    .btn-tab.active { color: #00ffcc; border-bottom: 2px solid #00ffcc; }
+
     .char-select-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 500px; margin-top: 10px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 480px; margin-top: 5px;
     }
     .char-card {
-      border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px 8px; background: rgba(255,255,255,0.05);
-      cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 8px;
+      border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 10px 6px; background: rgba(255,255,255,0.05);
+      cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 6px;
     }
     .char-card:hover { transform: translateY(-3px); border-color: rgba(0,255,204,0.5); }
     .char-card.selected { border-color: #00ffcc; background: rgba(0, 255, 204, 0.2); transform: scale(1.05); }
-    .char-card div.avatar { width: 44px; height: 50px; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
+    .char-card div.avatar { width: 40px; height: 46px; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
 
     .btn-play {
       background: #00ffcc; color: #000; font-size: 1.1rem; font-weight: bold;
       padding: 14px 35px; border-radius: 25px; border: none; cursor: pointer;
-      box-shadow: 0 0 15px rgba(0,255,204,0.4); margin-top: 15px; width: 100%; max-width: 320px;
+      box-shadow: 0 0 15px rgba(0,255,204,0.4); margin-top: 10px; width: 100%; max-width: 320px;
       transition: all 0.2s;
     }
     .btn-play:hover { background: #00cca3; transform: scale(1.02); }
 
-    /* BARRA INFERIOR DE UTILITÁRIOS */
+    /* BARRA INFERIOR DE UTILITÁRIOS E ÁUDIO */
     .bottom-bar {
       position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 10px; background: rgba(10, 10, 18, 0.5);
+      display: flex; gap: 10px; background: rgba(10, 10, 18, 0.6);
       backdrop-filter: blur(5px); padding: 6px 14px; border-radius: 20px;
       border: 1px solid rgba(0, 255, 204, 0.3); z-index: 15;
     }
     .btn-tool {
       background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 6px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
+      padding: 6px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; cursor: pointer;
     }
     .btn-tool:hover { background: rgba(0, 255, 204, 0.2); }
 
-    /* CONTROLES TOUCH */
+    /* CONTROLES VIRTUAIS EXCLUSIVOS PARA CELULAR */
     .touch-controls {
-      position: absolute; bottom: 70px; left: 0; width: 100%;
+      position: absolute; bottom: 65px; left: 0; width: 100%;
       display: flex; justify-content: space-between; align-items: flex-end;
-      padding: 0 30px; pointer-events: none; z-index: 5;
+      padding: 0 25px; pointer-events: none; z-index: 20;
     }
-    .d-pad { display: flex; gap: 10px; pointer-events: auto; }
+    .d-pad { display: flex; gap: 12px; pointer-events: auto; }
     .btn-touch {
-      width: 60px; height: 60px; border-radius: 50%; font-size: 1.2rem; font-weight: bold;
-      border: 2px solid rgba(255,255,255,0.4); display: flex; justify-content: center; align-items: center; color: #fff;
-      background: rgba(255,255,255,0.15); backdrop-filter: blur(4px); user-select: none;
+      width: 65px; height: 65px; border-radius: 50%; font-size: 1.4rem; font-weight: bold;
+      border: 2px solid rgba(0,255,204,0.6); display: flex; justify-content: center; align-items: center; color: #fff;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); user-select: none;
+      box-shadow: 0 0 10px rgba(0,255,204,0.2);
     }
-    .btn-touch:active { background: rgba(0,255,204,0.4); }
+    .btn-touch:active { background: rgba(0,255,204,0.5); transform: scale(0.92); }
     .action-buttons { display: flex; gap: 15px; pointer-events: auto; }
-    .btn-jump { background: rgba(0, 136, 255, 0.4); }
-    .btn-attack { background: rgba(255, 0, 85, 0.4); }
+    .btn-jump { background: rgba(0, 136, 255, 0.5); border-color: #0088ff; }
+    .btn-attack { background: rgba(255, 0, 85, 0.5); border-color: #ff0055; }
+
+    /* MENSAGEM DE ERRO/ALERTA */
+    #auth-alert { color: #ff4d6d; font-size: 0.85rem; height: 18px; font-weight: bold; }
   </style>
 </head>
 <body>
 
   <div id="game-container">
-    <!-- MENU DE LOGIN E PERSONAGENS -->
+    <!-- MENU DE LOGIN / CADASTRO E PERSONAGENS -->
     <div id="auth-menu">
       <h1>DOUTOR CHÁCARA RETRO</h1>
-      <p style="color:#aaa; font-size:0.9rem;">Pronto para publicar no GitHub Pages</p>
+      <p style="color:#aaa; font-size:0.85rem;">Multiplayer na mesma rede/navegador + Músicas Synthwave</p>
       
-      <div class="form-group">
-        <input type="text" id="login-user" placeholder="Nome do Jogador" value="Chácara Player" maxlength="14">
+      <div class="auth-toggle">
+        <button class="btn-tab active" id="tab-login" onclick="switchAuthMode('login')">Entrar</button>
+        <button class="btn-tab" id="tab-register" onclick="switchAuthMode('register')">Cadastrar</button>
       </div>
 
-      <p style="font-size:0.95rem; color:#00ffcc; margin-top:5px;">Escolha seu Personagem da Família:</p>
+      <div class="form-group">
+        <input type="text" id="auth-user" placeholder="Nome de Usuário" maxlength="14">
+        <input type="password" id="auth-pass" placeholder="Senha" maxlength="20">
+      </div>
+      <div id="auth-alert"></div>
+
+      <p style="font-size:0.9rem; color:#00ffcc; margin-top:2px;">Escolha seu Personagem da Família:</p>
       <div class="char-select-grid" id="char-grid"></div>
 
-      <button class="btn-play" onclick="startGame()">JOGAR AGORA ▶</button>
+      <button class="btn-play" id="btn-submit" onclick="handleAuthSubmit()">ENTRAR E JOGAR ▶</button>
     </div>
 
     <!-- HUD -->
@@ -120,12 +140,13 @@ html_content = """<!DOCTYPE html>
 
     <canvas id="gameCanvas"></canvas>
 
+    <!-- BARRA DE UTILITÁRIOS (MÚSICA E TELA CHEIA) -->
     <div class="bottom-bar">
-      <button class="btn-tool" onclick="toggleFullScreen()">Tela Cheia ⛶</button>
-      <button class="btn-tool" onclick="nextStage()">Próxima Fase ➔</button>
+      <button class="btn-tool" id="btn-music" onclick="toggleMusic()">🔊 Música: ON</button>
+      <button class="btn-tool" onclick="toggleFullScreen()">⛶ Tela Cheia</button>
     </div>
 
-    <!-- CONTROLES NA TELA PARA CELULAR -->
+    <!-- CONTROLES VIRTUAIS PARA CELULAR/TOUCH -->
     <div class="touch-controls">
       <div class="d-pad">
         <div class="btn-touch" id="btn-left">◀</div>
@@ -139,6 +160,7 @@ html_content = """<!DOCTYPE html>
   </div>
 
   <script>
+    // --- GERENCIADOR DE CANVAS E TELA ---
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
@@ -149,23 +171,94 @@ html_content = """<!DOCTYPE html>
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    // IMAGEM DE FUNDO DAS FASES PARES (LOCAL NO SEU REPOSITÓRIO)
+    // --- IMAGENS DE FUNDO ---
     const bgImageEven = new Image();
     bgImageEven.src = "fundo.jpg.jpg";
 
-    // IMAGENS LIVRES PARA FASES ÍMPARES
     const bgOddUrls = [
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80"
     ];
     const bgOddImages = bgOddUrls.map(url => {
-      const img = new Image();
-      img.src = url;
-      return img;
+      const img = new Image(); img.src = url; return img;
     });
 
-    // 6 PERSONAGENS DA FAMÍLIA DO DOUTOR CHÁCARA
+    // --- SISTEMA DE ÁUDIO WEB SYNTHWAVE / RETRO (SEM DIREITOS AUTORAIS) ---
+    class RetroAudio {
+      constructor() {
+        this.ctx = null;
+        this.isPlaying = false;
+        this.noteIndex = 0;
+        this.timer = null;
+        // Melodia Synthwave Retro
+        this.notes = [110, 130.81, 146.83, 164.81, 130.81, 110, 98, 110, 146.83, 164.81, 196, 164.81];
+      }
+      init() {
+        if(!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+      }
+      playSynthNote(freq) {
+        if(!this.ctx || !this.isPlaying) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.25);
+      }
+      startMusic() {
+        this.init();
+        if(this.ctx.state === 'suspended') this.ctx.resume();
+        this.isPlaying = true;
+        if(!this.timer) {
+          this.timer = setInterval(() => {
+            this.playSynthNote(this.notes[this.noteIndex]);
+            this.noteIndex = (this.noteIndex + 1) % this.notes.length;
+          }, 200);
+        }
+      }
+      stopMusic() {
+        this.isPlaying = false;
+        if(this.timer) { clearInterval(this.timer); this.timer = null; }
+      }
+      playHitSound() {
+        if(!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.1);
+      }
+    }
+    const audio = new RetroAudio();
+    let musicEnabled = true;
+
+    function toggleMusic() {
+      musicEnabled = !musicEnabled;
+      const btn = document.getElementById("btn-music");
+      if(musicEnabled) {
+        btn.innerText = "🔊 Música: ON";
+        audio.startMusic();
+      } else {
+        btn.innerText = "🔇 Música: OFF";
+        audio.stopMusic();
+      }
+    }
+
+    // --- PERSONAGENS ---
     const CHARACTERS = {
       dr_chacara: { name: "Dr. Chácara", coatColor: "#ffffff", hatColor: "#c2b280", bootsColor: "#8b4513" },
       dona_chacara: { name: "Dona Chácara", coatColor: "#1b4965", hatColor: "#d8b4e2", bootsColor: "#a4133c" },
@@ -176,23 +269,92 @@ html_content = """<!DOCTYPE html>
     };
 
     let selectedCharKey = 'dr_chacara';
-    let username = "Chácara Player";
+    let currentAuthMode = 'login';
+    let myPlayerId = 'player_' + Math.random().toString(36).substr(2, 9);
+    let username = "";
     let currentStage = 1;
     let score = 0;
 
-    // ESTADO DO JOGADOR LOCAL
-    const player = {
-      x: 100, y: 100, width: 38, height: 75, vx: 0, vy: 0,
-      speed: 6, grounded: false, facing: 'right', attacking: false, lives: 3
+    // JOGADOR LOCAL
+    const localPlayer = {
+      id: myPlayerId, x: 80, y: 100, width: 38, height: 75,
+      vx: 0, vy: 0, speed: 6, grounded: false, facing: 'right',
+      attacking: false, lives: 3, charKey: 'dr_chacara', name: ''
     };
 
-    // BOTÂNICOS / INIMIGOS PRAGA
+    // INIMIGOS E DEMAIS JOGADORES (Sincronização via BroadcastChannel)
     let enemies = [];
+    let otherPlayers = {};
 
-    // CONTROLES DE TECLADO
-    const keys = { left: false, right: false, up: false, attack: false };
+    // SISTEMA DE REDE/SINCRONIZAÇÃO SEM SERVIDOR (BroadcastChannel)
+    const gameChannel = new BroadcastChannel('doutorchacara_multiplayer');
 
-    // MONTA O MENU DE SELEÇÃO
+    gameChannel.onmessage = (e) => {
+      const data = e.data;
+      if(data.type === 'state' && data.id !== myPlayerId) {
+        otherPlayers[data.id] = data;
+      } else if(data.type === 'logout' && data.id) {
+        delete otherPlayers[data.id];
+      }
+    };
+
+    function broadcastState() {
+      gameChannel.postMessage({
+        type: 'state', id: myPlayerId, name: username,
+        charKey: selectedCharKey, x: localPlayer.x, y: localPlayer.y,
+        facing: localPlayer.facing, attacking: localPlayer.attacking
+      });
+    }
+
+    // --- AUTENTICAÇÃO E LOGIN ---
+    function switchAuthMode(mode) {
+      currentAuthMode = mode;
+      document.getElementById("tab-login").classList.toggle("active", mode === 'login');
+      document.getElementById("tab-register").classList.toggle("active", mode === 'register');
+      document.getElementById("btn-submit").innerText = mode === 'login' ? "ENTRAR E JOGAR ▶" : "CADASTRAR E JOGAR ▶";
+      document.getElementById("auth-alert").innerText = "";
+    }
+
+    function handleAuthSubmit() {
+      const uInput = document.getElementById("auth-user").value.trim();
+      const pInput = document.getElementById("auth-pass").value.trim();
+      const alertBox = document.getElementById("auth-alert");
+
+      if(!uInput || !pInput) {
+        alertBox.innerText = "Preencha usuário e senha!";
+        return;
+      }
+
+      let users = JSON.parse(localStorage.getItem("dc_users") || "{}");
+
+      if(currentAuthMode === 'register') {
+        if(users[uInput]) {
+          alertBox.innerText = "Usuário já existe! Faça Login.";
+          return;
+        }
+        users[uInput] = pInput;
+        localStorage.setItem("dc_users", JSON.stringify(users));
+      } else {
+        if(!users[uInput] || users[uInput] !== pInput) {
+          alertBox.innerText = "Usuário ou senha incorretos!";
+          return;
+        }
+      }
+
+      username = uInput;
+      localPlayer.name = username;
+      localPlayer.charKey = selectedCharKey;
+
+      document.getElementById("auth-menu").style.display = "none";
+      document.getElementById("hud-player").innerText = `Jogador: ${username}`;
+
+      if(musicEnabled) audio.startMusic();
+      resetPlayer();
+      spawnEnemies();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // MONTA SELEÇÃO DE PERSONAGENS
     const charGrid = document.getElementById("char-grid");
     Object.keys(CHARACTERS).forEach(key => {
       const c = CHARACTERS[key];
@@ -205,7 +367,7 @@ html_content = """<!DOCTYPE html>
       };
       card.innerHTML = `
         <div class="avatar" style="background:${c.coatColor}; border:3px solid ${c.hatColor};"></div>
-        <span style="font-size:0.8rem; font-weight:bold;">${c.name}</span>
+        <span style="font-size:0.75rem; font-weight:bold;">${c.name}</span>
       `;
       charGrid.appendChild(card);
     });
@@ -216,7 +378,7 @@ html_content = """<!DOCTYPE html>
       for(let i = 0; i < count; i++) {
         enemies.push({
           x: 400 + Math.random() * (canvas.width - 500),
-          y: canvas.height - 120,
+          y: canvas.height - 110,
           width: 30, height: 30,
           vx: (Math.random() > 0.5 ? 1 : -1) * (1.5 + currentStage * 0.3),
           color: "#e63946"
@@ -224,31 +386,19 @@ html_content = """<!DOCTYPE html>
       }
     }
 
-    function startGame() {
-      const uInput = document.getElementById("login-user").value.trim();
-      if(uInput) username = uInput;
-
-      document.getElementById("auth-menu").style.display = "none";
-      document.getElementById("hud-player").innerText = `Jogador: ${username}`;
-      
-      resetPlayer();
-      spawnEnemies();
-      requestAnimationFrame(gameLoop);
-    }
-
     function resetPlayer() {
-      player.x = 80;
-      player.y = canvas.height - 160;
-      player.vx = 0;
-      player.vy = 0;
+      localPlayer.x = 80;
+      localPlayer.y = canvas.height - 155;
+      localPlayer.vx = 0; localPlayer.vy = 0;
     }
 
-    // TECLADO LISTENERS
+    // CONTROLES DE TECLADO
+    const keys = { left: false, right: false };
     window.addEventListener("keydown", e => {
       if(e.code === "ArrowLeft" || e.code === "KeyA") keys.left = true;
       if(e.code === "ArrowRight" || e.code === "KeyD") keys.right = true;
       if(e.code === "ArrowUp" || e.code === "KeyW" || e.code === "Space") {
-        if(player.grounded) { player.vy = -13; player.grounded = false; }
+        if(localPlayer.grounded) { localPlayer.vy = -13; localPlayer.grounded = false; }
       }
       if(e.code === "KeyZ" || e.code === "KeyJ") attack();
     });
@@ -258,7 +408,7 @@ html_content = """<!DOCTYPE html>
       if(e.code === "ArrowRight" || e.code === "KeyD") keys.right = false;
     });
 
-    // TOUCHE CONTROLS SETUP
+    // CONTROLES TOUCH / VIRTUAL PARA CELULAR
     function bindTouch(id, onPress, onRelease) {
       const el = document.getElementById(id);
       el.addEventListener("touchstart", (e) => { e.preventDefault(); onPress(); });
@@ -267,66 +417,60 @@ html_content = """<!DOCTYPE html>
 
     bindTouch("btn-left", () => keys.left = true, () => keys.left = false);
     bindTouch("btn-right", () => keys.right = true, () => keys.right = false);
-    bindTouch("btn-jump", () => { if(player.grounded) { player.vy = -13; player.grounded = false; } });
+    bindTouch("btn-jump", () => { if(localPlayer.grounded) { localPlayer.vy = -13; localPlayer.grounded = false; } });
     bindTouch("btn-attack", () => attack());
 
     function attack() {
-      if(!player.attacking) {
-        player.attacking = true;
-        // Verifica ataque contra inimigos
+      if(!localPlayer.attacking) {
+        localPlayer.attacking = true;
+        audio.playHitSound();
         enemies.forEach((enemy, idx) => {
-          const attackRange = player.facing === 'right' ? 
-            (enemy.x >= player.x && enemy.x <= player.x + player.width + 40) :
-            (enemy.x + enemy.width >= player.x - 40 && enemy.x <= player.x);
+          const attackRange = localPlayer.facing === 'right' ? 
+            (enemy.x >= localPlayer.x && enemy.x <= localPlayer.x + localPlayer.width + 45) :
+            (enemy.x + enemy.width >= localPlayer.x - 45 && enemy.x <= localPlayer.x);
           
-          if(attackRange && Math.abs(enemy.y - player.y) < 50) {
+          if(attackRange && Math.abs(enemy.y - localPlayer.y) < 50) {
             enemies.splice(idx, 1);
             score += 100;
             document.getElementById("hud-score").innerText = `Pontos: ${score}`;
           }
         });
-        setTimeout(() => player.attacking = false, 250);
+        setTimeout(() => localPlayer.attacking = false, 250);
       }
     }
 
     function update() {
-      // Movimento Horizontal
-      if(keys.left) { player.vx = -player.speed; player.facing = 'left'; }
-      else if(keys.right) { player.vx = player.speed; player.facing = 'right'; }
-      else { player.vx = 0; }
+      // Movimento do Jogador Local
+      if(keys.left) { localPlayer.vx = -localPlayer.speed; localPlayer.facing = 'left'; }
+      else if(keys.right) { localPlayer.vx = localPlayer.speed; localPlayer.facing = 'right'; }
+      else { localPlayer.vx = 0; }
 
-      // Gravidade
-      player.vy += 0.65;
-      player.x += player.vx;
-      player.y += player.vy;
+      localPlayer.vy += 0.65; // Gravidade
+      localPlayer.x += localPlayer.vx;
+      localPlayer.y += localPlayer.vy;
 
-      // Limite da Tela X
-      if(player.x < 0) player.x = 0;
-      if(player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+      if(localPlayer.x < 0) localPlayer.x = 0;
+      if(localPlayer.x + localPlayer.width > canvas.width) localPlayer.x = canvas.width - localPlayer.width;
 
-      // Chão
       const groundY = canvas.height - 80;
-      if(player.y + player.height >= groundY) {
-        player.y = groundY - player.height;
-        player.vy = 0;
-        player.grounded = true;
+      if(localPlayer.y + localPlayer.height >= groundY) {
+        localPlayer.y = groundY - localPlayer.height;
+        localPlayer.vy = 0;
+        localPlayer.grounded = true;
       }
 
-      // Movimento dos Inimigos
+      // Movimento Inimigos
       enemies.forEach(enemy => {
         enemy.x += enemy.vx;
         if(enemy.x <= 50 || enemy.x + enemy.width >= canvas.width - 50) enemy.vx *= -1;
 
-        // Dano no Jogador
-        if(Math.abs(enemy.x - player.x) < 25 && Math.abs(enemy.y - player.y) < 30) {
-          player.lives--;
+        if(Math.abs(enemy.x - localPlayer.x) < 25 && Math.abs(enemy.y - localPlayer.y) < 30) {
+          localPlayer.lives--;
           updateHudLives();
           resetPlayer();
-          if(player.lives <= 0) {
-            alert("Game Over! Tente Novamente.");
-            player.lives = 3;
-            score = 0;
-            currentStage = 1;
+          if(localPlayer.lives <= 0) {
+            alert("Game Over! Reiniciando...");
+            localPlayer.lives = 3; score = 0; currentStage = 1;
             document.getElementById("hud-score").innerText = "Pontos: 0";
             document.getElementById("hud-stage").innerText = "Fase: 1";
             updateHudLives();
@@ -335,15 +479,15 @@ html_content = """<!DOCTYPE html>
         }
       });
 
-      // Passar de Fase
-      if(enemies.length === 0) {
-        nextStage();
-      }
+      if(enemies.length === 0) nextStage();
+
+      // Transmite posição para outras abas
+      broadcastState();
     }
 
     function updateHudLives() {
       let hearts = "";
-      for(let i = 0; i < player.lives; i++) hearts += "❤️";
+      for(let i = 0; i < localPlayer.lives; i++) hearts += "❤️";
       document.getElementById("hud-lives").innerText = `Vidas: ${hearts}`;
     }
 
@@ -359,73 +503,54 @@ html_content = """<!DOCTYPE html>
         if(bgImageEven.complete && bgImageEven.naturalWidth !== 0) {
           ctx.drawImage(bgImageEven, 0, 0, canvas.width, canvas.height);
         } else {
-          ctx.fillStyle = "#1b2a4a";
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "#1b2a4a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
       } else {
         const bgImg = bgOddImages[(currentStage - 1) % bgOddImages.length];
         if (bgImg.complete) {
           ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
         } else {
-          ctx.fillStyle = "#0f172a";
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "#0f172a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
       }
 
-      // Chão do Jogo
-      ctx.fillStyle = "#2d6a4f";
-      ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
-      ctx.fillStyle = "#52b788";
-      ctx.fillRect(0, canvas.height - 80, canvas.width, 10);
+      ctx.fillStyle = "#2d6a4f"; ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
+      ctx.fillStyle = "#52b788"; ctx.fillRect(0, canvas.height - 80, canvas.width, 10);
     }
 
-    function drawCharacter(p, charData) {
+    function drawCharacter(p, name, charKey) {
+      const charData = CHARACTERS[charKey] || CHARACTERS.dr_chacara;
       ctx.save();
       ctx.translate(p.x, p.y);
 
-      // Inverter se estiver para a esquerda
       if(p.facing === 'left') {
-        ctx.translate(p.width, 0);
-        ctx.scale(-1, 1);
+        ctx.translate(p.width, 0); ctx.scale(-1, 1);
       }
 
-      // Jaleco / Roupa
-      ctx.fillStyle = charData.coatColor;
-      ctx.fillRect(4, 20, p.width - 8, 35);
+      ctx.fillStyle = charData.coatColor; ctx.fillRect(4, 20, p.width - 8, 35);
+      ctx.fillStyle = "#ffdbac"; ctx.fillRect(8, 6, 22, 16);
 
-      // Cabeça
-      ctx.fillStyle = "#ffdbac";
-      ctx.fillRect(8, 6, 22, 16);
-
-      // Cabelo grisalho se for o Vovô
       if (charData.isOld) {
-        ctx.fillStyle = "#e0e0e0";
-        ctx.fillRect(6, 4, 26, 6);
+        ctx.fillStyle = "#e0e0e0"; ctx.fillRect(6, 4, 26, 6);
       }
 
-      // Chapéu Retro
       ctx.fillStyle = charData.hatColor;
       ctx.fillRect(-2, 1, p.width + 4, 6);
       ctx.fillRect(6, -5, p.width - 12, 6);
 
-      // Botas
       ctx.fillStyle = charData.bootsColor;
-      ctx.fillRect(6, 55, 10, 20);
-      ctx.fillRect(22, 55, 10, 20);
+      ctx.fillRect(6, 55, 10, 20); ctx.fillRect(22, 55, 10, 20);
 
-      // Ataque (Efeito de Enxada/Ferramenta)
       if(p.attacking) {
-        ctx.fillStyle = "#ffcc00";
-        ctx.fillRect(p.width, 15, 25, 8);
+        ctx.fillStyle = "#ffcc00"; ctx.fillRect(p.width, 15, 25, 8);
       }
 
       ctx.restore();
 
-      // Nome em cima do Personagem
       ctx.fillStyle = "#00ffcc";
-      ctx.font = "bold 13px sans-serif";
+      ctx.font = "bold 12px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(username, p.x + p.width/2, p.y - 12);
+      ctx.fillText(name, p.x + p.width/2, p.y - 10);
     }
 
     function drawEnemies() {
@@ -445,11 +570,16 @@ html_content = """<!DOCTYPE html>
 
       drawBackground();
       update();
-      
-      const charData = CHARACTERS[selectedCharKey];
-      drawCharacter(player, charData);
-      drawEnemies();
 
+      // Desenha o jogador Local
+      drawCharacter(localPlayer, username, selectedCharKey);
+
+      // Desenha outros jogadores conectados na mesma rede/navegador
+      Object.values(otherPlayers).forEach(op => {
+        drawCharacter(op, op.name, op.charKey);
+      });
+
+      drawEnemies();
       requestAnimationFrame(gameLoop);
     }
 
@@ -460,12 +590,10 @@ html_content = """<!DOCTYPE html>
         document.exitFullscreen().catch(()=>{});
       }
     }
+
+    window.addEventListener('beforeunload', () => {
+      gameChannel.postMessage({ type: 'logout', id: myPlayerId });
+    });
   </script>
 </body>
 </html>
-"""
-
-with open("index.html", "w", encoding="utf-8") as f:
-    f.write(html_content)
-
-print("Arquivo index.html criado com sucesso!")
