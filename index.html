@@ -1,9 +1,11 @@
-<!DOCTYPE html>
+html_content = """<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Doutor Chácara Retro & Família - Arcade Game</title>
+  <title>Doutor Chácara Retro & Família - P2P Multiplayer</title>
+  <!-- PEERJS LIBRARY -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.min.js" defer></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
     html, body {
@@ -27,7 +29,7 @@
     }
     .hud-box { background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 12px; border: 1px solid #00ffcc; }
 
-    /* MENU LOGIN / CADASTRO E SELEÇÃO DE PERSONAGEM */
+    /* MENU LOGIN / SALAS E SELEÇÃO DE PERSONAGEM */
     #auth-menu {
       position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(10, 10, 18, 0.95); backdrop-filter: blur(10px);
@@ -35,19 +37,17 @@
       gap: 12px; color: #fff; padding: 20px; overflow-y: auto;
     }
 
-    #auth-menu h1 { color: #00ffcc; font-size: 2.2rem; text-shadow: 0 0 12px #00ffcc; letter-spacing: 1px; }
+    #auth-menu h1 { color: #00ffcc; font-size: 2rem; text-shadow: 0 0 12px #00ffcc; letter-spacing: 1px; }
     .form-group { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; }
     .form-group input {
       padding: 12px; border-radius: 8px; border: 1px solid #00ffcc; background: rgba(0,0,0,0.7);
       color: #fff; text-align: center; font-size: 1rem; outline: none;
     }
 
-    .auth-toggle {
-      display: flex; gap: 10px; margin-bottom: 5px;
-    }
+    .auth-toggle { display: flex; gap: 10px; margin-bottom: 5px; }
     .btn-tab {
-      background: transparent; color: #888; border: none; font-size: 1rem; font-weight: bold;
-      cursor: pointer; padding: 5px 15px; border-bottom: 2px solid transparent;
+      background: transparent; color: #888; border: none; font-size: 0.95rem; font-weight: bold;
+      cursor: pointer; padding: 5px 12px; border-bottom: 2px solid transparent;
     }
     .btn-tab.active { color: #00ffcc; border-bottom: 2px solid #00ffcc; }
 
@@ -55,12 +55,12 @@
       display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 480px; margin-top: 5px;
     }
     .char-card {
-      border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 10px 6px; background: rgba(255,255,255,0.05);
-      cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 6px;
+      border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 8px 6px; background: rgba(255,255,255,0.05);
+      cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 4px;
     }
     .char-card:hover { transform: translateY(-3px); border-color: rgba(0,255,204,0.5); }
     .char-card.selected { border-color: #00ffcc; background: rgba(0, 255, 204, 0.2); transform: scale(1.05); }
-    .char-card div.avatar { width: 40px; height: 46px; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
+    .char-card div.avatar { width: 38px; height: 44px; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
 
     .btn-play {
       background: #00ffcc; color: #000; font-size: 1.1rem; font-weight: bold;
@@ -101,33 +101,42 @@
     .btn-jump { background: rgba(0, 136, 255, 0.5); border-color: #0088ff; }
     .btn-attack { background: rgba(255, 0, 85, 0.5); border-color: #ff0055; }
 
-    /* MENSAGEM DE ERRO/ALERTA */
     #auth-alert { color: #ff4d6d; font-size: 0.85rem; height: 18px; font-weight: bold; }
+    #room-id-display {
+      background: rgba(0, 255, 204, 0.15); border: 1px dashed #00ffcc; color: #00ffcc;
+      padding: 6px 12px; border-radius: 8px; font-family: monospace; font-size: 0.95rem; user-select: text;
+    }
   </style>
 </head>
 <body>
 
   <div id="game-container">
-    <!-- MENU DE LOGIN / CADASTRO E PERSONAGENS -->
+    <!-- MENU DE LOGIN / SALAS P2P E SELEÇÃO DE PERSONAGENS -->
     <div id="auth-menu">
       <h1>DOUTOR CHÁCARA RETRO</h1>
-      <p style="color:#aaa; font-size:0.85rem;">Multiplayer na mesma rede/navegador + Músicas Synthwave</p>
+      <p style="color:#aaa; font-size:0.85rem;">Multiplayer Real PeerJS (Sem Servidor Pago)</p>
       
       <div class="auth-toggle">
-        <button class="btn-tab active" id="tab-login" onclick="switchAuthMode('login')">Entrar</button>
-        <button class="btn-tab" id="tab-register" onclick="switchAuthMode('register')">Cadastrar</button>
+        <button class="btn-tab active" id="tab-host" onclick="switchRoomMode('host')">Criar Sala</button>
+        <button class="btn-tab" id="tab-join" onclick="switchRoomMode('join')">Entrar em Sala</button>
       </div>
 
       <div class="form-group">
-        <input type="text" id="auth-user" placeholder="Nome de Usuário" maxlength="14">
-        <input type="password" id="auth-pass" placeholder="Senha" maxlength="20">
+        <input type="text" id="auth-user" placeholder="Seu Nome / Apelido" maxlength="14" value="Jogador">
+        <input type="text" id="room-code" placeholder="Código da Sala (ex: 1234)" style="display:none;" maxlength="10">
       </div>
+
+      <div id="room-id-box" style="display:block;">
+        <span style="font-size:0.8rem; color:#aaa;">Código da sua Sala:</span>
+        <div id="room-id-display">Gerando...</div>
+      </div>
+
       <div id="auth-alert"></div>
 
       <p style="font-size:0.9rem; color:#00ffcc; margin-top:2px;">Escolha seu Personagem da Família:</p>
       <div class="char-select-grid" id="char-grid"></div>
 
-      <button class="btn-play" id="btn-submit" onclick="handleAuthSubmit()">ENTRAR E JOGAR ▶</button>
+      <button class="btn-play" id="btn-submit" onclick="handleStartGame()">CRIAR SALA E JOGAR ▶</button>
     </div>
 
     <!-- HUD -->
@@ -184,14 +193,13 @@
       const img = new Image(); img.src = url; return img;
     });
 
-    // --- SISTEMA DE ÁUDIO WEB SYNTHWAVE / RETRO (SEM DIREITOS AUTORAIS) ---
+    // --- SISTEMA DE ÁUDIO WEB SYNTHWAVE / RETRO ---
     class RetroAudio {
       constructor() {
         this.ctx = null;
         this.isPlaying = false;
         this.noteIndex = 0;
         this.timer = null;
-        // Melodia Synthwave Retro
         this.notes = [110, 130.81, 146.83, 164.81, 130.81, 110, 98, 110, 146.83, 164.81, 196, 164.81];
       }
       init() {
@@ -269,81 +277,115 @@
     };
 
     let selectedCharKey = 'dr_chacara';
-    let currentAuthMode = 'login';
-    let myPlayerId = 'player_' + Math.random().toString(36).substr(2, 9);
+    let currentRoomMode = 'host';
+    let myRoomId = "chacara-" + Math.floor(1000 + Math.random() * 9000);
     let username = "";
     let currentStage = 1;
     let score = 0;
 
-    // JOGADOR LOCAL
+    // JOGADOR LOCAL E CONEXÕES P2P
+    let peer = null;
+    let connections = {}; // Armazena conexões ativas
+    let otherPlayers = {};
+
     const localPlayer = {
-      id: myPlayerId, x: 80, y: 100, width: 38, height: 75,
+      id: '', x: 80, y: 100, width: 38, height: 75,
       vx: 0, vy: 0, speed: 6, grounded: false, facing: 'right',
       attacking: false, lives: 3, charKey: 'dr_chacara', name: ''
     };
 
-    // INIMIGOS E DEMAIS JOGADORES (Sincronização via BroadcastChannel)
     let enemies = [];
-    let otherPlayers = {};
 
-    // SISTEMA DE REDE/SINCRONIZAÇÃO SEM SERVIDOR (BroadcastChannel)
-    const gameChannel = new BroadcastChannel('doutorchacara_multiplayer');
+    // INICIALIZAÇÃO DO PEERJS
+    window.addEventListener('load', () => {
+      document.getElementById("room-id-display").innerText = myRoomId;
+    });
 
-    gameChannel.onmessage = (e) => {
-      const data = e.data;
-      if(data.type === 'state' && data.id !== myPlayerId) {
-        otherPlayers[data.id] = data;
-      } else if(data.type === 'logout' && data.id) {
-        delete otherPlayers[data.id];
-      }
-    };
+    function initPeer(customId = null) {
+      peer = customId ? new Peer(customId) : new Peer();
 
-    function broadcastState() {
-      gameChannel.postMessage({
-        type: 'state', id: myPlayerId, name: username,
-        charKey: selectedCharKey, x: localPlayer.x, y: localPlayer.y,
-        facing: localPlayer.facing, attacking: localPlayer.attacking
+      peer.on('open', (id) => {
+        localPlayer.id = id;
+        if(currentRoomMode === 'host') {
+          myRoomId = id;
+          document.getElementById("room-id-display").innerText = id;
+        }
+      });
+
+      peer.on('connection', (conn) => {
+        setupConnection(conn);
+      });
+
+      peer.on('error', (err) => {
+        console.error(err);
+        document.getElementById("auth-alert").innerText = "Erro na conexão P2P. Tente outro código.";
       });
     }
 
-    // --- AUTENTICAÇÃO E LOGIN ---
-    function switchAuthMode(mode) {
-      currentAuthMode = mode;
-      document.getElementById("tab-login").classList.toggle("active", mode === 'login');
-      document.getElementById("tab-register").classList.toggle("active", mode === 'register');
-      document.getElementById("btn-submit").innerText = mode === 'login' ? "ENTRAR E JOGAR ▶" : "CADASTRAR E JOGAR ▶";
+    function setupConnection(conn) {
+      conn.on('open', () => {
+        connections[conn.peer] = conn;
+      });
+
+      conn.on('data', (data) => {
+        if(data.type === 'state') {
+          otherPlayers[data.id] = data;
+        }
+      });
+
+      conn.on('close', () => {
+        delete connections[conn.peer];
+        delete otherPlayers[conn.peer];
+      });
+    }
+
+    function broadcastState() {
+      const stateData = {
+        type: 'state', id: localPlayer.id, name: username,
+        charKey: selectedCharKey, x: localPlayer.x, y: localPlayer.y,
+        facing: localPlayer.facing, attacking: localPlayer.attacking
+      };
+
+      Object.values(connections).forEach(conn => {
+        if(conn.open) conn.send(stateData);
+      });
+    }
+
+    // --- GERENCIAMENTO DE INTERFACE E SALAS ---
+    function switchRoomMode(mode) {
+      currentRoomMode = mode;
+      document.getElementById("tab-host").classList.toggle("active", mode === 'host');
+      document.getElementById("tab-join").classList.toggle("active", mode === 'join');
+      document.getElementById("room-id-box").style.display = mode === 'host' ? 'block' : 'none';
+      document.getElementById("room-code").style.display = mode === 'join' ? 'block' : 'none';
+      document.getElementById("btn-submit").innerText = mode === 'host' ? "CRIAR SALA E JOGAR ▶" : "ENTRAR E JOGAR ▶";
       document.getElementById("auth-alert").innerText = "";
     }
 
-    function handleAuthSubmit() {
+    function handleStartGame() {
       const uInput = document.getElementById("auth-user").value.trim();
-      const pInput = document.getElementById("auth-pass").value.trim();
-      const alertBox = document.getElementById("auth-alert");
-
-      if(!uInput || !pInput) {
-        alertBox.innerText = "Preencha usuário e senha!";
+      if(!uInput) {
+        document.getElementById("auth-alert").innerText = "Por favor, informe seu nome!";
         return;
       }
-
-      let users = JSON.parse(localStorage.getItem("dc_users") || "{}");
-
-      if(currentAuthMode === 'register') {
-        if(users[uInput]) {
-          alertBox.innerText = "Usuário já existe! Faça Login.";
-          return;
-        }
-        users[uInput] = pInput;
-        localStorage.setItem("dc_users", JSON.stringify(users));
-      } else {
-        if(!users[uInput] || users[uInput] !== pInput) {
-          alertBox.innerText = "Usuário ou senha incorretos!";
-          return;
-        }
-      }
-
       username = uInput;
       localPlayer.name = username;
       localPlayer.charKey = selectedCharKey;
+
+      if(currentRoomMode === 'host') {
+        initPeer(myRoomId);
+      } else {
+        const targetRoomCode = document.getElementById("room-code").value.trim();
+        if(!targetRoomCode) {
+          document.getElementById("auth-alert").innerText = "Digite o código da sala para entrar!";
+          return;
+        }
+        initPeer();
+        setTimeout(() => {
+          const conn = peer.connect(targetRoomCode);
+          setupConnection(conn);
+        }, 1000);
+      }
 
       document.getElementById("auth-menu").style.display = "none";
       document.getElementById("hud-player").innerText = `Jogador: ${username}`;
@@ -440,12 +482,11 @@
     }
 
     function update() {
-      // Movimento do Jogador Local
       if(keys.left) { localPlayer.vx = -localPlayer.speed; localPlayer.facing = 'left'; }
       else if(keys.right) { localPlayer.vx = localPlayer.speed; localPlayer.facing = 'right'; }
       else { localPlayer.vx = 0; }
 
-      localPlayer.vy += 0.65; // Gravidade
+      localPlayer.vy += 0.65;
       localPlayer.x += localPlayer.vx;
       localPlayer.y += localPlayer.vy;
 
@@ -459,7 +500,6 @@
         localPlayer.grounded = true;
       }
 
-      // Movimento Inimigos
       enemies.forEach(enemy => {
         enemy.x += enemy.vx;
         if(enemy.x <= 50 || enemy.x + enemy.width >= canvas.width - 50) enemy.vx *= -1;
@@ -481,7 +521,6 @@
 
       if(enemies.length === 0) nextStage();
 
-      // Transmite posição para outras abas
       broadcastState();
     }
 
@@ -571,10 +610,8 @@
       drawBackground();
       update();
 
-      // Desenha o jogador Local
       drawCharacter(localPlayer, username, selectedCharKey);
 
-      // Desenha outros jogadores conectados na mesma rede/navegador
       Object.values(otherPlayers).forEach(op => {
         drawCharacter(op, op.name, op.charKey);
       });
@@ -590,10 +627,12 @@
         document.exitFullscreen().catch(()=>{});
       }
     }
-
-    window.addEventListener('beforeunload', () => {
-      gameChannel.postMessage({ type: 'logout', id: myPlayerId });
-    });
   </script>
 </body>
 </html>
+"""
+
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print("Arquivo index.html com PeerJS regerado com sucesso!")
