@@ -1,11 +1,10 @@
-<!DOCTYPE html>
+html_content = """<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Doutor Chácara Retro & Família - P2P Multiplayer</title>
-  <!-- PEERJS LIBRARY CORRIGIDA -->
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js" defer></script>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
     html, body {
@@ -13,14 +12,11 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       text-align: center; overflow: hidden; user-select: none;
     }
-    
     #game-container {
       position: relative; width: 100vw; height: 100vh;
       display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000;
     }
     #gameCanvas { background: #000; width: 100vw; height: 100vh; object-fit: fill; display: block; }
-
-    /* HUD NO JOGO */
     #hud {
       position: absolute; top: 15px; left: 20px; right: 20px;
       display: flex; justify-content: space-between; align-items: center;
@@ -28,29 +24,24 @@
       text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     }
     .hud-box { background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 12px; border: 1px solid #00ffcc; }
-
-    /* MENU LOGIN / SALAS E SELEÇÃO DE PERSONAGEM */
     #auth-menu {
       position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(10, 10, 18, 0.95); backdrop-filter: blur(10px);
       z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 12px; color: #fff; padding: 20px; overflow-y: auto;
+      gap: 10px; color: #fff; padding: 20px; overflow-y: auto;
     }
-
     #auth-menu h1 { color: #00ffcc; font-size: 2rem; text-shadow: 0 0 12px #00ffcc; letter-spacing: 1px; }
     .form-group { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; }
     .form-group input {
-      padding: 12px; border-radius: 8px; border: 1px solid #00ffcc; background: rgba(0,0,0,0.7);
+      padding: 10px; border-radius: 8px; border: 1px solid #00ffcc; background: rgba(0,0,0,0.7);
       color: #fff; text-align: center; font-size: 1rem; outline: none;
     }
-
     .auth-toggle { display: flex; gap: 10px; margin-bottom: 5px; }
     .btn-tab {
       background: transparent; color: #888; border: none; font-size: 0.95rem; font-weight: bold;
       cursor: pointer; padding: 5px 12px; border-bottom: 2px solid transparent;
     }
     .btn-tab.active { color: #00ffcc; border-bottom: 2px solid #00ffcc; }
-
     .char-select-grid {
       display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 480px; margin-top: 5px;
     }
@@ -61,16 +52,12 @@
     .char-card:hover { transform: translateY(-3px); border-color: rgba(0,255,204,0.5); }
     .char-card.selected { border-color: #00ffcc; background: rgba(0, 255, 204, 0.2); transform: scale(1.05); }
     .char-card div.avatar { width: 38px; height: 44px; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
-
     .btn-play {
       background: #00ffcc; color: #000; font-size: 1.1rem; font-weight: bold;
-      padding: 14px 35px; border-radius: 25px; border: none; cursor: pointer;
-      box-shadow: 0 0 15px rgba(0,255,204,0.4); margin-top: 10px; width: 100%; max-width: 320px;
-      transition: all 0.2s;
+      padding: 12px 35px; border-radius: 25px; border: none; cursor: pointer;
+      box-shadow: 0 0 15px rgba(0,255,204,0.4); margin-top: 10px; width: 100%; max-width: 320px; transition: all 0.2s;
     }
     .btn-play:hover { background: #00cca3; transform: scale(1.02); }
-
-    /* BARRA INFERIOR DE UTILITÁRIOS E ÁUDIO */
     .bottom-bar {
       position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
       display: flex; gap: 10px; background: rgba(10, 10, 18, 0.6);
@@ -82,8 +69,6 @@
       padding: 6px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; cursor: pointer;
     }
     .btn-tool:hover { background: rgba(0, 255, 204, 0.2); }
-
-    /* CONTROLES VIRTUAIS EXCLUSIVOS PARA CELULAR */
     .touch-controls {
       position: absolute; bottom: 65px; left: 0; width: 100%;
       display: flex; justify-content: space-between; align-items: flex-end;
@@ -100,8 +85,7 @@
     .action-buttons { display: flex; gap: 15px; pointer-events: auto; }
     .btn-jump { background: rgba(0, 136, 255, 0.5); border-color: #0088ff; }
     .btn-attack { background: rgba(255, 0, 85, 0.5); border-color: #ff0055; }
-
-    #auth-alert { color: #ff4d6d; font-size: 0.85rem; height: 18px; font-weight: bold; }
+    #auth-alert { color: #ff4d6d; font-size: 0.85rem; min-height: 18px; font-weight: bold; }
     #room-id-display {
       background: rgba(0, 255, 204, 0.15); border: 1px dashed #00ffcc; color: #00ffcc;
       padding: 6px 12px; border-radius: 8px; font-family: monospace; font-size: 0.95rem; user-select: text;
@@ -109,11 +93,10 @@
   </style>
 </head>
 <body>
-
   <div id="game-container">
     <div id="auth-menu">
       <h1>DOUTOR CHÁCARA RETRO</h1>
-      <p style="color:#aaa; font-size:0.85rem;">Multiplayer Real PeerJS (Sem Servidor Pago)</p>
+      <p style="color:#aaa; font-size:0.85rem;">Multiplayer Real PeerJS (Com Servidores STUN)</p>
       
       <div class="auth-toggle">
         <button class="btn-tab active" id="tab-host" onclick="switchRoomMode('host')">Criar Sala</button>
@@ -122,12 +105,13 @@
 
       <div class="form-group">
         <input type="text" id="auth-user" placeholder="Seu Nome / Apelido" maxlength="14" value="Jogador">
-        <input type="text" id="room-code" placeholder="Código da Sala (ex: 1234)" style="display:none;" maxlength="10">
+        <input type="password" id="auth-pass" placeholder="Sua Senha de Acesso" maxlength="20">
+        <input type="text" id="room-code" placeholder="Código da Sala (Ex: chacara-1234)" style="display:none;" maxlength="40">
       </div>
 
       <div id="room-id-box" style="display:block;">
-        <span style="font-size:0.8rem; color:#aaa;">Código da sua Sala:</span>
-        <div id="room-id-display">Gerando...</div>
+        <span style="font-size:0.8rem; color:#aaa;">Código da sua Sala para convidar:</span>
+        <div id="room-id-display">Aguardando...</div>
       </div>
 
       <div id="auth-alert"></div>
@@ -175,91 +159,6 @@
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    const bgImageEven = new Image();
-    bgImageEven.src = "fundo.jpg.jpg";
-
-    const bgOddUrls = [
-      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80"
-    ];
-    const bgOddImages = bgOddUrls.map(url => {
-      const img = new Image(); img.src = url; return img;
-    });
-
-    class RetroAudio {
-      constructor() {
-        this.ctx = null;
-        this.isPlaying = false;
-        this.noteIndex = 0;
-        this.timer = null;
-        this.notes = [110, 130.81, 146.83, 164.81, 130.81, 110, 98, 110, 146.83, 164.81, 196, 164.81];
-      }
-      init() {
-        if(!this.ctx) {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          this.ctx = new AudioContext();
-        }
-      }
-      playSynthNote(freq) {
-        if(!this.ctx || !this.isPlaying) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-        gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.25);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.25);
-      }
-      startMusic() {
-        this.init();
-        if(this.ctx.state === 'suspended') this.ctx.resume();
-        this.isPlaying = true;
-        if(!this.timer) {
-          this.timer = setInterval(() => {
-            this.playSynthNote(this.notes[this.noteIndex]);
-            this.noteIndex = (this.noteIndex + 1) % this.notes.length;
-          }, 200);
-        }
-      }
-      stopMusic() {
-        this.isPlaying = false;
-        if(this.timer) { clearInterval(this.timer); this.timer = null; }
-      }
-      playHitSound() {
-        if(!this.ctx) return;
-        if(this.ctx.state === 'suspended') this.ctx.resume();
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(300, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.1);
-      }
-    }
-    const audio = new RetroAudio();
-    let musicEnabled = true;
-
-    function toggleMusic() {
-      musicEnabled = !musicEnabled;
-      const btn = document.getElementById("btn-music");
-      if(musicEnabled) {
-        btn.innerText = "🔊 Música: ON";
-        audio.startMusic();
-      } else {
-        btn.innerText = "🔇 Música: OFF";
-        audio.stopMusic();
-      }
-    }
-
     const CHARACTERS = {
       dr_chacara: { name: "Dr. Chácara", coatColor: "#ffffff", hatColor: "#c2b280", bootsColor: "#8b4513" },
       dona_chacara: { name: "Dona Chácara", coatColor: "#1b4965", hatColor: "#d8b4e2", bootsColor: "#a4133c" },
@@ -271,15 +170,14 @@
 
     let selectedCharKey = 'dr_chacara';
     let currentRoomMode = 'host';
-    let myRoomId = "chacara-" + Math.floor(1000 + Math.random() * 9000);
+    let myRoomId = "chacara-" + Math.floor(100000 + Math.random() * 900000);
     let username = "";
     let currentStage = 1;
     let score = 0;
-    let gameLoopRunning = false;
-
     let peer = null;
     let connections = {};
     let otherPlayers = {};
+    let lastNetworkSend = 0;
 
     const localPlayer = {
       id: '', x: 80, y: 100, width: 38, height: 75,
@@ -289,39 +187,74 @@
 
     let enemies = [];
 
-    window.addEventListener('load', () => {
+    // CONFIGURAÇÃO PEERJS COM SERVIDORES STUN PÚBLICOS
+    const peerConfig = {
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun2.l.google.com:19302' }
+        ]
+      }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("room-id-display").innerText = myRoomId;
+      renderCharSelection();
     });
 
-    function initPeer(customId = null) {
-      if (peer) peer.destroy();
-      peer = customId ? new Peer(customId) : new Peer();
-
-      peer.on('open', (id) => {
-        localPlayer.id = id;
-        if(currentRoomMode === 'host') {
-          myRoomId = id;
-          document.getElementById("room-id-display").innerText = id;
-        }
+    function renderCharSelection() {
+      const charGrid = document.getElementById("char-grid");
+      charGrid.innerHTML = "";
+      Object.keys(CHARACTERS).forEach(key => {
+        const c = CHARACTERS[key];
+        const card = document.createElement("div");
+        card.className = `char-card ${key === selectedCharKey ? 'selected' : ''}`;
+        card.onclick = () => {
+          document.querySelectorAll('.char-card').forEach(el => el.classList.remove('selected'));
+          card.classList.add('selected');
+          selectedCharKey = key;
+        };
+        card.innerHTML = `
+          <div class="avatar" style="background:${c.coatColor}; border:3px solid ${c.hatColor};"></div>
+          <span style="font-size:0.75rem; font-weight:bold;">${c.name}</span>
+        `;
+        charGrid.appendChild(card);
       });
+    }
 
-      peer.on('connection', (conn) => {
-        setupConnection(conn);
-      });
+    function initPeer(customId) {
+      return new Promise((resolve, reject) => {
+        if(peer) peer.destroy();
+        peer = customId ? new Peer(customId, peerConfig) : new Peer(peerConfig);
 
-      peer.on('error', (err) => {
-        console.error(err);
-        document.getElementById("auth-alert").innerText = "Erro na conexão P2P. Tente outro código.";
+        peer.on('open', (id) => {
+          localPlayer.id = id;
+          if(currentRoomMode === 'host') {
+            myRoomId = id;
+            document.getElementById("room-id-display").innerText = id;
+          }
+          resolve(id);
+        });
+
+        peer.on('connection', (conn) => setupConnection(conn));
+        
+        peer.on('error', (err) => {
+          console.error("PeerJS Error:", err);
+          document.getElementById("auth-alert").innerText = "Erro Conexão (" + err.type + ")";
+          reject(err);
+        });
       });
     }
 
     function setupConnection(conn) {
       conn.on('open', () => {
         connections[conn.peer] = conn;
+        broadcastState(true);
       });
 
       conn.on('data', (data) => {
-        if(data.type === 'state') {
+        if(data && data.type === 'state') {
           otherPlayers[data.id] = data;
         }
       });
@@ -330,9 +263,15 @@
         delete connections[conn.peer];
         delete otherPlayers[conn.peer];
       });
+
+      conn.on('error', (err) => console.error("Conn error:", err));
     }
 
-    function broadcastState() {
+    function broadcastState(force = false) {
+      const now = Date.now();
+      if(!force && now - lastNetworkSend < 40) return; // Cap de ~25fps para sinc P2P
+      lastNetworkSend = now;
+
       const stateData = {
         type: 'state', id: localPlayer.id, name: username,
         charKey: selectedCharKey, x: localPlayer.x, y: localPlayer.y,
@@ -340,7 +279,9 @@
       };
 
       Object.values(connections).forEach(conn => {
-        if(conn.open) conn.send(stateData);
+        if(conn && conn.open) {
+          try { conn.send(stateData); } catch(e) {}
+        }
       });
     }
 
@@ -354,69 +295,72 @@
       document.getElementById("auth-alert").innerText = "";
     }
 
-    function handleStartGame() {
+    async function handleStartGame() {
       const uInput = document.getElementById("auth-user").value.trim();
-      if(!uInput) {
-        document.getElementById("auth-alert").innerText = "Por favor, informe seu nome!";
-        return;
-      }
+      const pInput = document.getElementById("auth-pass").value.trim();
+      const btnSubmit = document.getElementById("btn-submit");
+
+      if(!uInput) { document.getElementById("auth-alert").innerText = "Informe seu apelido!"; return; }
+      if(!pInput) { document.getElementById("auth-alert").innerText = "Defina uma senha!"; return; }
+
       username = uInput;
       localPlayer.name = username;
       localPlayer.charKey = selectedCharKey;
 
-      if(currentRoomMode === 'host') {
-        initPeer(myRoomId);
-      } else {
-        const targetRoomCode = document.getElementById("room-code").value.trim();
-        if(!targetRoomCode) {
-          document.getElementById("auth-alert").innerText = "Digite o código da sala para entrar!";
-          return;
-        }
-        initPeer();
-        setTimeout(() => {
-          if (peer) {
-            const conn = peer.connect(targetRoomCode);
-            setupConnection(conn);
+      btnSubmit.disabled = true;
+      btnSubmit.innerText = "Conectando...";
+
+      try {
+        if(currentRoomMode === 'host') {
+          await initPeer(myRoomId);
+          enterGameUI();
+        } else {
+          const targetRoomCode = document.getElementById("room-code").value.trim();
+          if(!targetRoomCode) {
+            document.getElementById("auth-alert").innerText = "Digite o código da sala!";
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "ENTRAR E JOGAR ▶";
+            return;
           }
-        }, 1000);
-      }
 
-      document.getElementById("auth-menu").style.display = "none";
-      document.getElementById("hud-player").innerText = `Jogador: ${username}`;
+          await initPeer(null);
+          const conn = peer.connect(targetRoomCode, { reliable: true });
+          setupConnection(conn);
 
-      if(musicEnabled) audio.startMusic();
-      resetPlayer();
-      spawnEnemies();
-      
-      if(!gameLoopRunning) {
-        gameLoopRunning = true;
-        requestAnimationFrame(gameLoop);
+          let connected = false;
+          conn.on('open', () => {
+            connected = true;
+            enterGameUI();
+          });
+
+          setTimeout(() => {
+            if(!connected) {
+              document.getElementById("auth-alert").innerText = "Sala não encontrada ou inacessível.";
+              btnSubmit.disabled = false;
+              btnSubmit.innerText = "ENTRAR E JOGAR ▶";
+            }
+          }, 6000);
+        }
+      } catch(err) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = currentRoomMode === 'host' ? "CRIAR SALA E JOGAR ▶" : "ENTRAR E JOGAR ▶";
       }
     }
 
-    const charGrid = document.getElementById("char-grid");
-    Object.keys(CHARACTERS).forEach(key => {
-      const c = CHARACTERS[key];
-      const card = document.createElement("div");
-      card.className = `char-card ${key === selectedCharKey ? 'selected' : ''}`;
-      card.onclick = () => {
-        document.querySelectorAll('.char-card').forEach(el => el.classList.remove('selected'));
-        card.classList.add('selected');
-        selectedCharKey = key;
-      };
-      card.innerHTML = `
-        <div class="avatar" style="background:${c.coatColor}; border:3px solid ${c.hatColor};"></div>
-        <span style="font-size:0.75rem; font-weight:bold;">${c.name}</span>
-      `;
-      charGrid.appendChild(card);
-    });
+    function enterGameUI() {
+      document.getElementById("auth-menu").style.display = "none";
+      document.getElementById("hud-player").innerText = `Jogador: ${username}`;
+      resetPlayer();
+      spawnEnemies();
+      requestAnimationFrame(gameLoop);
+    }
 
     function spawnEnemies() {
       enemies = [];
-      const count = 3 + currentStage * 2;
+      const count = 2 + currentStage * 2;
       for(let i = 0; i < count; i++) {
         enemies.push({
-          x: 400 + Math.random() * (canvas.width - 500),
+          x: 350 + Math.random() * Math.max(100, canvas.width - 450),
           y: canvas.height - 110,
           width: 30, height: 30,
           vx: (Math.random() > 0.5 ? 1 : -1) * (1.5 + currentStage * 0.3),
@@ -449,8 +393,8 @@
     function bindTouch(id, onPress, onRelease) {
       const el = document.getElementById(id);
       if(!el) return;
-      el.addEventListener("touchstart", (e) => { e.preventDefault(); onPress(); });
-      el.addEventListener("touchend", (e) => { e.preventDefault(); if(onRelease) onRelease(); });
+      el.addEventListener("touchstart", (e) => { e.preventDefault(); onPress(); }, {passive: false});
+      el.addEventListener("touchend", (e) => { e.preventDefault(); if(onRelease) onRelease(); }, {passive: false});
     }
 
     bindTouch("btn-left", () => keys.left = true, () => keys.left = false);
@@ -461,10 +405,7 @@
     function attack() {
       if(!localPlayer.attacking) {
         localPlayer.attacking = true;
-        audio.playHitSound();
-        
-        for(let idx = enemies.length - 1; idx >= 0; idx--) {
-          const enemy = enemies[idx];
+        enemies.forEach((enemy, idx) => {
           const attackRange = localPlayer.facing === 'right' ? 
             (enemy.x >= localPlayer.x && enemy.x <= localPlayer.x + localPlayer.width + 45) :
             (enemy.x + enemy.width >= localPlayer.x - 45 && enemy.x <= localPlayer.x);
@@ -474,8 +415,8 @@
             score += 100;
             document.getElementById("hud-score").innerText = `Pontos: ${score}`;
           }
-        }
-        setTimeout(() => localPlayer.attacking = false, 250);
+        });
+        setTimeout(() => localPlayer.attacking = false, 200);
       }
     }
 
@@ -507,7 +448,7 @@
           updateHudLives();
           resetPlayer();
           if(localPlayer.lives <= 0) {
-            alert("Game Over! Reiniciando...");
+            alert("Game Over!");
             localPlayer.lives = 3; score = 0; currentStage = 1;
             document.getElementById("hud-score").innerText = "Pontos: 0";
             document.getElementById("hud-stage").innerText = "Fase: 1";
@@ -517,7 +458,12 @@
         }
       });
 
-      if(enemies.length === 0) nextStage();
+      if(enemies.length === 0) {
+        currentStage++;
+        document.getElementById("hud-stage").innerText = `Fase: ${currentStage}`;
+        resetPlayer();
+        spawnEnemies();
+      }
 
       broadcastState();
     }
@@ -528,29 +474,8 @@
       document.getElementById("hud-lives").innerText = `Vidas: ${hearts}`;
     }
 
-    function nextStage() {
-      currentStage++;
-      document.getElementById("hud-stage").innerText = `Fase: ${currentStage}`;
-      resetPlayer();
-      spawnEnemies();
-    }
-
     function drawBackground() {
-      if (currentStage % 2 === 0) {
-        if(bgImageEven.complete && bgImageEven.naturalWidth !== 0) {
-          ctx.drawImage(bgImageEven, 0, 0, canvas.width, canvas.height);
-        } else {
-          ctx.fillStyle = "#1b2a4a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-      } else {
-        const bgImg = bgOddImages[(currentStage - 1) % bgOddImages.length];
-        if (bgImg.complete && bgImg.naturalWidth !== 0) {
-          ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-        } else {
-          ctx.fillStyle = "#0f172a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-      }
-
+      ctx.fillStyle = "#0f172a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#2d6a4f"; ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
       ctx.fillStyle = "#52b788"; ctx.fillRect(0, canvas.height - 80, canvas.width, 10);
     }
@@ -587,7 +512,7 @@
       ctx.fillStyle = "#00ffcc";
       ctx.font = "bold 12px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(name || "Jogador", p.x + p.width/2, p.y - 10);
+      ctx.fillText(name || '', p.x + p.width/2, p.y - 10);
     }
 
     function drawEnemies() {
@@ -604,10 +529,8 @@
 
     function gameLoop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
       drawBackground();
       update();
-
       drawCharacter(localPlayer, username, selectedCharKey);
 
       Object.values(otherPlayers).forEach(op => {
@@ -618,6 +541,7 @@
       requestAnimationFrame(gameLoop);
     }
 
+    function toggleMusic() {}
     function toggleFullScreen() {
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(()=>{});
@@ -628,3 +552,9 @@
   </script>
 </body>
 </html>
+"""
+
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print("Arquivo index.html gerado com correções definitivas de P2P e STUN!")
