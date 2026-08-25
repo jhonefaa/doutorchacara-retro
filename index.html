@@ -5,7 +5,7 @@ html_content = """<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Doutor Chácara Retro & Família - P2P Multiplayer</title>
   <!-- PEERJS LIBRARY -->
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.min.js" defer></script>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js" defer></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
     html, body {
@@ -34,13 +34,13 @@ html_content = """<!DOCTYPE html>
       position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(10, 10, 18, 0.95); backdrop-filter: blur(10px);
       z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 12px; color: #fff; padding: 20px; overflow-y: auto;
+      gap: 10px; color: #fff; padding: 20px; overflow-y: auto;
     }
 
     #auth-menu h1 { color: #00ffcc; font-size: 2rem; text-shadow: 0 0 12px #00ffcc; letter-spacing: 1px; }
     .form-group { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; }
     .form-group input {
-      padding: 12px; border-radius: 8px; border: 1px solid #00ffcc; background: rgba(0,0,0,0.7);
+      padding: 10px; border-radius: 8px; border: 1px solid #00ffcc; background: rgba(0,0,0,0.7);
       color: #fff; text-align: center; font-size: 1rem; outline: none;
     }
 
@@ -64,7 +64,7 @@ html_content = """<!DOCTYPE html>
 
     .btn-play {
       background: #00ffcc; color: #000; font-size: 1.1rem; font-weight: bold;
-      padding: 14px 35px; border-radius: 25px; border: none; cursor: pointer;
+      padding: 12px 35px; border-radius: 25px; border: none; cursor: pointer;
       box-shadow: 0 0 15px rgba(0,255,204,0.4); margin-top: 10px; width: 100%; max-width: 320px;
       transition: all 0.2s;
     }
@@ -123,11 +123,12 @@ html_content = """<!DOCTYPE html>
 
       <div class="form-group">
         <input type="text" id="auth-user" placeholder="Seu Nome / Apelido" maxlength="14" value="Jogador">
-        <input type="text" id="room-code" placeholder="Código da Sala (ex: 1234)" style="display:none;" maxlength="10">
+        <input type="password" id="auth-pass" placeholder="Sua Senha de Acesso" maxlength="20">
+        <input type="text" id="room-code" placeholder="Código da Sala (Ex: chacara-1234)" style="display:none;" maxlength="30">
       </div>
 
       <div id="room-id-box" style="display:block;">
-        <span style="font-size:0.8rem; color:#aaa;">Código da sua Sala:</span>
+        <span style="font-size:0.8rem; color:#aaa;">Código da sua Sala para convidar:</span>
         <div id="room-id-display">Gerando...</div>
       </div>
 
@@ -280,6 +281,7 @@ html_content = """<!DOCTYPE html>
     let currentRoomMode = 'host';
     let myRoomId = "chacara-" + Math.floor(1000 + Math.random() * 9000);
     let username = "";
+    let password = "";
     let currentStage = 1;
     let score = 0;
 
@@ -301,7 +303,9 @@ html_content = """<!DOCTYPE html>
       document.getElementById("room-id-display").innerText = myRoomId;
     });
 
-    function initPeer(customId = null) {
+    function initPeer(customId, callback) {
+      if(peer) peer.destroy();
+      
       peer = customId ? new Peer(customId) : new Peer();
 
       peer.on('open', (id) => {
@@ -310,6 +314,7 @@ html_content = """<!DOCTYPE html>
           myRoomId = id;
           document.getElementById("room-id-display").innerText = id;
         }
+        if(callback) callback();
       });
 
       peer.on('connection', (conn) => {
@@ -317,14 +322,16 @@ html_content = """<!DOCTYPE html>
       });
 
       peer.on('error', (err) => {
-        console.error(err);
-        document.getElementById("auth-alert").innerText = "Erro na conexão P2P. Tente outro código.";
+        console.error("Erro PeerJS:", err);
+        document.getElementById("auth-alert").innerText = "Erro no PeerJS: " + err.type;
       });
     }
 
     function setupConnection(conn) {
       conn.on('open', () => {
         connections[conn.peer] = conn;
+        // Envia o estado inicial assim que a conexão abre
+        broadcastState();
       });
 
       conn.on('data', (data) => {
@@ -364,29 +371,61 @@ html_content = """<!DOCTYPE html>
 
     function handleStartGame() {
       const uInput = document.getElementById("auth-user").value.trim();
+      const pInput = document.getElementById("auth-pass").value.trim();
+
       if(!uInput) {
-        document.getElementById("auth-alert").innerText = "Por favor, informe seu nome!";
+        document.getElementById("auth-alert").innerText = "Por favor, informe seu nome/apelido!";
         return;
       }
+      if(!pInput) {
+        document.getElementById("auth-alert").innerText = "Por favor, defina uma senha!";
+        return;
+      }
+
       username = uInput;
+      password = pInput;
       localPlayer.name = username;
       localPlayer.charKey = selectedCharKey;
 
+      const btnSubmit = document.getElementById("btn-submit");
+      btnSubmit.disabled = true;
+      btnSubmit.innerText = "Conectando ao PeerJS...";
+
       if(currentRoomMode === 'host') {
-        initPeer(myRoomId);
+        initPeer(myRoomId, () => {
+          enterGameUI();
+        });
       } else {
         const targetRoomCode = document.getElementById("room-code").value.trim();
         if(!targetRoomCode) {
           document.getElementById("auth-alert").innerText = "Digite o código da sala para entrar!";
+          btnSubmit.disabled = false;
+          btnSubmit.innerText = "ENTRAR E JOGAR ▶";
           return;
         }
-        initPeer();
-        setTimeout(() => {
+
+        initPeer(null, () => {
           const conn = peer.connect(targetRoomCode);
           setupConnection(conn);
-        }, 1000);
-      }
+          
+          // Espera a conexão se consolidar antes de iniciar a UI
+          conn.on('open', () => {
+            enterGameUI();
+          });
 
+          // Timeout de segurança caso o código da sala não exista
+          setTimeout(() => {
+            if(!connections[targetRoomCode] && document.getElementById("auth-menu").style.display !== "none") {
+              document.getElementById("auth-alert").innerText = "Não foi possível conectar à sala fornecida.";
+              btnSubmit.disabled = false;
+              btnSubmit.innerText = "ENTRAR E JOGAR ▶";
+            }
+          }, 4000);
+        });
+      }
+    }
+
+    function enterGameUI() {
       document.getElementById("auth-menu").style.display = "none";
       document.getElementById("hud-player").innerText = `Jogador: ${username}`;
 
@@ -635,4 +674,4 @@ html_content = """<!DOCTYPE html>
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_content)
 
-print("Arquivo index.html com PeerJS regerado com sucesso!")
+print("Arquivo index.html regerado com correções ativas!")
