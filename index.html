@@ -1,10 +1,10 @@
-html_content = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Doutor Chácara Retro & Família - P2P Multiplayer</title>
-  <!-- PEERJS LIBRARY -->
+  <!-- PEERJS LIBRARY CORRIGIDA -->
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js" defer></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
@@ -34,13 +34,13 @@ html_content = """<!DOCTYPE html>
       position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(10, 10, 18, 0.95); backdrop-filter: blur(10px);
       z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 10px; color: #fff; padding: 20px; overflow-y: auto;
+      gap: 12px; color: #fff; padding: 20px; overflow-y: auto;
     }
 
     #auth-menu h1 { color: #00ffcc; font-size: 2rem; text-shadow: 0 0 12px #00ffcc; letter-spacing: 1px; }
     .form-group { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; }
     .form-group input {
-      padding: 10px; border-radius: 8px; border: 1px solid #00ffcc; background: rgba(0,0,0,0.7);
+      padding: 12px; border-radius: 8px; border: 1px solid #00ffcc; background: rgba(0,0,0,0.7);
       color: #fff; text-align: center; font-size: 1rem; outline: none;
     }
 
@@ -64,7 +64,7 @@ html_content = """<!DOCTYPE html>
 
     .btn-play {
       background: #00ffcc; color: #000; font-size: 1.1rem; font-weight: bold;
-      padding: 12px 35px; border-radius: 25px; border: none; cursor: pointer;
+      padding: 14px 35px; border-radius: 25px; border: none; cursor: pointer;
       box-shadow: 0 0 15px rgba(0,255,204,0.4); margin-top: 10px; width: 100%; max-width: 320px;
       transition: all 0.2s;
     }
@@ -111,7 +111,6 @@ html_content = """<!DOCTYPE html>
 <body>
 
   <div id="game-container">
-    <!-- MENU DE LOGIN / SALAS P2P E SELEÇÃO DE PERSONAGENS -->
     <div id="auth-menu">
       <h1>DOUTOR CHÁCARA RETRO</h1>
       <p style="color:#aaa; font-size:0.85rem;">Multiplayer Real PeerJS (Sem Servidor Pago)</p>
@@ -123,12 +122,11 @@ html_content = """<!DOCTYPE html>
 
       <div class="form-group">
         <input type="text" id="auth-user" placeholder="Seu Nome / Apelido" maxlength="14" value="Jogador">
-        <input type="password" id="auth-pass" placeholder="Sua Senha de Acesso" maxlength="20">
-        <input type="text" id="room-code" placeholder="Código da Sala (Ex: chacara-1234)" style="display:none;" maxlength="30">
+        <input type="text" id="room-code" placeholder="Código da Sala (ex: 1234)" style="display:none;" maxlength="10">
       </div>
 
       <div id="room-id-box" style="display:block;">
-        <span style="font-size:0.8rem; color:#aaa;">Código da sua Sala para convidar:</span>
+        <span style="font-size:0.8rem; color:#aaa;">Código da sua Sala:</span>
         <div id="room-id-display">Gerando...</div>
       </div>
 
@@ -140,7 +138,6 @@ html_content = """<!DOCTYPE html>
       <button class="btn-play" id="btn-submit" onclick="handleStartGame()">CRIAR SALA E JOGAR ▶</button>
     </div>
 
-    <!-- HUD -->
     <div id="hud">
       <div class="hud-box" id="hud-player">Jogador: --</div>
       <div class="hud-box" id="hud-score">Pontos: 0</div>
@@ -150,13 +147,11 @@ html_content = """<!DOCTYPE html>
 
     <canvas id="gameCanvas"></canvas>
 
-    <!-- BARRA DE UTILITÁRIOS (MÚSICA E TELA CHEIA) -->
     <div class="bottom-bar">
       <button class="btn-tool" id="btn-music" onclick="toggleMusic()">🔊 Música: ON</button>
       <button class="btn-tool" onclick="toggleFullScreen()">⛶ Tela Cheia</button>
     </div>
 
-    <!-- CONTROLES VIRTUAIS PARA CELULAR/TOUCH -->
     <div class="touch-controls">
       <div class="d-pad">
         <div class="btn-touch" id="btn-left">◀</div>
@@ -170,7 +165,6 @@ html_content = """<!DOCTYPE html>
   </div>
 
   <script>
-    // --- GERENCIADOR DE CANVAS E TELA ---
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
@@ -181,7 +175,6 @@ html_content = """<!DOCTYPE html>
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    // --- IMAGENS DE FUNDO ---
     const bgImageEven = new Image();
     bgImageEven.src = "fundo.jpg.jpg";
 
@@ -194,7 +187,6 @@ html_content = """<!DOCTYPE html>
       const img = new Image(); img.src = url; return img;
     });
 
-    // --- SISTEMA DE ÁUDIO WEB SYNTHWAVE / RETRO ---
     class RetroAudio {
       constructor() {
         this.ctx = null;
@@ -239,6 +231,7 @@ html_content = """<!DOCTYPE html>
       }
       playHitSound() {
         if(!this.ctx) return;
+        if(this.ctx.state === 'suspended') this.ctx.resume();
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'square';
@@ -267,7 +260,6 @@ html_content = """<!DOCTYPE html>
       }
     }
 
-    // --- PERSONAGENS ---
     const CHARACTERS = {
       dr_chacara: { name: "Dr. Chácara", coatColor: "#ffffff", hatColor: "#c2b280", bootsColor: "#8b4513" },
       dona_chacara: { name: "Dona Chácara", coatColor: "#1b4965", hatColor: "#d8b4e2", bootsColor: "#a4133c" },
@@ -281,13 +273,12 @@ html_content = """<!DOCTYPE html>
     let currentRoomMode = 'host';
     let myRoomId = "chacara-" + Math.floor(1000 + Math.random() * 9000);
     let username = "";
-    let password = "";
     let currentStage = 1;
     let score = 0;
+    let gameLoopRunning = false;
 
-    // JOGADOR LOCAL E CONEXÕES P2P
     let peer = null;
-    let connections = {}; // Armazena conexões ativas
+    let connections = {};
     let otherPlayers = {};
 
     const localPlayer = {
@@ -298,14 +289,12 @@ html_content = """<!DOCTYPE html>
 
     let enemies = [];
 
-    // INICIALIZAÇÃO DO PEERJS
     window.addEventListener('load', () => {
       document.getElementById("room-id-display").innerText = myRoomId;
     });
 
-    function initPeer(customId, callback) {
-      if(peer) peer.destroy();
-      
+    function initPeer(customId = null) {
+      if (peer) peer.destroy();
       peer = customId ? new Peer(customId) : new Peer();
 
       peer.on('open', (id) => {
@@ -314,7 +303,6 @@ html_content = """<!DOCTYPE html>
           myRoomId = id;
           document.getElementById("room-id-display").innerText = id;
         }
-        if(callback) callback();
       });
 
       peer.on('connection', (conn) => {
@@ -322,16 +310,14 @@ html_content = """<!DOCTYPE html>
       });
 
       peer.on('error', (err) => {
-        console.error("Erro PeerJS:", err);
-        document.getElementById("auth-alert").innerText = "Erro no PeerJS: " + err.type;
+        console.error(err);
+        document.getElementById("auth-alert").innerText = "Erro na conexão P2P. Tente outro código.";
       });
     }
 
     function setupConnection(conn) {
       conn.on('open', () => {
         connections[conn.peer] = conn;
-        // Envia o estado inicial assim que a conexão abre
-        broadcastState();
       });
 
       conn.on('data', (data) => {
@@ -358,7 +344,6 @@ html_content = """<!DOCTYPE html>
       });
     }
 
-    // --- GERENCIAMENTO DE INTERFACE E SALAS ---
     function switchRoomMode(mode) {
       currentRoomMode = mode;
       document.getElementById("tab-host").classList.toggle("active", mode === 'host');
@@ -371,71 +356,44 @@ html_content = """<!DOCTYPE html>
 
     function handleStartGame() {
       const uInput = document.getElementById("auth-user").value.trim();
-      const pInput = document.getElementById("auth-pass").value.trim();
-
       if(!uInput) {
-        document.getElementById("auth-alert").innerText = "Por favor, informe seu nome/apelido!";
+        document.getElementById("auth-alert").innerText = "Por favor, informe seu nome!";
         return;
       }
-      if(!pInput) {
-        document.getElementById("auth-alert").innerText = "Por favor, defina uma senha!";
-        return;
-      }
-
       username = uInput;
-      password = pInput;
       localPlayer.name = username;
       localPlayer.charKey = selectedCharKey;
 
-      const btnSubmit = document.getElementById("btn-submit");
-      btnSubmit.disabled = true;
-      btnSubmit.innerText = "Conectando ao PeerJS...";
-
       if(currentRoomMode === 'host') {
-        initPeer(myRoomId, () => {
-          enterGameUI();
-        });
+        initPeer(myRoomId);
       } else {
         const targetRoomCode = document.getElementById("room-code").value.trim();
         if(!targetRoomCode) {
           document.getElementById("auth-alert").innerText = "Digite o código da sala para entrar!";
-          btnSubmit.disabled = false;
-          btnSubmit.innerText = "ENTRAR E JOGAR ▶";
           return;
         }
-
-        initPeer(null, () => {
-          const conn = peer.connect(targetRoomCode);
-          setupConnection(conn);
-          
-          // Espera a conexão se consolidar antes de iniciar a UI
-          conn.on('open', () => {
-            enterGameUI();
-          });
-
-          // Timeout de segurança caso o código da sala não exista
-          setTimeout(() => {
-            if(!connections[targetRoomCode] && document.getElementById("auth-menu").style.display !== "none") {
-              document.getElementById("auth-alert").innerText = "Não foi possível conectar à sala fornecida.";
-              btnSubmit.disabled = false;
-              btnSubmit.innerText = "ENTRAR E JOGAR ▶";
-            }
-          }, 4000);
-        });
+        initPeer();
+        setTimeout(() => {
+          if (peer) {
+            const conn = peer.connect(targetRoomCode);
+            setupConnection(conn);
+          }
+        }, 1000);
       }
-    }
 
-    function enterGameUI() {
       document.getElementById("auth-menu").style.display = "none";
       document.getElementById("hud-player").innerText = `Jogador: ${username}`;
 
       if(musicEnabled) audio.startMusic();
       resetPlayer();
       spawnEnemies();
-      requestAnimationFrame(gameLoop);
+      
+      if(!gameLoopRunning) {
+        gameLoopRunning = true;
+        requestAnimationFrame(gameLoop);
+      }
     }
 
-    // MONTA SELEÇÃO DE PERSONAGENS
     const charGrid = document.getElementById("char-grid");
     Object.keys(CHARACTERS).forEach(key => {
       const c = CHARACTERS[key];
@@ -473,7 +431,6 @@ html_content = """<!DOCTYPE html>
       localPlayer.vx = 0; localPlayer.vy = 0;
     }
 
-    // CONTROLES DE TECLADO
     const keys = { left: false, right: false };
     window.addEventListener("keydown", e => {
       if(e.code === "ArrowLeft" || e.code === "KeyA") keys.left = true;
@@ -489,9 +446,9 @@ html_content = """<!DOCTYPE html>
       if(e.code === "ArrowRight" || e.code === "KeyD") keys.right = false;
     });
 
-    // CONTROLES TOUCH / VIRTUAL PARA CELULAR
     function bindTouch(id, onPress, onRelease) {
       const el = document.getElementById(id);
+      if(!el) return;
       el.addEventListener("touchstart", (e) => { e.preventDefault(); onPress(); });
       el.addEventListener("touchend", (e) => { e.preventDefault(); if(onRelease) onRelease(); });
     }
@@ -505,7 +462,9 @@ html_content = """<!DOCTYPE html>
       if(!localPlayer.attacking) {
         localPlayer.attacking = true;
         audio.playHitSound();
-        enemies.forEach((enemy, idx) => {
+        
+        for(let idx = enemies.length - 1; idx >= 0; idx--) {
+          const enemy = enemies[idx];
           const attackRange = localPlayer.facing === 'right' ? 
             (enemy.x >= localPlayer.x && enemy.x <= localPlayer.x + localPlayer.width + 45) :
             (enemy.x + enemy.width >= localPlayer.x - 45 && enemy.x <= localPlayer.x);
@@ -515,7 +474,7 @@ html_content = """<!DOCTYPE html>
             score += 100;
             document.getElementById("hud-score").innerText = `Pontos: ${score}`;
           }
-        });
+        }
         setTimeout(() => localPlayer.attacking = false, 250);
       }
     }
@@ -585,7 +544,7 @@ html_content = """<!DOCTYPE html>
         }
       } else {
         const bgImg = bgOddImages[(currentStage - 1) % bgOddImages.length];
-        if (bgImg.complete) {
+        if (bgImg.complete && bgImg.naturalWidth !== 0) {
           ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
         } else {
           ctx.fillStyle = "#0f172a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -628,7 +587,7 @@ html_content = """<!DOCTYPE html>
       ctx.fillStyle = "#00ffcc";
       ctx.font = "bold 12px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(name, p.x + p.width/2, p.y - 10);
+      ctx.fillText(name || "Jogador", p.x + p.width/2, p.y - 10);
     }
 
     function drawEnemies() {
@@ -669,9 +628,3 @@ html_content = """<!DOCTYPE html>
   </script>
 </body>
 </html>
-"""
-
-with open("index.html", "w", encoding="utf-8") as f:
-    f.write(html_content)
-
-print("Arquivo index.html regerado com correções ativas!")
